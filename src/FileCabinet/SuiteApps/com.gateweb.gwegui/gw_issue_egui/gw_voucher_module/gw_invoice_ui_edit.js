@@ -119,7 +119,8 @@ define([
   //取得稅別資料
   function getTaxInformation(netsuiteId) {
     return _taxObjAry.filter(function (_obj) {
-      return _obj.netsuite_id_value.toString() === netsuiteId.toString()
+		var _tax_code_value=_obj.netsuite_id_value  
+      return _tax_code_value.indexOf(netsuiteId) != -1
     })[0]
     // var _taxObj
     // try {
@@ -586,7 +587,7 @@ define([
     //發票使用區間
     var _row02_fieldgroupid = form.addFieldGroup({
       id: 'row02_fieldgroupid',
-      label: '手開發票開立條件'
+      label: '外部發票開立條件'
     })
     var _eguiFormatCode = form.addField({
       id: 'custpage_egui_format_code',
@@ -624,7 +625,7 @@ define([
     var _manual_voucher_number = form.addField({
       id: 'custpage_manual_voucher_number',
       type: serverWidget.FieldType.TEXT,
-      label: '手開發票號碼',
+      label: '外部發票號碼',
       container: 'row02_fieldgroupid'
     })
     ///////////////////////////////////////////////////////////////////////////////////
@@ -1177,9 +1178,12 @@ define([
       }
       log.debug('ns_item_name_field', _ns_item_name_field)
       var _item_displayname = _result.values[_ns_item_name_field] //SONY電視機
+      /**
       if (_ns_item_name_field == 'item.displayname') {
-        _item_displayname = _prodcut_text + _item_displayname
+    	  //公司項目編號不能顯示在電子發票
+          _item_displayname = _prodcut_text + _item_displayname           
       }
+      */
       //if (stringutility.trim(_memo) != '') _item_displayname = _memo
 
       var _item_taxItem_rate = _result.values['taxItem.rate'] //5.00%
@@ -1229,7 +1233,7 @@ define([
       }
       var _quantity = _result.values.quantity
       //20210909 walter 預設值設為1
-      if (_quantity.trim().length == 0) _quantity = '1'
+      if (_quantity.trim().length == 0 || _quantity == '0') _quantity = '1'
 
       //單位
       var _unitabbreviation = _result.values.unitabbreviation
@@ -1367,7 +1371,7 @@ define([
         sublist.setSublistValue({
           id: 'custpage_item_amount',
           line: row,
-          value: stringutility.trimOrAppendBlank(_amount)
+          value: stringutility.eToNumber(_amount)
         })
         sublist.setSublistValue({
           id: 'custpage_item_remark',
@@ -1472,12 +1476,16 @@ define([
     var _dept_codeField = form.getField({
       id: 'custpage_dept_code'
     })
-    _dept_codeField.defaultValue = _default_department_id
+    //_dept_codeField.defaultValue = _default_department_id
+    //NE-193 湧傑-發票開立不帶預設部門
+    _dept_codeField.defaultValue = ''
 
     var _classificationField = form.getField({
       id: 'custpage_classification'
     })
-    _classificationField.defaultValue = _selectClassification
+    //_classificationField.defaultValue = _selectClassification
+    //NE-193 湧傑-發票開立不帶預設部門
+    _classificationField.defaultValue = ''
 
     var _voucherExtraMemoField = form.getField({
       id: 'custpage_voucher_extra_memo'
@@ -1568,6 +1576,16 @@ define([
     })
     _custpage_tax_type.defaultValue = _ns_tax_type_code
     log.debug('ns_tax_type_code', _ns_tax_type_code)
+    
+    var _custpage_tax_rate = form.getField({
+      id: 'custpage_tax_rate'
+    })
+    if (_ns_tax_type_code=='1' || _ns_tax_type_code=='9'){
+    	_custpage_tax_rate.defaultValue = '5'
+    } else {
+    	_custpage_tax_rate.defaultValue = '0'
+    } 
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////
     //處理總計計部分-START
     var _sales_amount_field = form.getField({
@@ -2193,9 +2211,11 @@ define([
       }
       log.debug('ns_item_name_field', _ns_item_name_field)
       var _item_displayname = _result.values[_ns_item_name_field] //SONY電視機
+      /**
       if (_ns_item_name_field == 'item.displayname') {
         _item_displayname = _prodcut_text + _item_displayname
       }
+      */
       //if (stringutility.trim(_memo) != '') _item_displayname = _memo
 
       var _item_taxItem_rate = _result.values['taxItem.rate'] //5.00%
@@ -2243,7 +2263,7 @@ define([
 
       var _quantity = _result.values.quantity
       //20210909 walter 預設值設為1
-      if (_quantity.trim().length == 0) _quantity = '1'
+      if (_quantity.trim().length == 0 || _quantity == '0') _quantity = '1'
       //單位
       var _unitabbreviation = _result.values.unitabbreviation
 
@@ -2359,7 +2379,7 @@ define([
         sublist.setSublistValue({
           id: 'custpage_item_amount',
           line: row,
-          value: stringutility.trimOrAppendBlank(_amount)
+          value: stringutility.eToNumber(_amount)
         })
 
         sublist.setSublistValue({
@@ -2446,11 +2466,15 @@ define([
     var _dept_codeField = form.getField({
       id: 'custpage_dept_code'
     })
-    _dept_codeField.defaultValue = _default_department_id
+    //_dept_codeField.defaultValue = _default_department_id
+    //NE-193 湧傑-發票開立不帶預設部門
+    _dept_codeField.defaultValue = ''
 
     var _classificationField = form.getField({
       id: 'custpage_classification'
     })
+    //_classificationField.defaultValue = _selectClassification
+    //NE-193 湧傑-發票開立不帶預設部門
     _classificationField.defaultValue = _selectClassification
     log.debug(
       '_customer_id',
@@ -2493,6 +2517,15 @@ define([
       id: 'custpage_tax_type'
     })
     _custpage_tax_type.defaultValue = _ns_tax_type_code
+    
+    var _custpage_tax_rate = form.getField({
+        id: 'custpage_tax_rate'
+    })      
+    if (_ns_tax_type_code=='1' || _ns_tax_type_code=='9'){
+    	_custpage_tax_rate.defaultValue = '5'
+    } else {
+    	_custpage_tax_rate.defaultValue = '0'
+    } 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     var _sales_amount_field = form.getField({
       id: 'custpage_sales_amount'

@@ -487,7 +487,7 @@ define([
       var _npo_ban = _current_record.getValue({
         fieldId: 'custpage_npo_ban'
       })
-      if (_mig_type === 'B2C') {
+      if (_mig_type === 'B2C' && _buyer_identifier =='0000000000') {
         if (
           _npo_ban.length != 0 &&
           (_npo_ban.length < 3 || _npo_ban.length > 7)
@@ -529,16 +529,16 @@ define([
         _errorMsg += '請選擇發票日期<br>'
       }
 
-      //8.檢查手開發票號碼
+      //8.檢查外部發票號碼
       var _manual_voucher_number = _current_record.getValue({
         fieldId: 'custpage_manual_voucher_number'
       })
       if (stringutility.trim(_manual_voucher_number) != '') {
         //檢查發票號碼格式
         if (validate.validateEGUINumber(_manual_voucher_number) == false) {
-          _errorMsg += '手開發票號碼格式錯誤<br>'
+          _errorMsg += '外部發票號碼格式錯誤<br>'
         } else {
-          //檢查手開發票
+          //檢查外部發票
           var _ban = _current_record.getValue({
             fieldId: 'custpage_company_ban'
           })
@@ -547,15 +547,30 @@ define([
             2,
             _manual_voucher_number.length
           )
-
+          
+          //外部發票格式代號 31-01
+          var _format_code ='35'
+          var _invoice_type = '07'
+	      var _egui_format_code = _current_record.getValue({
+	          fieldId: 'custpage_egui_format_code'
+	      })	       
+	      var _format_code_ary = _egui_format_code.split('-')
+	      _format_code = _format_code_ary[0]
+	      _invoice_type = _format_code_ary[1]
+          
+          var _year_month = dateutility.getTaxYearMonthByDateObj(_select_voucher_date) //10910
+          
           if (
-            invoiceutility.checkInvoiceNumberExistRange(
+            invoiceutility.checkInvoiceManualNumberExistRange(
               _ban,
+              _year_month,
               _track,
-              _inv_number
+              _inv_number,
+              _format_code,
+              _invoice_type
             ) == false
           ) {
-            _errorMsg += '手開發票字軌號碼區間錯誤<br>'
+            _errorMsg += '外部發票字軌號碼區間錯誤<br>'
           } else {
             if (
               invoiceutility.checkInvoiceNumberDuplicate(
@@ -563,7 +578,7 @@ define([
                 _manual_voucher_number
               ) == true
             ) {
-              _errorMsg += '手開發票號碼重覆<br>'
+              _errorMsg += '外部發票號碼重覆<br>'
             }
           }
         }
@@ -1088,6 +1103,19 @@ define([
 
   function successTask(reason) {
     if (reason == false) return
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+    //20220615	
+	if (checkInvoiceOrCreditMemoIsLock('customsearch_gw_invoice_detail_search', _invoice_hiddent_listid)==true ||
+	    checkInvoiceOrCreditMemoIsLock('customsearch_gw_creditmemo_detail_search', _creditmemo_hiddent_listid)==true){
+		
+		var _title = '憑證管理'
+        gwmessage.showErrorMessage(_title, '憑證已開立!!!')
+		return
+	}
+	//20220615 先Lock後面有錯再Unlock
+	lockOrUnlockRecord(_invoice_hiddent_listid,_creditmemo_hiddent_listid,true)
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //1.驗證資料
     document.getElementById('custpage_create_voucher_button').disabled = true
@@ -1099,6 +1127,9 @@ define([
       gwmessage.showErrorMessage(_title, _errorMsg)
       document.getElementById('custpage_forward_back_button').disabled = false
       document.getElementById('custpage_create_voucher_button').disabled = false
+	  
+	  //20220615 先Lock後面有錯再Unlock
+	  lockOrUnlockRecord(_invoice_hiddent_listid,_creditmemo_hiddent_listid,false)
       return
     }
 
@@ -1113,7 +1144,7 @@ define([
     var _select_voucher_date = _current_record.getValue({
       fieldId: 'custpage_select_voucher_date'
     })
-    //手開發票號碼
+    //外部發票號碼
     var _manual_voucher_number = _current_record.getValue({
       fieldId: 'custpage_manual_voucher_number'
     })
@@ -1130,7 +1161,7 @@ define([
       fieldId: 'custpage_allowance_log_type'
     })
     if (stringutility.trim(_manual_voucher_number) != '') {
-      _assignLogType = 'NONE' //手開發票不上傳
+      _assignLogType = 'NONE' //外部發票不上傳
     }
 
     //開立方式==>MERGE-INVOICE, MERGE-CREDITMEMO, MERGE-ALL(INVOICE+CREDITMEMO), SINGLE(各別開)
@@ -1382,7 +1413,12 @@ define([
         _message += _creditmemo_error_message
       }
       gwmessage.showErrorMessage(_title, _message)
+	  
+	  //20220615 先Lock後面有錯再Unlock
+	  lockOrUnlockRecord(_invoice_hiddent_listid,_creditmemo_hiddent_listid,false)
+	  
     } else {
+      //Save RefRecord
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //處理要開發票的部分(999筆1包)-START
       var _applyId = saveVoucherApplyListRecord(
@@ -1891,13 +1927,13 @@ define([
       fieldId: 'custpage_gw_customs_export_date'
     })
 
-    //手開發票號碼
+    //外部發票號碼
     var _manual_voucher_number = _current_record.getValue({
       fieldId: 'custpage_manual_voucher_number'
     })
 
     var _format_code = _invoceFormatCode //35
-    //手開發票格式代號 31-01
+    //外部發票格式代號 31-01
     var _egui_format_code = _current_record.getValue({
       fieldId: 'custpage_egui_format_code'
     })
@@ -2353,6 +2389,10 @@ define([
           var _title = '發票管理'
           var _message = '稅差超過(' + _tax_diff_balance + ')元 ,請重新調整!'
           gwmessage.showErrorMessage(_title, _message)
+		  
+		  //20220615 先Lock後面有錯再Unlock
+	      lockOrUnlockRecord(_invoice_hiddent_listid,_creditmemo_hiddent_listid,false)
+	  
           break
         }
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2362,7 +2402,19 @@ define([
         if (stringutility.trim(manual_voucher_number) != '') {
           _invoiceNumber = manual_voucher_number
         } else {
+          /**
           _invoiceNumber = invoiceutility.getAssignLogNumber(
+            _main.invoice_type,
+            _main.company_ban,
+            _main.dept_code,
+            _main.classification,
+            year_month,
+            assignLogType,
+            _documentDate
+          )
+          */
+          _invoiceNumber = invoiceutility.getAssignLogNumberAndCheckDuplicate(
+            -1,
             _main.invoice_type,
             _main.company_ban,
             _main.dept_code,
@@ -2382,8 +2434,18 @@ define([
           }
           
           gwmessage.showErrorMessage(_title, _message)
-
+		  
+		  //20220615 先Lock後面有錯再Unlock
+	      lockOrUnlockRecord(_invoice_hiddent_listid,_creditmemo_hiddent_listid,false)
           break
+        } else if (_invoiceNumber.length == 'BUSY') {  
+        	var _title   = '憑證管理'
+            var _message ='本期(' + year_month + ')字軌使用忙碌,請稍後再開立!'
+            gwmessage.showErrorMessage(_title, _message)
+      		  
+      		//20220615 先Lock後面有錯再Unlock
+      	    lockOrUnlockRecord(_invoice_hiddent_listid,_creditmemo_hiddent_listid,false)
+            break        	
         } else {
           _guiNumberAry.push(_invoiceNumber)
           ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2587,6 +2649,10 @@ define([
             fieldId: 'custrecord_gw_voucher_status',
             value: _status
           })
+          //非電子發票格式預設為=C
+          if (_main.egui_format_code !='35') {
+        	  _default_upload_status = 'C'
+          }
           _voucherMainRecord.setValue({
             fieldId: 'custrecord_gw_voucher_upload_status',
             value: _default_upload_status
@@ -2702,7 +2768,7 @@ define([
               _voucherMainRecord.setCurrentSublistValue({
                 sublistId: voucherDetailSublistId,
                 fieldId: 'custrecord_gw_item_amount',
-                value: stringutility.trim(_obj.item_amount)
+                value: stringutility.convertToFloat(_obj.item_amount)
               })
               //20201105 walter modify
               _voucherMainRecord.setCurrentSublistValue({
@@ -3141,6 +3207,10 @@ define([
 
         if (_error_message.length != 0) {
           gwmessage.showErrorMessage(_title, _error_message)
+		  
+		  //20220615 先Lock後面有錯再Unlock
+	      lockOrUnlockRecord(_invoice_hiddent_listid,_creditmemo_hiddent_listid,false)
+	  
           break
         } else {
           //1.取得折讓單號
@@ -3765,7 +3835,7 @@ define([
                 })
                 _voucherDetailRecord.setValue({
                   fieldId: 'custrecord_gw_item_amount',
-                  value: stringutility.trim(_obj.deduction_amount)
+                  value: stringutility.convertToFloat(_obj.deduction_amount)
                 })
                 //_voucherDetailRecord.setValue({fieldId:'custrecord_gw_dtl_item_tax_code',value:stringutility.trim(_obj.tax_code)});
                 _voucherDetailRecord.setValue({
@@ -4522,6 +4592,13 @@ define([
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     _filterArray.push('and')
     //_filterArray.push([['custrecord_gw_assignlog_status','is', '11'],'or',['custrecord_gw_assignlog_status','is', '12']]);
+    //20220216 不上傳時一樣抓11,12
+    _filterArray.push([
+        ['custrecord_gw_assignlog_status', search.Operator.IS, '11'],
+        'or',
+        ['custrecord_gw_assignlog_status', search.Operator.IS, '12']
+    ])
+    /**
     if (assignLogType !== 'NONE') {
       _filterArray.push([
         ['custrecord_gw_assignlog_status', search.Operator.IS, '11'],
@@ -4535,7 +4612,7 @@ define([
         ['custrecord_gw_assignlog_status', search.Operator.IS, '22']
       ])
     }
-
+    */
     _assignLogSearch.filterExpression = _filterArray
     //alert('GET assign log filterArray: ' + JSON.stringify(_filterArray));
     var _totalCount = 0
@@ -4574,75 +4651,6 @@ define([
       return true
     })
     if (_totalCount >= parseInt(requireCount) && _noCount != 0) _ok = true
-
-    return _ok
-  }
-
-  function checkAssignLogUseCount_BAK(
-    invoice_type,
-    ban,
-    dept_code,
-    classification,
-    year_month,
-    requireCount
-  ) {
-    var _ok = false
-    var _assignLogSearch = search.create({
-      type: _assignLogRecordId,
-      columns: ['internalid', 'custrecord_gw_assignlog_usedcount']
-    })
-
-    var _filterArray = []
-    _filterArray.push(['custrecord_gw_assignlog_businessno', 'is', ban])
-    _filterArray.push('and')
-    _filterArray.push([
-      'custrecord_gw_assignlog_invoicetype',
-      'is',
-      invoice_type
-    ])
-
-    if (dept_code === '') {
-      _filterArray.push('and')
-      _filterArray.push(['custrecord_gw_assignlog_deptcode', 'isempty', ''])
-    } else {
-      _filterArray.push('and')
-      _filterArray.push(['custrecord_gw_assignlog_deptcode', 'is', dept_code])
-    }
-    if (classification === '') {
-      _filterArray.push('and')
-      _filterArray.push([
-        'custrecord_gw_assignlog_classification',
-        'isempty',
-        ''
-      ])
-    } else {
-      _filterArray.push('and')
-      _filterArray.push([
-        'custrecord_gw_assignlog_classification',
-        'is',
-        classification
-      ])
-    }
-    _filterArray.push('and')
-    _filterArray.push(['custrecord_gw_assignlog_yearmonth', 'is', year_month])
-    _filterArray.push('and')
-    _filterArray.push([
-      ['custrecord_gw_assignlog_status', 'is', '11'],
-      'or',
-      ['custrecord_gw_assignlog_status', 'is', '12']
-    ])
-    _assignLogSearch.filterExpression = _filterArray
-
-    var _totalCount = 0
-    _assignLogSearch.run().each(function (result) {
-      var _usedCount = result.getValue({
-        name: 'custrecord_gw_assignlog_usedcount'
-      })
-      _totalCount += 50 - parseInt(_usedCount)
-
-      return true
-    })
-    if (_totalCount >= parseInt(requireCount)) _ok = true
 
     return _ok
   }
@@ -4723,6 +4731,8 @@ define([
         search.Operator.IS,
         'C'
       ])
+      _filterArray.push('and')
+      _filterArray.push(['custrecord_gw_voucher_status', search.Operator.IS, 'VOUCHER_SUCCESS'])
 
       _filterArray.push('and')
       _filterArray.push([
@@ -5028,6 +5038,8 @@ define([
       search.Operator.IS,
       'C'
     ])
+    _filterArray.push('and')
+    _filterArray.push(['custrecord_gw_voucher_status', search.Operator.IS, 'VOUCHER_SUCCESS'])
 
     _filterArray.push('and')
     _filterArray.push([
@@ -5166,6 +5178,14 @@ define([
       //_filterArray.push('and');
       //_filterArray.push(['custrecord_gw_need_upload_egui_mig',search.Operator.ISNOT, 'NONE']);
     }
+    /**
+    _filterArray.push('and')
+    _filterArray.push([
+      'sum(formulanumeric:{custrecord_gw_sales_amount}+{custrecord_gw_free_sales_amount}+{custrecord_gw_zero_sales_amount}-{custrecord_gw_discount_amount})',
+      search.Operator.NOTEQUALTO,
+      0
+    ])
+    */
     _search.filterExpression = _filterArray
 
     var _amountSum = 0
@@ -5239,10 +5259,14 @@ define([
           stringutility.convertToFloat(_free_sales_amount) -
           stringutility.convertToFloat(_discount_free_amount)
       }
+      
+      if (_balance_amount==0) continue
 
       _amountSum += _balance_amount
-
+ 
+      var _check_flag = false
       if (deductionTotalAmount >= _balance_amount) {
+    	  _check_flag = true
         var _obj = {
           internalid: _internalid,
           mig_type: _mig_type,
@@ -5287,10 +5311,8 @@ define([
         //扣掉金額
         deductionTotalAmount -= _balance_amount
         _objAry.push(_obj)
-      } else if (deductionTotalAmount != 0) {
-        _discount_count = stringutility.convertToFloat(_discount_count) + 1
-        //_discount_amount = deductionTotalAmount+stringutility.convertToFloat(_discount_amount);
-
+                
+      } else if (deductionTotalAmount != 0 && _check_flag==false) { 
         var _obj = {
           internalid: _internalid,
           mig_type: _mig_type,
@@ -5300,7 +5322,7 @@ define([
           voucher_sales_amount: stringutility.convertToFloat(_sales_amount),
           voucher_free_amount: stringutility.convertToFloat(_free_sales_amount),
           voucher_zero_amount: stringutility.convertToFloat(_zero_sales_amount),
-          discount_count: _discount_count,
+          discount_count: stringutility.convertToFloat(_discount_count) + 1,
           deduction_amount: deductionTotalAmount,
           deduction_field: checkField, //扣抵欄位
           discount_sales_amount: 0, //扣抵應稅欄位
@@ -5452,6 +5474,112 @@ define([
     }
 
     return discountHistoryAry
+  }
+  
+  //20220615 walter modify lock and unlock
+  function lockOrUnlockRecord(invoice_hiddent_field_id,
+                              creditmemo_hiddent_field_id,
+							  lock_flag){
+	/////////////////////////////////////////////////////////////////////////
+	//發票
+	var _invoice_hiddent_listid = _current_record.getValue({
+         fieldId: invoice_hiddent_field_id
+    })		
+    //Update INVOICE
+    if (typeof _invoice_hiddent_listid !== 'undefined') {
+        var _idAry = _invoice_hiddent_listid.split(',')
+        for (var i = 0; i < _idAry.length; i++) {
+             var _internalId = _idAry[i]
+			 if (parseInt(_internalId) > 0) {
+				 try {
+					 var values = {}
+					 values[_invoce_control_field_id] = lock_flag
+					 
+					 var _id = record.submitFields({
+					     type: record.Type.INVOICE,
+					     id: parseInt(_internalId),
+					     values: values,
+					     options: {
+						   enableSourcing: false,
+						   ignoreMandatoryFields: true
+					     }
+					})
+			
+				 }catch(e){
+					 console.log(e.name + ':' + e.message)
+				 }				 
+			 }
+	    }
+	}	  
+	////////////////////////////////////////////////////////////////////////////////////////
+	//折讓單
+	var _creditmemo_hiddent_listid = _current_record.getValue({
+        fieldId: creditmemo_hiddent_field_id
+    })
+	if (typeof _creditmemo_hiddent_listid !== 'undefined') {
+        var _idAry = _creditmemo_hiddent_listid.split(',')
+        for (var i = 0; i < _idAry.length; i++) {
+            var _internalId = _idAry[i]
+            if (parseInt(_internalId) > 0) {
+				try {
+					 var values = {}
+					 values[_credmemo_control_field_id] = lock_flag
+					 
+					 var _id = record.submitFields({
+					     type: record.Type.CREDIT_MEMO,
+					     id: parseInt(_internalId),
+					     values: values,
+					     options: {
+						   enableSourcing: false,
+						   ignoreMandatoryFields: true
+					     }
+					})
+			
+				}catch(e){
+					console.log(e.name + ':' + e.message)
+				}	
+		    }
+	    }
+	}  
+  }
+  
+  //20220615 walter modify lock and unlock
+  function checkInvoiceOrCreditMemoIsLock(search_id,search_record_field_id) {
+    var _is_lock=false 
+    try { 
+	    var _check_hiddent_listid = _current_record.getValue({
+            fieldId: search_record_field_id
+        })	
+	  
+		///////////////////////////////////////////////////////////////////
+		if (_check_hiddent_listid.length !=0) { 
+			var _mySearch = search.load({
+				id: search_id,
+			})
+			var _filterArray = []
+			_filterArray.push(['mainline', search.Operator.IS, true])
+			_filterArray.push('and')
+			_filterArray.push([
+			  'custbody_gw_lock_transaction',
+			  search.Operator.IS,
+			  true,
+			])
+		  
+			var _internal_id_ary = _check_hiddent_listid.split(',') 
+			_filterArray.push('and')
+			_filterArray.push(['internalid', search.Operator.ANYOF, _internal_id_ary])    
+			_mySearch.filterExpression = _filterArray
+			
+			_mySearch.run().each(function (result) {
+				_is_lock=true 
+				return true      
+			})  
+		}
+    } catch (e) {
+       log.debug(e.name, e.message)
+    }
+	 
+    return _is_lock
   }
 
   //將異動結果回寫到Invoice.custbody_gw_voucher_flow_status = '1'

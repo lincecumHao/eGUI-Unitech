@@ -18,31 +18,36 @@ define(['N/runtime', 'N/currentRecord', 'N/record', 'N/url', '../gw_common_utili
 
     var _internalId = _current_record.id
     if (_internalId != 0) {
-      try {
-		  
-		var _user_obj        = runtime.getCurrentUser()
-		var _cash_sale_record = record.load({
-		  type: record.Type.CASH_SALE,
+      try { 
+		var _user_obj = runtime.getCurrentUser()
+		var _record = record.load({
+		  type: _current_record.type,
 		  id: _internalId,
 		  isDynamic: true,
 		})
-		var _subsidiary = _cash_sale_record.getValue({
-		  fieldId: 'subsidiary',
+		var _subsidiary = _record.getValue({
+		  fieldId: 'custbody_iv_company_attributed',
 		})		
-		
-	    //var _user_subsidiary = _user_obj.subsidiary
-    	var _selected_business_no = getBusinessNoBySubsidiary(_subsidiary)
-		
-        var params = {
-		  custpage_businessno :_selected_business_no,
-          select_cash_sale_id: _internalId
-        }
-        window.location = url.resolveScript({
-          scriptId: _eguiEditScriptId,
-          deploymentId: _eguiEditDeploymentId,
-          params: params,
-          returnExternalUrl: false,
+		var _lock_transaction = _record.getValue({
+               fieldId: 'custbody_gw_lock_transaction'
         })
+		if (_lock_transaction==false){  
+		    //var _user_subsidiary = _user_obj.subsidiary
+	    	var _selected_business_no = getBusinessNoBySubsidiary(_subsidiary)
+			
+	        var params = {
+			  custpage_businessno :_selected_business_no,
+	          select_cash_sale_id: _internalId
+	        }
+	        window.location = url.resolveScript({
+	          scriptId: _eguiEditScriptId,
+	          deploymentId: _eguiEditDeploymentId,
+	          params: params,
+	          returnExternalUrl: false,
+	        })
+		} else {
+			alert('該憑證已開立完成電子發票,勿重新開立!');
+		}     
       } catch (e) {
         console.log(e.name + ':' + e.message)
       }

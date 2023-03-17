@@ -13,9 +13,12 @@ define(['N/runtime','N/record','../gw_common_utility/gw_common_invoice_utility']
     var _lock_transaction = _current_record.getValue({
       fieldId: 'custbody_gw_lock_transaction',
     })
+    var _gw_is_issue_egui = _current_record.getValue({
+        fieldId: 'custbody_gw_is_issue_egui',
+    })
 
     var _subsidiary = _current_record.getValue({
-		  fieldId: 'subsidiary',
+		  fieldId: 'custbody_iv_company_attributed',
 	})		
 	
 	var _auth = false;
@@ -35,6 +38,7 @@ define(['N/runtime','N/record','../gw_common_utility/gw_common_invoice_utility']
     if (
       context.type == context.UserEventType.VIEW &&
 	  _auth == true &&
+	  _gw_is_issue_egui == true &&
       _lock_transaction == false
     ) {
       frm.addButton({

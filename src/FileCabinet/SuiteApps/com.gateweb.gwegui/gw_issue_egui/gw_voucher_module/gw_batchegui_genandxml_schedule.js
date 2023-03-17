@@ -126,11 +126,17 @@ define([
       if (_taxObjAry != null) {
         for (var i = 0; i < _taxObjAry.length; i++) {
           var _obj = JSON.parse(JSON.stringify(_taxObjAry[i]))
-
+          var _tax_code_value=_obj.netsuite_id_value 
+          if (_tax_code_value.indexOf(netsuiteId) != -1) {
+              _taxObj = _obj
+              break
+          }
+          /**
           if (_obj.netsuite_id_value == netsuiteId) {
             _taxObj = _obj
             break
           }
+          */
         }
       }
     } catch (e) {
@@ -585,9 +591,12 @@ define([
 				_prodcut_text = _result.values.item[0].text //NI20200811000099
 			}
             var _item_displayname = _result.values[_ns_item_name_field] //新客戶折扣
+            /**
             if (_ns_item_name_field=='item.displayname') {
+                //NE-193 湧傑-發票開立不帶預設部門&商品名稱(數量0的問題)
             	_item_displayname = _prodcut_text+_item_displayname
             }
+            */
             //if (stringutility.trim(_memo) != '') _item_displayname = _memo
 
             var _item_salestaxcode_value = '' //5
@@ -627,7 +636,7 @@ define([
 
             var _quantity = _result.values.quantity
             //20210909 walter 預設值設為1
-            if (_quantity.trim().length==0)_quantity='1'
+            if (_quantity.trim().length==0 || _quantity=='0')_quantity='1'
             	
             var _taxItem_rate = _result.values['taxItem.rate'] //5.00%
             _taxItem_rate = _taxItem_rate.replace('%', '')
@@ -2296,7 +2305,7 @@ define([
             
             var _item_quantity = _detailObj.quantity
             //20210909 walter 預設值設為1
-            if (_item_quantity.trim().length==0)_item_quantity='1'
+            if (_item_quantity.trim().length==0 || _item_quantity=='0')_item_quantity='1'
             	
             _voucherDetailRecord.setValue({
               fieldId: 'custrecord_gw_item_quantity',
@@ -3039,10 +3048,12 @@ define([
 				_prodcut_text = _result.values.item[0].text //NI20200811000099
 			}
             var _item_displayname = _result.values[_ns_item_name_field] //新客戶折扣
+            /**
             if (_ns_item_name_field=='item.displayname') {
+                //NE-193   湧傑-發票開立不帶預設部門&商品名稱(數量0的問題)
             	_item_displayname = _prodcut_text+_item_displayname
             }
-			 
+			*/
             //if (stringutility.trim(_memo) != '') _item_displayname = _memo
 
             var _item_salestaxcode_value = '' //5
@@ -3086,7 +3097,7 @@ define([
 
             var _quantity = _result.values.quantity
             //20210909 walter 預設值設為1
-            if (_quantity.trim().length==0)_quantity='1'
+            if (_quantity.trim().length==0 || _quantity=='0')_quantity='1'
 
             var _taxItem_rate = _result.values['taxItem.rate'] //5.00%
 

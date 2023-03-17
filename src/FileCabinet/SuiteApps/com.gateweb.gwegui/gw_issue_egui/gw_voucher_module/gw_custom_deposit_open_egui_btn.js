@@ -17,10 +17,15 @@ define(['N/record'], function (record) {
     var _lock_transaction = _current_record.getValue({
       fieldId: 'custbody_gw_lock_transaction',
     })
+     
+    var _gw_is_issue_egui = _current_record.getValue({
+        fieldId: 'custbody_gw_is_issue_egui',
+    })
 
     log.debug('_lock_transaction', '_lock_transaction:' + _lock_transaction)
     if (
       context.type == context.UserEventType.VIEW &&
+      _gw_is_issue_egui == true &&
       _lock_transaction == false
     ) {
       frm.addButton({

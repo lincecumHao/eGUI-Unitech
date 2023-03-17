@@ -1278,11 +1278,17 @@ define([
       if (_tax_obj_ary != null) {
         for (var i = 0; i < _tax_obj_ary.length; i++) {
           var _obj = JSON.parse(JSON.stringify(_tax_obj_ary[i]))
-
+          var _tax_code_value=_obj.netsuite_id_value 
+          if (_tax_code_value.indexOf(netsuiteId) != -1) {
+              _taxObj = _obj
+              break
+          }
+          /**
           if (_obj.netsuite_id_value == netsuiteId) {
               _tax_obj = _obj
               break
           }
+          */
         }
       }
     } catch (e) {

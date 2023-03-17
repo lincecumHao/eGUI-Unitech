@@ -93,8 +93,9 @@ define([
     _filterArray.push(['custbody_gw_is_issue_egui', search.Operator.IS, true])
      
     if (subsidiary != '') {
-	    _filterArray.push('and')
-	    _filterArray.push(['subsidiary', search.Operator.ANYOF, subsidiary])
+    	//非oneworld版本沒有subsidiary欄位 
+	    //_filterArray.push('and')
+	    //_filterArray.push(['subsidiary', search.Operator.ANYOF, subsidiary])
 	    //_filterArray.push(['custbody_gw_tax_id_number', search.Operator.IS, subsidiary])
 	}
 
@@ -160,125 +161,130 @@ define([
       var _result = JSON.parse(JSON.stringify(result))
       
       log.debug('invoice _result', JSON.stringify(_result))
-      
+      var _my_subsidiary;
+      if (_result.values.custbody_iv_company_attributed.length != 0) {
+    	  log.debug('invoice custbody_iv_company_attributed', JSON.stringify(_result.values.custbody_iv_company_attributed))
+       	  _my_subsidiary = _result.values.custbody_iv_company_attributed[0].value
+      } 
       /**
       var _item_subsidiary;
       if (_result.values.subsidiary.length != 0) {
     	  _item_subsidiary = _result.values.subsidiary[0].value
       } 
       */
-      var internalid = _result.id
-
-      var _invoice_status = ''
-      if (_result.values.statusref.length != 0) {
-        _invoice_status = _result.values.statusref[0].value
-      }
-
-      //filter voiided
-      if (_check_id != internalid && _invoice_status != 'voided') {
-        _check_id = internalid
-        var _valueObj = _result.values //object
-        subListObj.setSublistValue({
-          id: 'customer_search_invoice_id',
-          line: i,
-          value: internalid,
-        })
-
-        var _tranid = _result.values.tranid
-        subListObj.setSublistValue({
-          id: 'customer_invoice_tranid',
-          line: i,
-          value: internalid + '-' + _tranid,
-        })
-
-        var _status = ''
-        if (_result.values.statusref.length != 0) {
-          _status = _result.values.statusref[0].value
-        }
-        subListObj.setSublistValue({
-          id: 'customer_invoice_status',
-          line: i,
-          value: stringutility.trimOrAppendBlank(_status),
-        })
-
-        var _tax_id_number = _result.values.custbody_gw_tax_id_number
-        subListObj.setSublistValue({
-          id: 'customer_invoice_used_businessno',
-          line: i,
-          value: stringutility.trimOrAppendBlank(_tax_id_number),
-        })
-
-        var _entity = ''
-        var _entityName = ''
-        if (_result.values.entity.length != 0) {
-          _entity = _result.values.entity[0].value
-          _entityName = _result.values.entity[0].text
-        }
-        subListObj.setSublistValue({
-          id: 'customer_invoice_entity_id',
-          line: i,
-          value: stringutility.trimOrAppendBlank(_entity),
-        })
-        subListObj.setSublistValue({
-          id: 'customer_invoice_entity',
-          line: i,
-          value: stringutility.trimOrAppendBlank(_entityName),
-        })
-
-        var _trandate = _result.values.trandate
-        subListObj.setSublistValue({
-          id: 'customer_invoice_trandate',
-          line: i,
-          value: _trandate,
-        })
-        var _total = _result.values.amount
-        subListObj.setSublistValue({
-          id: 'customer_invoice_total',
-          line: i,
-          value: stringutility.trimOrAppendBlank(_total),
-        })
-
-        var _createdby = ''
-        var _createdbyName = ''
-        if (_result.values.createdby.length != 0) {
-          _createdby = _result.values.createdby[0].value
-          _createdbyName = _result.values.createdby[0].text
-        }
-        subListObj.setSublistValue({
-          id: 'customer_invoice_createdby',
-          line: i,
-          value: stringutility.trimOrAppendBlank(_createdbyName),
-        })
-
-        var _department = ''
-        var _departmentname = ''
-        if (_result.values.department.length != 0) {
-          _department = _result.values.department[0].value
-          _departmentname = _result.values.department[0].text
-        }
-        if (_departmentname.length != 0) {
-          subListObj.setSublistValue({
-            id: 'customer_invoice_department',
-            line: i,
-            value: stringutility.trimOrAppendBlank(_departmentname),
-          })
-        }
-        var _class = ''
-        var _classname = ''
-        if (_result.values.class.length != 0) {
-          _class = _result.values.class[0].value
-          _classname = _result.values.class[0].text
-        }
-        if (_classname.length != 0) {
-          subListObj.setSublistValue({
-            id: 'customer_invoice_class',
-            line: i,
-            value: stringutility.trimOrAppendBlank(_class),
-          })
-        }
-        i++
-      }
-       
+      if (_my_subsidiary==subsidiary) {
+	      var internalid = _result.id
+	
+	      var _invoice_status = ''
+	      if (_result.values.statusref.length != 0) {
+	        _invoice_status = _result.values.statusref[0].value
+	      }
+	
+	      //filter voiided
+	      if (_check_id != internalid && _invoice_status != 'voided') {
+	        _check_id = internalid
+	        var _valueObj = _result.values //object
+	        subListObj.setSublistValue({
+	          id: 'customer_search_invoice_id',
+	          line: i,
+	          value: internalid,
+	        })
+	
+	        var _tranid = _result.values.tranid
+	        subListObj.setSublistValue({
+	          id: 'customer_invoice_tranid',
+	          line: i,
+	          value: internalid + '-' + _tranid,
+	        })
+	
+	        var _status = ''
+	        if (_result.values.statusref.length != 0) {
+	          _status = _result.values.statusref[0].value
+	        }
+	        subListObj.setSublistValue({
+	          id: 'customer_invoice_status',
+	          line: i,
+	          value: stringutility.trimOrAppendBlank(_status),
+	        })
+	
+	        var _tax_id_number = _result.values.custbody_gw_tax_id_number
+	        subListObj.setSublistValue({
+	          id: 'customer_invoice_used_businessno',
+	          line: i,
+	          value: stringutility.trimOrAppendBlank(_tax_id_number),
+	        })
+	
+	        var _entity = ''
+	        var _entityName = ''
+	        if (_result.values.entity.length != 0) {
+	          _entity = _result.values.entity[0].value
+	          _entityName = _result.values.entity[0].text
+	        }
+	        subListObj.setSublistValue({
+	          id: 'customer_invoice_entity_id',
+	          line: i,
+	          value: stringutility.trimOrAppendBlank(_entity),
+	        })
+	        subListObj.setSublistValue({
+	          id: 'customer_invoice_entity',
+	          line: i,
+	          value: stringutility.trimOrAppendBlank(_entityName),
+	        })
+	
+	        var _trandate = _result.values.trandate
+	        subListObj.setSublistValue({
+	          id: 'customer_invoice_trandate',
+	          line: i,
+	          value: _trandate,
+	        })
+	        var _total = _result.values.amount
+	        subListObj.setSublistValue({
+	          id: 'customer_invoice_total',
+	          line: i,
+	          value: stringutility.trimOrAppendBlank(_total),
+	        })
+	
+	        var _createdby = ''
+	        var _createdbyName = ''
+	        if (_result.values.createdby.length != 0) {
+	          _createdby = _result.values.createdby[0].value
+	          _createdbyName = _result.values.createdby[0].text
+	        }
+	        subListObj.setSublistValue({
+	          id: 'customer_invoice_createdby',
+	          line: i,
+	          value: stringutility.trimOrAppendBlank(_createdbyName),
+	        })
+	
+	        var _department = ''
+	        var _departmentname = ''
+	        if (_result.values.department.length != 0) {
+	          _department = _result.values.department[0].value
+	          _departmentname = _result.values.department[0].text
+	        }
+	        if (_departmentname.length != 0) {
+	          subListObj.setSublistValue({
+	            id: 'customer_invoice_department',
+	            line: i,
+	            value: stringutility.trimOrAppendBlank(_departmentname),
+	          })
+	        }
+	        var _class = ''
+	        var _classname = ''
+	        if (_result.values.class.length != 0) {
+	          _class = _result.values.class[0].value
+	          _classname = _result.values.class[0].text
+	        }
+	        if (_classname.length != 0) {
+	          subListObj.setSublistValue({
+	            id: 'customer_invoice_class',
+	            line: i,
+	            value: stringutility.trimOrAppendBlank(_class),
+	          })
+	        }
+	        i++
+	      }
+      }      
       return true
       
       
@@ -314,9 +320,9 @@ define([
     _filterArray.push(['custbody_gw_is_issue_egui', 'is', true])
 
     if (subsidiary != '') {
-	    _filterArray.push('and')
-	    _filterArray.push(['subsidiary', search.Operator.ANYOF, subsidiary])
-	    //_filterArray.push(['custbody_gw_tax_id_number', search.Operator.IS, subsidiary])
+    	//非oneworld版本沒有subsidiary欄位
+	    //_filterArray.push('and')	    
+	    //_filterArray.push(['custbody_iv_company_attributed', search.Operator.IS, subsidiary])
 	}
     
     if (customerid != '') {
@@ -377,125 +383,126 @@ define([
       _mySearch.run().each(function (result) {
         var _result = JSON.parse(JSON.stringify(result))
         log.debug('credit memo _result', JSON.stringify(_result))
-        /**
-        var _item_subsidiary;
-        if (_result.values.subsidiary.length != 0) {
-    	    _item_subsidiary = _result.values.subsidiary[0].value
-        } 
-        */
-        var internalid = _result.id
-
-        var _creditmemo_status = ''
-        if (_result.values.statusref.length != 0) {
-          _creditmemo_status = _result.values.statusref[0].value
+        
+        var _my_subsidiary;
+        if (_result.values.custbody_iv_company_attributed.length != 0) {
+        	_my_subsidiary = _result.values.custbody_iv_company_attributed[0].value
+        }  
+        if (_my_subsidiary==subsidiary) {
+	        var internalid = _result.id
+	
+	        var _creditmemo_status = ''
+	        if (_result.values.statusref.length != 0) {
+	          _creditmemo_status = _result.values.statusref[0].value
+	        }
+	        //filter voided
+	        if (_check_id != internalid && _creditmemo_status != 'voided') {
+	          _check_id = internalid
+	
+	          var _valueObj = _result.values //object
+	          subListObj.setSublistValue({
+	            id: 'customer_search_creditmemo_id',
+	            line: i,
+	            value: internalid,
+	          })
+	
+	          var _tranid = _result.values.tranid
+	          subListObj.setSublistValue({
+	            id: 'customer_creditmemo_tranid',
+	            line: i,
+	            value: internalid + '-' + _tranid,
+	          })
+	
+	          var _status = ''
+	          if (_result.values.statusref.length != 0) {
+	            _status = _result.values.statusref[0].value
+	          }
+	          subListObj.setSublistValue({
+	            id: 'customer_creditmemo_status',
+	            line: i,
+	            value: stringutility.trimOrAppendBlank(_status),
+	          })
+	
+	          var _tax_id_number = _result.values.custbody_gw_tax_id_number
+	          subListObj.setSublistValue({
+	            id: 'customer_creditmemo_used_businessno',
+	            line: i,
+	            value: stringutility.trimOrAppendBlank(_tax_id_number),
+	          })
+	
+	          var _entity = ''
+	          var _entityName = ''
+	          if (_result.values.entity.length != 0) {
+	            _entity = _result.values.entity[0].value
+	            _entityName = _result.values.entity[0].text
+	          }
+	          subListObj.setSublistValue({
+	            id: 'customer_creditmemo_entity_id',
+	            line: i,
+	            value: stringutility.trimOrAppendBlank(_entity),
+	          })
+	          subListObj.setSublistValue({
+	            id: 'customer_creditmemo_entity',
+	            line: i,
+	            value: stringutility.trimOrAppendBlank(_entityName),
+	          })
+	
+	          var _trandate = _result.values.trandate
+	          subListObj.setSublistValue({
+	            id: 'customer_creditmemo_trandate',
+	            line: i,
+	            value: _trandate,
+	          })
+	          var _total = _result.values.amount
+	          subListObj.setSublistValue({
+	            id: 'customer_creditmemo_total',
+	            line: i,
+	            value: stringutility.trimOrAppendBlank(_total),
+	          })
+	
+	          var _createdby = ''
+	          var _createdbyName = ''
+	          if (_result.values.createdby.length != 0) {
+	            _createdby = _result.values.createdby[0].value
+	            _createdbyName = _result.values.createdby[0].text
+	          }
+	          subListObj.setSublistValue({
+	            id: 'customer_creditmemo_createdby',
+	            line: i,
+	            value: stringutility.trimOrAppendBlank(_createdbyName),
+	          })
+	
+	          var _department = ''
+	          var _departmentname = ''
+	          if (_result.values.department.length != 0) {
+	            _department = _result.values.department[0].value
+	            _departmentname = _result.values.department[0].text
+	          }
+	          if (_departmentname.length != 0) {
+	            subListObj.setSublistValue({
+	              id: 'customer_creditmemo_department',
+	              line: i,
+	              value: stringutility.trimOrAppendBlank(_departmentname),
+	            })
+	          }
+	          var _class = ''
+	          var _classname = ''
+	          if (_result.values.class.length != 0) {
+	            _class = _result.values.class[0].value
+	            _classname = _result.values.class[0].text
+	          }
+	          if (_classname.length != 0) {
+	            subListObj.setSublistValue({
+	              id: 'customer_creditmemo_class',
+	              line: i,
+	              value: stringutility.trimOrAppendBlank(_class),
+	            })
+	          }
+	          i++
+	        }
         }
-        //filter voided
-        if (_check_id != internalid && _creditmemo_status != 'voided') {
-          _check_id = internalid
-
-          var _valueObj = _result.values //object
-          subListObj.setSublistValue({
-            id: 'customer_search_creditmemo_id',
-            line: i,
-            value: internalid,
-          })
-
-          var _tranid = _result.values.tranid
-          subListObj.setSublistValue({
-            id: 'customer_creditmemo_tranid',
-            line: i,
-            value: internalid + '-' + _tranid,
-          })
-
-          var _status = ''
-          if (_result.values.statusref.length != 0) {
-            _status = _result.values.statusref[0].value
-          }
-          subListObj.setSublistValue({
-            id: 'customer_creditmemo_status',
-            line: i,
-            value: stringutility.trimOrAppendBlank(_status),
-          })
-
-          var _tax_id_number = _result.values.custbody_gw_tax_id_number
-          subListObj.setSublistValue({
-            id: 'customer_creditmemo_used_businessno',
-            line: i,
-            value: stringutility.trimOrAppendBlank(_tax_id_number),
-          })
-
-          var _entity = ''
-          var _entityName = ''
-          if (_result.values.entity.length != 0) {
-            _entity = _result.values.entity[0].value
-            _entityName = _result.values.entity[0].text
-          }
-          subListObj.setSublistValue({
-            id: 'customer_creditmemo_entity_id',
-            line: i,
-            value: stringutility.trimOrAppendBlank(_entity),
-          })
-          subListObj.setSublistValue({
-            id: 'customer_creditmemo_entity',
-            line: i,
-            value: stringutility.trimOrAppendBlank(_entityName),
-          })
-
-          var _trandate = _result.values.trandate
-          subListObj.setSublistValue({
-            id: 'customer_creditmemo_trandate',
-            line: i,
-            value: _trandate,
-          })
-          var _total = _result.values.amount
-          subListObj.setSublistValue({
-            id: 'customer_creditmemo_total',
-            line: i,
-            value: stringutility.trimOrAppendBlank(_total),
-          })
-
-          var _createdby = ''
-          var _createdbyName = ''
-          if (_result.values.createdby.length != 0) {
-            _createdby = _result.values.createdby[0].value
-            _createdbyName = _result.values.createdby[0].text
-          }
-          subListObj.setSublistValue({
-            id: 'customer_creditmemo_createdby',
-            line: i,
-            value: stringutility.trimOrAppendBlank(_createdbyName),
-          })
-
-          var _department = ''
-          var _departmentname = ''
-          if (_result.values.department.length != 0) {
-            _department = _result.values.department[0].value
-            _departmentname = _result.values.department[0].text
-          }
-          if (_departmentname.length != 0) {
-            subListObj.setSublistValue({
-              id: 'customer_creditmemo_department',
-              line: i,
-              value: stringutility.trimOrAppendBlank(_departmentname),
-            })
-          }
-          var _class = ''
-          var _classname = ''
-          if (_result.values.class.length != 0) {
-            _class = _result.values.class[0].value
-            _classname = _result.values.class[0].text
-          }
-          if (_classname.length != 0) {
-            subListObj.setSublistValue({
-              id: 'customer_creditmemo_class',
-              line: i,
-              value: stringutility.trimOrAppendBlank(_class),
-            })
-          }
-          i++
-        }
-   
-        return true
+	    return true     
+        
       })
     }
     ///////////////////////////////////////////////////////////////////////////////////
@@ -618,6 +625,8 @@ define([
         })
         return true
       })
+    //NE-193 湧傑-發票開立不帶預設部門
+    _selectDeptCode.defaultValue = ''
     //類別代碼
     var _selectClassification = form.addField({
       id: 'custpage_select_classification',
@@ -658,6 +667,8 @@ define([
         })
         return true
       })
+    //NE-193 湧傑-發票開立不帶預設部門
+    _selectClassification.defaultValue = ''
     ///////////////////////////////////////////////////////////////////////////////
     var _selectEmployee = form.addField({
       id: 'custpage_select_employee',

@@ -969,7 +969,17 @@ define([
     var _manual_voucher_number = _current_record.getValue({
       fieldId: 'custpage_manual_voucher_number',
     })
-
+    var _sales_withtax_amount = 0
+    var _free_sales_amount = 0
+    var _zero_sales_amount = 0
+    if (_tax_type=='1') { //應稅
+    	_sales_withtax_amount =_sales_amount
+    } else if (_tax_type=='2') { //零稅率
+    	_zero_sales_amount =_sales_amount
+    } else if (_tax_type=='3') { //免稅
+    	_free_sales_amount =_sales_amount
+    }
+    
     //this_period:當期, early_period:前期
     var _applyMainObj = {
       applyID: _applyId.toString(),
@@ -999,9 +1009,9 @@ define([
       tax_rate: _tax_rate,
       discountamount: _discountamount,
       tax_amount: _tax_amount,
-      sales_amount: _sales_amount,
-      free_sales_amount: 0,
-      zero_sales_amount: 0,
+      sales_amount: _sales_withtax_amount,
+      free_sales_amount: _free_sales_amount,
+      zero_sales_amount: _zero_sales_amount,
       total_amount: _total_amount,
       egui_format_code: _invoceFormatCode,
       manual_voucher_number: _manual_voucher_number,

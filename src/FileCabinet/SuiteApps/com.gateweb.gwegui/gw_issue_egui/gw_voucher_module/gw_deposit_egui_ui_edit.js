@@ -123,13 +123,13 @@ define([
   }
 
   //取得稅別資料
-  function getTaxInformation(netsuiteId) {
+  function getTaxInformation(eguiTaxId) {
     return _taxObjAry.filter(function (_obj) {
-      return _obj.netsuite_id_value.toString() === netsuiteId.toString()
+    	var _tax_code_value=_obj.netsuite_id_value
+      return _tax_code_value.indexOf(netsuiteId) != -1
     })[0] 
   }
   
-
   //取得賣方公司資料
   function getSellerInfo(businessNo) {
     var _companyObj
@@ -516,67 +516,18 @@ define([
     var _dept_code = form.addField({
       id: 'custpage_dept_code',
       type: serverWidget.FieldType.SELECT,
+      source: 'DEPARTMENT',
       label: '發票部門',
-      container: 'row05_fieldgroupid',
-    })
-    _dept_code.addSelectOption({
-      value: '',
-      text: 'NONE',
-    })
-    var _deptCodeSearch = search
-      .create({
-        type: search.Type.DEPARTMENT,
-        columns: ['internalid', 'name'],
-      })
-      .run()
-      .each(function (result) {
-        var _internalid = result.id
-        var _entityid = result.getValue({
-          name: 'internalid',
-        })
-        var _name = result.getValue({
-          name: 'name',
-        })
-
-        _dept_code.addSelectOption({
-          value: _internalid,
-          text: _internalid + '-' + _name,
-        })
-        return true
-      })
+      container: 'row05_fieldgroupid'
+    })  
     //類別代碼
     var _selectClassification = form.addField({
       id: 'custpage_classification',
       type: serverWidget.FieldType.SELECT,
       label: '發票分類',
-      container: 'row05_fieldgroupid',
-    })
-    _selectClassification.addSelectOption({
-      value: '',
-      text: 'NONE',
-    })
-    var _classificationSearch = search
-      .create({
-        type: search.Type.CLASSIFICATION,
-        columns: ['internalid', 'name'],
-      })
-      .run()
-      .each(function (result) {
-        var _internalid = result.id
-        var _entityid = result.getValue({
-          name: 'internalid',
-        })
-        var _name = result.getValue({
-          name: 'name',
-        })
-
-        _selectClassification.addSelectOption({
-          value: _internalid,
-          text: _internalid + '-' + _name,
-        })
-        return true
-      })
-
+      source: 'CLASSIFICATION',
+      container: 'row05_fieldgroupid'
+    })  
     //////////////////////////////////////////////////////////////////////
     var _row02_fieldgroupid = form.addFieldGroup({
       id: 'row02_fieldgroupid',
@@ -793,7 +744,7 @@ define([
     //電子發票Tab
     var _gw_gui_tax_type = customer_deposit_record.getValue({
         fieldId: 'custbody_gw_gui_tax_type',
-      }) 
+    })  
     var _gw_gui_tax_rate = customer_deposit_record.getValue({
       fieldId: 'custbody_gw_gui_tax_rate',
     }) 
@@ -806,8 +757,10 @@ define([
     var _custpage_tax_type = form.getField({
       id: 'custpage_tax_type',
     })
+    log.debug('_gw_gui_tax_type', _gw_gui_tax_type)
     if (typeof _gw_gui_tax_type != 'undefined') {
       var _taxObj = getTaxInformation(_gw_gui_tax_type)
+      log.debug('Get _taxObj', JSON.stringify(_taxObj))
       if (typeof _taxObj != 'undefined') {
         _tax_code = _taxObj.voucher_property_value
         _tax_code_note = _taxObj.voucher_property_note
@@ -927,12 +880,16 @@ define([
     var _dept_codeField = form.getField({
       id: 'custpage_dept_code',
     })
-    _dept_codeField.defaultValue = _department
+    //_dept_codeField.defaultValue = _department
+    //NE-193 湧傑-發票開立不帶預設部門
+    _dept_codeField.defaultValue = ''
 
     var _classificationField = form.getField({
       id: 'custpage_classification',
     })
-    _classificationField.defaultValue = _class
+    //_classificationField.defaultValue = _class
+    //NE-193 湧傑-發票開立不帶預設部門
+    _classificationField.defaultValue = ''
 
     if (_customer_id > 0) {
       var _companyObj = getCustomerInformation(_customer_id)

@@ -11,7 +11,7 @@
             <feature required="true">CLASSES</feature>
             <feature required="true">DEPARTMENTS</feature>
             <feature required="true">ACCOUNTING</feature>
-            <feature required="true">SUBSIDIARIES</feature>
+            <feature required="false">SUBSIDIARIES</feature>
             <feature required="false">LOCATIONS</feature>
             <feature required="false">MULTILANGUAGE</feature>
             <feature required="false">RECEIVABLES</feature>
@@ -19,5 +19,13 @@
             <feature required="false">PAYABLES</feature>
             <feature required="false">MULTILOCINVT</feature>
         </features>
+        <bundles>
+            <bundle id="373804">
+                <objects>
+                    <object>custbody_iv_company_attributed</object>
+                    <object>customlist_iv_company_attributed</object>
+                </objects>
+            </bundle>
+        </bundles>
     </dependencies>
 </manifest>

@@ -15,9 +15,13 @@ define(['N/runtime','N/record','../gw_common_utility/gw_common_invoice_utility']
     })
 
     var _subsidiary = _current_record.getValue({
+		  fieldId: 'custbody_iv_company_attributed',
+	})	
+	/**
+	var _subsidiary = _current_record.getValue({
 		  fieldId: 'subsidiary',
-	})		
-	
+	})	
+	*/
 	var _auth = false;
 	var _user_obj    = runtime.getCurrentUser()
 	var _company_ary = invoiceutility.getBusinessEntitByUserId(_user_obj.id, _subsidiary)

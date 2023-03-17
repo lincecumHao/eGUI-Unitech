@@ -13,6 +13,8 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
   var _gw_voucher_properties = 'customrecord_gw_voucher_properties'
   var invoceFormatCode = '35'
 
+  var _assignLogRefRecordId = 'customrecord_assign_log_ref_record'
+
   //檢查print_mark 	  
   function getPrintMark(npo_ban, carry_type, buyer_ban) {
 	  var _print_mark = 'Y'
@@ -530,7 +532,445 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
     //alert('_resultNumber='+_resultNumber);
     return _resultNumber
   }
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //20220802 walter modify
+  function getAssignLogNumberAndCheckDuplicate(
+	assign_log_ref_internal_id,
+    invoice_type,
+    ban,
+    dept_code,
+    classification,
+    year_month,
+    assignLogType,
+    voucher_date
+  ) {
+    ////////////////////////////////////////////////////////////////////////////////
+	//1.先save RefRecord ==>assign_log_ref_internal_id defaultValue=-1
+	var _save_ref_record_obj = saveAssignLogRefRecord(assign_log_ref_internal_id,
+			                                          invoice_type, 
+	                                                  ban, 
+	                                                  dept_code,
+													  classification,
+													  year_month,	
+													  assignLogType)
+    var _resultNumber = ''
+	var _ref_to_do_flag = _save_ref_record_obj.is_to_do
+	var _ref_to_do_internal_id = _save_ref_record_obj.internal_id
+	 
+	if (_ref_to_do_flag==true){
+		_resultNumber='BUSY'
+		closeAssignLogRefTask(_ref_to_do_internal_id, _resultNumber)
+		
+		return _resultNumber
+	}
+	//////////////////////////////////////////////////////////////////////////////// 
+    var _assignLogSearch = search.create({
+      type: _assignLogRecordId,
+      columns: [
+        search.createColumn({ name: 'internalid' }),
+        search.createColumn({ name: 'name' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_businessno' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_deptcode' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_deptname' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_classification' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_class_name' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_invoicetype' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_invoicetrack' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_startno' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_endno' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_yearmonth' }),
+        search.createColumn({ name: 'custrecord_gw_last_invoice_date' }),
+        search.createColumn({
+          name: 'custrecord_gw_assignlog_status',
+          sort: search.Sort.DESC
+        }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_taketime' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_lastinvnumbe' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_reason' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_usedcount' }),
+        search.createColumn({ name: 'custrecord_gw_assignlog_version' })
+      ]
+    })
 
+    var _filterArray = []
+    _filterArray.push([
+      'custrecord_gw_assignlog_businessno',
+      search.Operator.IS,
+      ban
+    ])
+    _filterArray.push('and')
+    _filterArray.push([
+      'custrecord_gw_egui_format_code',
+      search.Operator.IS,
+      invoceFormatCode
+    ])
+    _filterArray.push('and')
+    _filterArray.push([
+      'custrecord_gw_assignlog_invoicetype',
+      search.Operator.IS,
+      invoice_type
+    ])
+
+    if (dept_code === '') {
+      _filterArray.push('and')
+      _filterArray.push([
+        'custrecord_gw_assignlog_deptcode',
+        search.Operator.ISEMPTY,
+        ''
+      ])
+    } else {
+      _filterArray.push('and')
+      _filterArray.push([
+        'custrecord_gw_assignlog_deptcode',
+        search.Operator.IS,
+        dept_code
+      ])
+    }
+    if (classification === '') {
+      _filterArray.push('and')
+      _filterArray.push([
+        'custrecord_gw_assignlog_classification',
+        search.Operator.ISEMPTY,
+        ''
+      ])
+    } else {
+      _filterArray.push('and')
+      _filterArray.push([
+        'custrecord_gw_assignlog_classification',
+        search.Operator.IS,
+        classification
+      ])
+    }
+    _filterArray.push('and')
+    _filterArray.push([
+      'custrecord_gw_assignlog_yearmonth',
+      search.Operator.IS,
+      year_month
+    ])
+
+    //檢查日期資料(申請日期要大於字軌日期)
+    //_filterArray.push('and')
+    //_filterArray.push(['custrecord_gw_last_invoice_date',search.Operator.LESSTHANOREQUALTO, parseInt(voucher_date)]);
+    /**
+	_filterArray.push([
+      [
+        'custrecord_gw_last_invoice_date',
+        search.Operator.LESSTHANOREQUALTO,
+        parseInt(voucher_date),
+      ],
+      'or',
+      ['custrecord_gw_last_invoice_date', search.Operator.EQUALTO, 0],
+    ])
+    */
+    _filterArray.push('and')
+    if (assignLogType !== 'NONE') {
+      _filterArray.push([
+        ['custrecord_gw_assignlog_status', search.Operator.IS, '11'],
+        'or',
+        ['custrecord_gw_assignlog_status', search.Operator.IS, '12']
+      ])
+    } else {
+      _filterArray.push([
+        ['custrecord_gw_assignlog_status', search.Operator.IS, '21'],
+        'or',
+        ['custrecord_gw_assignlog_status', search.Operator.IS, '22']
+      ])
+    }
+    //alert('Parse 11 _filterArray='+JSON.stringify(_filterArray));
+    _assignLogSearch.filterExpression = _filterArray
+
+    var _assignLogSearchResult = _assignLogSearch.run().getRange({
+      start: 0,
+      end: 1
+    })
+
+    for (var i = 0; i < _assignLogSearchResult.length; i++) {
+      var _internalid = _assignLogSearchResult[i].id
+      //alert('_assignLogSearchResult[i]='+JSON.stringify(_assignLogSearchResult[i]));
+      var _lastInvoiceDate = _assignLogSearchResult[i].getValue({
+        name: 'custrecord_gw_last_invoice_date'
+      })
+
+      if (parseInt(voucher_date) >= parseInt(_lastInvoiceDate)) {
+        var _status = _assignLogSearchResult[i].getValue({
+          name: 'custrecord_gw_assignlog_status'
+        })
+        var _startNo = _assignLogSearchResult[i].getValue({
+          name: 'custrecord_gw_assignlog_startno'
+        })
+        _startNo = padding('' + _startNo, 8)
+
+        var _lastinvnumbe = _assignLogSearchResult[i].getValue({
+          name: 'custrecord_gw_assignlog_lastinvnumbe'
+        })
+        var _invoiceTrack = _assignLogSearchResult[i].getValue({
+          name: 'custrecord_gw_assignlog_invoicetrack'
+        })
+
+        var _assignLogRecord = record.load({
+          type: _assignLogRecordId,
+          id: _internalid,
+          isDynamic: true
+        })
+
+        if (parseInt(_status) === 11 || parseInt(_status) === 21) {
+          //新字軌
+          var _assignlog_lastinvnumbe = _startNo
+          if (parseInt(_status) === 11) {
+            _assignLogRecord.setValue({
+              fieldId: 'custrecord_gw_assignlog_status',
+              value: '12'
+            })
+          } else if (parseInt(_status) === 21) {
+            _assignLogRecord.setValue({
+              fieldId: 'custrecord_gw_assignlog_status',
+              value: '22'
+            })
+          }
+          _assignLogRecord.setValue({
+            fieldId: 'custrecord_gw_assignlog_lastinvnumbe',
+            value: _assignlog_lastinvnumbe
+          })
+          _assignLogRecord.setValue({
+            fieldId: 'custrecord_gw_assignlog_usedcount',
+            value: '1'
+          })
+          _assignLogRecord.setValue({
+            fieldId: 'custrecord_gw_last_invoice_date',
+            value: voucher_date
+          })
+
+          try {
+            var callId = _assignLogRecord.save()
+          } catch (e) {
+            console.log(e.name + ':' + e.message)
+          }
+
+          _resultNumber = _invoiceTrack + _assignlog_lastinvnumbe
+        } else if (parseInt(_status) === 12 || parseInt(_status) === 22) {
+          //使用中
+          var _assignlog_usedcount = _assignLogRecord.getValue({
+            fieldId: 'custrecord_gw_assignlog_usedcount'
+          })
+          _assignlog_usedcount = parseInt(_assignlog_usedcount) + 1
+          _assignLogRecord.setValue({
+            fieldId: 'custrecord_gw_assignlog_usedcount',
+            value: _assignlog_usedcount
+          })
+
+          var _assignlog_lastinvnumbe = _assignLogRecord.getValue({
+            fieldId: 'custrecord_gw_assignlog_lastinvnumbe'
+          })
+
+          _assignlog_lastinvnumbe = add(_assignlog_lastinvnumbe, '1')
+          _assignlog_lastinvnumbe = padding('' + _assignlog_lastinvnumbe, 8)
+          //補0
+          _assignLogRecord.setValue({
+            fieldId: 'custrecord_gw_assignlog_lastinvnumbe',
+            value: _assignlog_lastinvnumbe
+          })
+          _assignLogRecord.setValue({
+            fieldId: 'custrecord_gw_last_invoice_date',
+            value: voucher_date
+          })
+
+          _resultNumber = _invoiceTrack + _assignlog_lastinvnumbe
+
+          if (parseInt(_assignlog_usedcount) == 50) {
+            if (parseInt(_status) === 12) {
+              _assignLogRecord.setValue({
+                fieldId: 'custrecord_gw_assignlog_status',
+                value: '13'
+              })
+            } else if (parseInt(_status) === 22) {
+              _assignLogRecord.setValue({
+                fieldId: 'custrecord_gw_assignlog_status',
+                value: '33'
+              })
+            }
+          }
+
+          try {
+            var callId = _assignLogRecord.save()
+          } catch (e) {
+            log.debug(e.name, e.message)
+          }
+        }
+      }
+    }
+    
+    if(_ref_to_do_internal_id != -1)closeAssignLogRefTask(_ref_to_do_internal_id, _resultNumber)
+    //alert('_resultNumber='+_resultNumber);
+    return _resultNumber
+  }
+  
+  //create assignLogRefRecord  
+  function saveAssignLogRefRecord(assign_log_ref_internal_id,
+		                          invoice_type,
+								  seller,
+								  dept_code,
+								  classification,
+								  year_month,
+								  assign_log_type){	 
+	  
+	  var _internal_id = assign_log_ref_internal_id
+	  var _voucher_type='EGUI' 
+	  //create record and get internal_id START	 
+	  if (_internal_id == -1)	{		  
+		  var _assignLogRefRecord = record.create({
+		      type: _assignLogRefRecordId,
+		      isDynamic: true
+		  })
+		  
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_voucher_type', value: _voucher_type})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_invoice_type', value: invoice_type})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_seller', value: seller})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_dept_code', value: dept_code})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_classification', value: classification})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_year_month', value: year_month})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_assign_log_type', value: assign_log_type})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_is_closed', value: 'N'})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_invoice_number', value: ''})
+		  _assignLogRefRecord.setValue({ fieldId: 'custrecord_gw_asref_timestamp', value: getNowMinutes(0)})
+		  try {
+			   _internal_id = _assignLogRefRecord.save() 			  
+	      } catch (e) {
+	           console.log(e.name + ':' + e.message)	           
+	      }	 
+	  }
+	   
+	  //create record and get internal_id END
+	  var _is_to_do = searchToDoAssignLogTask(_internal_id,
+						                      _voucher_type,
+							                  invoice_type,
+										      seller,
+										      dept_code,
+										      classification,
+										      year_month,
+										      assign_log_type)
+       
+	  return {'is_to_do':_is_to_do, 'internal_id':_internal_id}
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //檢查to_do_task=N 是否還有沒做完的  
+  function searchToDoAssignLogTask(internal_id,
+		                           voucher_type,
+		                           invoice_type,
+								   seller,
+								   dept_code,
+								   classification,
+								   year_month,
+								   assign_log_type) {
+	  
+	  var _period_minutes=15
+	  var _is_to_do=false
+	  var _min_internalid = -1
+      //search record count>1 START
+	  var _search = search.create({
+	      type: _assignLogRefRecordId,
+	      columns: [  
+	        search.createColumn({
+	            name: 'custrecord_gw_asref_voucher_type',
+	            summary: search.Summary.GROUP
+	        }),
+	        search.createColumn({
+	            name: 'custrecord_gw_asref_invoice_type',
+	            summary: search.Summary.GROUP
+	        }),
+	        search.createColumn({
+	            name: 'custrecord_gw_asref_seller',
+	            summary: search.Summary.GROUP
+	        }),
+	        search.createColumn({
+	            name: 'custrecord_gw_asref_dept_code',
+	            summary: search.Summary.GROUP
+	        }),
+	        search.createColumn({
+	            name: 'custrecord_gw_asref_classification',
+	            summary: search.Summary.GROUP
+	        }),
+	        search.createColumn({
+	            name: 'custrecord_gw_asref_year_month',
+	            summary: search.Summary.GROUP
+	        }),
+	        search.createColumn({
+	            name: 'custrecord_gw_asref_assign_log_type',
+	            summary: search.Summary.GROUP
+	        }),  
+	        search.createColumn({
+	            name: 'internalid',
+	            summary: search.Summary.MIN
+	        })
+	      ]
+	  })
+
+	  var _filterArray = []
+	  _filterArray.push(['custrecord_gw_asref_voucher_type',search.Operator.IS,voucher_type])
+	  _filterArray.push('and')
+	  _filterArray.push(['custrecord_gw_asref_invoice_type',search.Operator.IS,invoice_type])
+	  _filterArray.push('and')
+	  _filterArray.push(['custrecord_gw_asref_seller',search.Operator.IS,seller])
+	  _filterArray.push('and')
+	  _filterArray.push(['custrecord_gw_asref_dept_code',search.Operator.IS,dept_code])
+	  _filterArray.push('and')
+	  _filterArray.push(['custrecord_gw_asref_classification',search.Operator.IS,classification])
+	  _filterArray.push('and')
+	  _filterArray.push(['custrecord_gw_asref_year_month',search.Operator.IS,year_month])
+	  _filterArray.push('and')
+	  _filterArray.push(['custrecord_gw_asref_assign_log_type',search.Operator.IS,assign_log_type])
+	  _filterArray.push('and')
+	  _filterArray.push(['custrecord_gw_asref_is_closed',search.Operator.IS,'N'])	  
+	  _filterArray.push('and')
+	  _filterArray.push(['custrecord_gw_asref_timestamp',search.Operator.GREATERTHANOREQUALTO, getNowMinutes(_period_minutes)]) 
+
+	  _search.filterExpression = _filterArray	  
+	  //alert(' filterArray='+JSON.stringify(_filterArray));
+	  _search.run().each(function (result) {
+	   	  _min_internalid = result.getValue({
+	          name: 'internalid',
+	          summary: search.Summary.MIN
+	      })
+	      
+	      return true
+	  })
+	  	  
+	  //search record count>1 END
+	  if (_min_internalid != -1 && internal_id != _min_internalid){
+		  _is_to_do=true  		 
+		  //setTimeout('console.log("Wait 3 seconds!")', 3000)
+	  }	  
+	   
+	  return _is_to_do
+  }
+
+  function getNowMinutes(minutes){
+     var date = new Date();	 
+	 date.setMinutes(date.getMinutes() - minutes)
+	  
+	 var _year=date.getFullYear()+''
+	 var _month=(date.getMonth()+1)<10?'0'+(date.getMonth()+1):(date.getMonth()+1)+''
+	 var _date=date.getDate()<10?'0'+date.getDate():date.getDate()+''
+	 var _hours=date.getHours()<10?'0'+date.getHours():date.getHours()+''
+	 var _minutes=date.getMinutes()<10?'0'+date.getMinutes():date.getMinutes()+''
+	  
+	 return parseFloat(_year+_month+_date+_hours+_minutes)
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //close task
+  function closeAssignLogRefTask(internal_id, invoice_number) {
+	  var values = {}
+      values['custrecord_gw_asref_invoice_number'] = invoice_number
+      values['custrecord_gw_asref_is_closed'] = 'Y'
+      var _id = record.submitFields({
+          type: _assignLogRefRecordId,
+          id: internal_id,
+          values: values,
+          options: {
+             enableSourcing: false,
+             ignoreMandatoryFields: true
+          }
+      })
+  }
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //取得字軌檔
   function getAssignLogTrack(yearMonth, invoiceType, typeCode) {
@@ -1322,6 +1762,33 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
 
     return _taxObjAry
   }
+  
+  //json_obj==>result_obj.values
+  //split_str==>分割符號 +,$,#,|
+  //space_str==>連接符號 -
+  //item_names==>設定值 item_id+display_name
+  function getDisplayName(json_obj, split_str, space_str, item_names) {
+	 var _data=''
+	 var _count=1
+	 var _names_ary = item_names.split(split_str) 
+	 _names_ary.forEach(item_name => { 	       
+	      var _value='' 
+	      var _text='' 
+		  if (typeof json_obj[item_name] == 'object') {
+			  _value=json_obj[item_name][0].value  
+			  //_text=json_obj[item_name][0].text  
+		  } else {
+			  _value=json_obj[item_name] 
+		  } 			  
+          if (_names_ary.length==_count) { 
+              _data+=_value 
+		  } else {
+              _data+=_value+space_str
+		  }	 
+		  _count++ 
+	 })	 
+     return _data.trim()
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1347,9 +1814,11 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
     getUploadStatusDesc: getUploadStatusDesc,
     getAllowanceNumber: getAllowanceNumber,
     getAssignLogNumber: getAssignLogNumber,
+    getAssignLogNumberAndCheckDuplicate: getAssignLogNumberAndCheckDuplicate,
     getRandomNum: getRandomNum,
     getSellerInfoBySubsidiary: getSellerInfoBySubsidiary,
 	getRandomNumNew: getRandomNumNew,
+	getDisplayName: getDisplayName,
 	getPrintMark: getPrintMark
   }
 })

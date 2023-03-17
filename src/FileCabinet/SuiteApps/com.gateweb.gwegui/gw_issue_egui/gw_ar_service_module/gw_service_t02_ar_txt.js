@@ -46,9 +46,7 @@ define([
             city: _business_entity_obj.city,
             tax_id: _business_entity_obj.tax_id,
             period_year_month: _main_obj.custrecord_gw_voucher_yearmonth,
-            tradition_year_month: convertTraditionYearMonth(
-              _main_obj.custrecord_gw_voucher_date
-            ),
+            tradition_year_month: _main_obj.custrecord_gw_voucher_yearmonth,
             voucher_number: getVoucherNumber(
               _main_obj.custrecord_gw_voucher_number
             ),

@@ -20,7 +20,7 @@ define(['N/record',
              var _document_type = _document_ary[0].toUpperCase()
              var _document_internal_id = _document_ary[_document_ary.length-1]
              
-             _document_type = document_ary.toString().replace('_'+_document_internal_id, '');
+             _document_type = _document_type.toString().replace('_'+_document_internal_id, '');
              
              syncToNetsuiteDocument(voucher_main_record, _document_type, _document_internal_id)
     	}
@@ -40,7 +40,7 @@ define(['N/record',
         	_record_type_id = record.Type.CREDIT_MEMO	
         } else if (document_type == 'CASH_SALE') {
         	_record_type_id = record.Type.CASH_SALE		               
-        } else if (document_type == 'CUSTOMER_DEPOSIT') {
+        } else if (document_type == 'CUSTOMER' || document_type == 'CUSTOMER_DEPOSIT') {
         	_record_type_id = record.Type.CUSTOMER_DEPOSIT		               
         }
     	
@@ -266,7 +266,7 @@ define(['N/record',
 		        	 _record_type_id = record.Type.CREDIT_MEMO	
 		         } else if (_ns_document_type == 'CASH_SALE') {
 		        	 _record_type_id = record.Type.CASH_SALE		               
-		         } else if (_ns_document_type == 'CUSTOMER_DEPOSIT') {
+		         } else if (_ns_document_type == 'CUSTOMER' || _ns_document_type == 'CUSTOMER_DEPOSIT') {
 		        	 _record_type_id = record.Type.CUSTOMER_DEPOSIT		               
 		         }
   		    	 

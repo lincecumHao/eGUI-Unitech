@@ -14,9 +14,15 @@ define(['N/runtime','N/record','../gw_common_utility/gw_common_invoice_utility']
     var _lock_transaction = _current_record.getValue({
       fieldId: 'custbody_gw_lock_transaction',
     })
+    /**
 	var _subsidiary = _current_record.getValue({
 		  fieldId: 'subsidiary',
 	})	
+	*/
+	var _subsidiary = _current_record.getValue({
+		  fieldId: 'custbody_iv_company_attributed',
+	})	
+	log.debug('_subsidiary', '_subsidiary:' + JSON.stringify(_subsidiary))
 	//20211006 walter modify
 	var _gw_is_issue_egui = _current_record.getValue({
 	      fieldId: 'custbody_gw_is_issue_egui',

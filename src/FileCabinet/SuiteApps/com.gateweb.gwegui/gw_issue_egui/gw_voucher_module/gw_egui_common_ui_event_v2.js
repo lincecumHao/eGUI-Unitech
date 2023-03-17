@@ -1221,14 +1221,27 @@ define([
         fieldId: 'custrecord_gw_voucher_open_type',
         value: voucher_open_type,
       })
+      /**
       _voucherApplyRecord.setValue({
         fieldId: 'custrecord_gw_voucher_apply_date',
         value: new Date(gwDateUtil.getNsCompatibleDate())
       })
+      */
+      _voucherApplyRecord.setValue({
+        fieldId: 'custrecord_gw_voucher_apply_date',
+        value: new Date(),
+      })
+      /**
       _voucherApplyRecord.setValue({
         fieldId: 'custrecord_gw_voucher_apply_time',
         value: gwDateUtil.getCurrentDateTime().time
       })
+      */
+      _voucherApplyRecord.setValue({
+        fieldId: 'custrecord_gw_voucher_apply_time',
+        value: dateutility.getCompanyLocatTimeForClient(),
+      })
+      
       _voucherApplyRecord.setValue({
         fieldId: 'custrecord_gw_voucher_void_comment',
         value: cancel_reason,

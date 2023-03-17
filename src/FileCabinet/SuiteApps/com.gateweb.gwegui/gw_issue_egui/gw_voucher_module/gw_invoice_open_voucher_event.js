@@ -25,24 +25,37 @@ define([
     var _internalId = _current_record.id
     if (_internalId != 0) {
       try {
-        var _subsidiary = _current_record.getValue({
-          fieldId: 'subsidiary'
+        var _record = record.load({
+    	    type: _current_record.type,
+    	    id: _internalId,
+    	    isDynamic: true,
+    	})
+        var _subsidiary = _record.getValue({
+          fieldId: 'custbody_iv_company_attributed'
         })
-        var _selected_business_no = getBusinessNoBySubsidiary(_subsidiary)
-        var _invoice_hiddent_listid = '-1,' + _internalId
-        var _creditmemo_hiddent_listid = ''
-        var _params = {
-          custpage_businessno: _selected_business_no,
-          invoice_hiddent_listid: _invoice_hiddent_listid,
-          creditmemo_hiddent_listid: _creditmemo_hiddent_listid
-        }
-
-        window.location = url.resolveScript({
-          scriptId: _eguiEditScriptId,
-          deploymentId: _eguiEditDeploymentId,
-          params: _params,
-          returnExternalUrl: false
+        
+        var _lock_transaction = _record.getValue({
+               fieldId: 'custbody_gw_lock_transaction'
         })
+	    if (_lock_transaction==false){    
+	        var _selected_business_no = getBusinessNoBySubsidiary(_subsidiary)
+	        var _invoice_hiddent_listid = '-1,' + _internalId
+	        var _creditmemo_hiddent_listid = ''
+	        var _params = {
+	          custpage_businessno: _selected_business_no,
+	          invoice_hiddent_listid: _invoice_hiddent_listid,
+	          creditmemo_hiddent_listid: _creditmemo_hiddent_listid
+	        }
+	
+	        window.location = url.resolveScript({
+	          scriptId: _eguiEditScriptId,
+	          deploymentId: _eguiEditDeploymentId,
+	          params: _params,
+	          returnExternalUrl: false
+	        })
+	    } else {
+			alert('該憑證已開立完成電子發票,勿重新開立!');
+		}   
       } catch (e) {
         console.log(e.name + ':' + e.message)
       }
@@ -55,32 +68,38 @@ define([
       try {
         var _user_obj = runtime.getCurrentUser()
 
-        var _invoice_record = record.load({
-          type: record.Type.CREDIT_MEMO,
+        var _record = record.load({
+          type: _current_record.type,
           id: _internalId,
           isDynamic: true
         })
-        var _subsidiary = _invoice_record.getValue({
-          fieldId: 'subsidiary'
+        var _subsidiary = _record.getValue({
+          fieldId: 'custbody_iv_company_attributed'
         })
-
-        //var _user_subsidiary = _user_obj.subsidiary
-        var _selected_business_no = getBusinessNoBySubsidiary(_subsidiary)
-
-        var _invoice_hiddent_listid = ''
-        var _creditmemo_hiddent_listid = '-1,' + _internalId
-        var _params = {
-          custpage_businessno: _selected_business_no,
-          invoice_hiddent_listid: _invoice_hiddent_listid,
-          creditmemo_hiddent_listid: _creditmemo_hiddent_listid
-        }
-
-        window.location = url.resolveScript({
-          scriptId: _eguiEditScriptId,
-          deploymentId: _eguiEditDeploymentId,
-          params: _params,
-          returnExternalUrl: false
+        var _lock_transaction = _record.getValue({
+               fieldId: 'custbody_gw_lock_transaction'
         })
+        if (_lock_transaction==false){
+	        //var _user_subsidiary = _user_obj.subsidiary
+	        var _selected_business_no = getBusinessNoBySubsidiary(_subsidiary)
+	
+	        var _invoice_hiddent_listid = ''
+	        var _creditmemo_hiddent_listid = '-1,' + _internalId
+	        var _params = {
+	          custpage_businessno: _selected_business_no,
+	          invoice_hiddent_listid: _invoice_hiddent_listid,
+	          creditmemo_hiddent_listid: _creditmemo_hiddent_listid
+	        }
+	
+	        window.location = url.resolveScript({
+	          scriptId: _eguiEditScriptId,
+	          deploymentId: _eguiEditDeploymentId,
+	          params: _params,
+	          returnExternalUrl: false
+	        })
+        } else {
+			alert('該憑證已開立完成折讓單,勿重新開立!');
+		}     
       } catch (e) {
         console.log(e.name + ':' + e.message)
       }

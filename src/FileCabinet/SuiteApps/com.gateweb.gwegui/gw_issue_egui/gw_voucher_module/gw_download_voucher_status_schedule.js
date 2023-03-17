@@ -34,6 +34,10 @@ define([
   var _deposit_voucher_record = gwconfigure.getGwDepositVoucherRecord()
   var _invoce_control_field_id = gwconfigure.getInvoceControlFieldId()
   var _credmemo_control_field_id = gwconfigure.getCredMemoControlFieldId()
+  
+  //20220801 return Y 才執行
+  var _use_emai_fun = invoiceutility.getConfigureValue('MAIL_GROUP', 'USED_EMAIL')
+ 
   var _taxObjAry = []
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //處理NS Invoice資料-START
@@ -1039,10 +1043,11 @@ define([
             } else if (_upload_mig_type=='D0501') {//折讓單作廢
             	_email_sublect = '折讓單作廢通知'
             }
-            if (_status == 'C' && _email_sublect.length !=0) {
+            log.debug('email _use_emai_fun :', _use_emai_fun)
+            if (_use_emai_fun =='Y' && _status == 'C' && _email_sublect.length !=0) {
             	_email_sublect = _email_sublect+'-開立成功' 
 				
-				log.debug('email result :', 'start mail')
+				log.debug('email start :', 'start mail')
 				var result = gwEmailService.sendByVoucherId(_email_sublect, parseInt(_applyId))
 				log.debug('email result :', result)			
 			} 

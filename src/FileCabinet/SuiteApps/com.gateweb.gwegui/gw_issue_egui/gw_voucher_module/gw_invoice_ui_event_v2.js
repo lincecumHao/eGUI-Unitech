@@ -902,11 +902,18 @@ define([
       if (_taxObjAry != null) {
         for (var i = 0; i < _taxObjAry.length; i++) {
           var _obj = JSON.parse(JSON.stringify(_taxObjAry[i]))
-
+          
+          var _tax_code_value=_obj.netsuite_id_value 
+          if (_tax_code_value.indexOf(netsuiteId) != -1) {
+              _taxObj = _obj
+              break
+          }
+          /**
           if (_obj.netsuite_id_value == netsuiteId) {
             _taxObj = _obj
             break
           }
+          */
         }
       }
     } catch (e) {
