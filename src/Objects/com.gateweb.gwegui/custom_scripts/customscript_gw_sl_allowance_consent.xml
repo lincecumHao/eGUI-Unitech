@@ -1,0 +1,25 @@
+<suitelet scriptid="customscript_gw_sl_allowance_consent">
+  <description></description>
+  <isinactive>F</isinactive>
+  <name>GW SL Allowance Consent</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>F</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteApps/com.gateweb.gwegui/gw_issue_egui/gw_voucher_module/gw_sl_allowance_consent.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_gw_sl_allowance_consent">
+      <allemployees>T</allemployees>
+      <allpartners>F</allpartners>
+      <allroles>T</allroles>
+      <audslctrole></audslctrole>
+      <eventtype></eventtype>
+      <isdeployed>T</isdeployed>
+      <isonline>T</isonline>
+      <loglevel>DEBUG</loglevel>
+      <runasrole>ADMINISTRATOR</runasrole>
+      <status>RELEASED</status>
+      <title>GW SL Allowance Consent</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</suitelet>
