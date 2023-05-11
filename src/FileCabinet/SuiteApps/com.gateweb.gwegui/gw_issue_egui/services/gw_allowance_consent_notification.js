@@ -240,5 +240,6 @@ define([
     exports.getVoucherDetailsByVoucherMainId = getVoucherDetailsByVoucherMainId;
     exports.updateAllowanceConsentNotificationRecord = updateAllowanceConsentNotificationRecord;
     exports.executeScript = executeScript;
+    exports.getExpiredDate = getExpiredDate;
     return exports
 })

@@ -11,7 +11,8 @@ define([
     'N/url',
     'N/task',
     'N/record',
-    '../services/gw_allowance_consent_notification'
+    '../services/gw_allowance_consent_notification',
+    'N/format'
 ], function (
     serverWidget,
     search,
@@ -19,7 +20,8 @@ define([
     url,
     task,
     record,
-    gwAllowanceConsentNotification
+    gwAllowanceConsentNotification,
+    format
 ) {
 
     function getInputParameters(context) {
@@ -120,6 +122,30 @@ define([
             newUploadField.updateBreakType({
                 breakType: serverWidget.FieldBreakType.STARTROW
             });
+
+            var newDate = new Date();
+            var currentDateString = format.format({
+                value: newDate,
+                type: format.Type.DATETIME,
+                timezone: format.Timezone.ASIA_TAIPEI
+            });
+            var currentDate = format.parse({
+                value: currentDateString,
+                type: format.Type.DATETIME,
+                timezone: format.Timezone.ASIA_TAIPEI
+            });
+
+            log.debug({
+                title: 'date diff',
+                details: {
+                    newDate,
+                    currentDateString,
+                    currentDate
+                }
+            });
+
+            newUploadField.defaultValue = currentDate;
+            newUploadField.updateDisplayType({displayType: serverWidget.FieldDisplayType.DISABLED});
 
             // var applyPeriodField = form.addField({
             //     id: 'custpage_apply_period',

@@ -67,7 +67,7 @@ define([
             type: 'customrecord_gw_allowance_consent_notify',
             id: result.requestId,
             values: {
-                custrecord_notification_expired_date: getExpiredDate()
+                custrecord_notification_expired_date: gwAllowanceConsentNotification.getExpiredDate()
             }
         });
     }
