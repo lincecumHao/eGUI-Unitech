@@ -5,7 +5,10 @@ define([
     'N/url',
     'N/runtime',
     'N/record',
-    'N/email'
+    'N/email',
+    '../gw_common_utility/gw_common_migxml_utility',
+    'N/file',
+    '../../gw_print/gw_download_pdf/gw_api_client',
 ], (
     render,
     gwAllowanceConsentNotification,
@@ -13,7 +16,10 @@ define([
     url,
     runtime,
     record,
-    email
+    email,
+    gwCommonMigXmlUtility,
+    file,
+    gwApiClient,
 ) => {
     /**
      * Module Description...
@@ -135,21 +141,143 @@ define([
         return recordIntegerId;
     }
 
+    function getVoucherMainId(result) {
+        const fieldLookUp = search.lookupFields({
+            type: 'customrecord_gw_allowance_consent_notify',
+            id: result.requestId,
+            columns: ['custrecord_gw_voucher_main_id']
+        });
+        log.debug({
+            title: 'in getVoucherMainId - fieldLookUp',
+            details: fieldLookUp
+        })
+        const voucherMainId = fieldLookUp.custrecord_gw_voucher_main_id[0].value;
+
+        return voucherMainId;
+    }
+
+    function loadInvoiceMigXml(voucherType, migType) {
+
+        var gwMigXmlPath = '../gw_mig_xml/'
+        var _gw_mig_a0101_xml_path = gwMigXmlPath + 'gw_a0101.xml';
+        var _gw_mig_c0401_xml_path = gwMigXmlPath + 'gw_c0401.xml';
+        var _gw_mig_b0101_xml_path = gwMigXmlPath + 'gw_b0101.xml';
+        var _gw_mig_d0401_xml_path = gwMigXmlPath + 'gw_d0401.xml';
+
+        var _xmlString
+        try {
+            var _file_path = ''
+            if (voucherType === 'EGUI') {
+                if (migType == 'B2BE') {
+                    _file_path = _gw_mig_a0101_xml_path
+                } else if (migType == 'B2BS') {
+                    //_file_path = _gw_mig_a0401_xml_path;
+                    _file_path = _gw_mig_c0401_xml_path //A0401轉成C0401
+                } else if (migType == 'B2C') {
+                    _file_path = _gw_mig_c0401_xml_path
+                }
+            } else if (voucherType === 'ALLOWANCE') {
+                if (migType == 'B2BE') {
+                    //TODO
+                    _file_path = _gw_mig_b0101_xml_path
+                } else if (migType == 'B2BS') {
+                    //_file_path = _gw_mig_b0401_xml_path;
+                    _file_path = _gw_mig_d0401_xml_path //B0401轉成D0401
+                } else if (migType == 'B2C') {
+                    _file_path = _gw_mig_d0401_xml_path
+                }
+            }
+            if (_file_path !== '') _xmlString = file.load(_file_path).getContents()
+        } catch (e) {
+            log.debug(e.name, e.message)
+        }
+
+        return _xmlString
+    }
+
+    function removeChangeLineChar(text) {
+        if (text) {
+            while (text.indexOf('\r') > -1) {
+                text = text.replace('\r', '');
+            }
+            while (text.indexOf('\n') > -1) {
+                text = text.replace('\n', '');
+            }
+        }
+        return text;
+    }
+
+    function getAllowanceAttachmentByVoucherId(voucherMainId) {
+        const b2bs_xml = loadInvoiceMigXml('ALLOWANCE', 'B2BS');
+        const b2be_xml = loadInvoiceMigXml('ALLOWANCE', 'B2BE');
+        const b2c_xml = loadInvoiceMigXml('ALLOWANCE', 'B2C');
+
+        const accessModel = 'NETSUITE';
+        const voucher_type = 'ALLOWANCE';
+        let voucherId = voucherMainId;
+        const genXmlToFtpResult = 'Y';
+        const genXmlToFtpMessage = '';
+
+        log.debug({
+            title: 'getAllowanceAttachmentByVoucherId - getVoucherToDoList params',
+            details: {
+                accessModel,
+                voucher_type,
+                voucherId,
+                b2bs_xml,
+                b2be_xml,
+                b2c_xml,
+                genXmlToFtpResult,
+                genXmlToFtpMessage
+            }
+        });
+
+        let xmlObjectArray = gwCommonMigXmlUtility.getVoucherToDoList(accessModel, voucher_type, voucherId, b2bs_xml, b2be_xml, b2c_xml, genXmlToFtpResult, genXmlToFtpMessage);
+
+        log.debug({
+            title: 'getAllowanceAttachmentByVoucherId - xmlObjectArray',
+            details: xmlObjectArray
+        });
+
+        let xmlFileObject = {
+            filename: xmlObjectArray[0].file_name + '.xml',
+            xml: xmlObjectArray[0].mig_xml,
+            docType: 'allowance',
+            docStatus: 2,
+            extramemo: removeChangeLineChar(xmlObjectArray[0].extra_memo),
+            uploadDocument: true,
+            reprint: true
+        };
+
+        const allowanceAttachment = gwApiClient.downloadAllowancePDF(xmlFileObject);
+
+        return allowanceAttachment;
+    }
+
     function sendEmailToBuyer(result, emailTemplate, approveLink) {
         log.debug({title: 'in sendEmailToBuyer', details: ''});
 
         let mergeResultObj = getEmailTemplate(result, emailTemplate);
         log.debug({title: 'sendEmailToBuyer - Email subject: ', details: mergeResultObj.subject});
-        log.debug({title: 'sendEmailToBuyer - Email Body: ', details: mergeResultObj.body});
+        log.debug({title: 'sendEmailToBuyer - 1.Email Body: ', details: mergeResultObj.body});
         let emailBody = mergeResultObj.body;
         if (approveLink) emailBody = emailBody.replaceAll('@@button_link@@', `<a href="${approveLink}" target="_blank">請由此連結確認</a>`);
-        log.debug({title: 'sendEmailToBuyer - emailBody', details: emailBody});
+        log.debug({title: 'sendEmailToBuyer - 2.Email Body: ', details: emailBody});
+        let attachments;
+        if (!approveLink) {
+            //TODO - get allowance PDF
+            attachments = getAllowanceAttachmentByVoucherId(getVoucherMainId(result));
+            log.debug({
+                title: 'in sendEmailToBuyer - attachments',
+                details: attachments
+            });
+        }
         email.send({
             author: getAuthorBySellerId(result),
             recipients: getBuyerEmail(result),
             subject: mergeResultObj.subject,
             body: emailBody,
-            // attachments: [fileObj],
+            attachments: attachments ? [attachments] : null,
             relatedRecords: {
                 customRecord: {
                     id: parseInt(result.requestId),
