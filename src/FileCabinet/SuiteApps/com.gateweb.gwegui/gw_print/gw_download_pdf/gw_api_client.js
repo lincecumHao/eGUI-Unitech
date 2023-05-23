@@ -1,4 +1,4 @@
-define(['N/url', 'N/https'], function (url, https) {
+define(['N/url', 'N/https', 'N/runtime', 'N/file'], function (url, https, runtime, file) {
   /**
    * Module Description...
    *
@@ -125,9 +125,50 @@ define(['N/url', 'N/https'], function (url, https) {
 
   function postToGwApi(xmlFileObjects) {}
 
-  exports.downloadPdfs = downloadPdfs
-  exports.printToPrinter = printToPrinter
-  exports.DOCTYPE = documentType
-  exports.DOCSTATUS = documentStatus
+  function downloadAllowancePDF(params) {
+
+    log.debug({
+      title: 'in downloadAllowancePDF - params',
+      details: params
+    });
+
+    var pdfUrl = url.resolveScript({
+      scriptId: dlPdfSlId,
+      deploymentId: dlPdfSlDeploymentId,
+      returnExternalUrl: true,
+    });
+
+    var response = https.post({
+      url: pdfUrl,
+      headers: getHeaders(),
+      body: JSON.stringify(params)
+    });
+
+    log.debug({
+      title: 'in downloadAllowancePDF - response',
+      details: response
+    });
+
+    var allowanceFileName = params.filename.replace('.xml', '.pdf');
+    var allowanceAttachment = file.create({
+      name: allowanceFileName,
+      fileType: file.Type.PDF,
+      contents: response.body
+    });
+
+    log.debug({
+      title: 'downloadAllowancePDF - allowanceAttachment',
+      details: allowanceAttachment
+    });
+
+    return allowanceAttachment;
+  }
+
+  exports.downloadPdfs = downloadPdfs;
+  exports.printToPrinter = printToPrinter;
+  exports.DOCTYPE = documentType;
+  exports.DOCSTATUS = documentStatus;
+  exports.downloadSinglePdf = downloadSinglePdf;
+  exports.downloadAllowancePDF = downloadAllowancePDF;
   return exports
 })

@@ -69,27 +69,34 @@ define([
      */
 
     const map = (mapContext) => {
-        log.debug({
-            title: 'mapContext',
-            details: mapContext
-        });
-        const result = JSON.parse(mapContext.value);
+        try {
+            log.debug({
+                title: 'mapContext',
+                details: mapContext
+            });
+            const result = JSON.parse(mapContext.value);
 
-        if(result.needToEnterRecordValue === 'true') {
-            const voucherMainId = gwAllowanceConsentNotification.getVoucherMainId(result.requestId);
-            log.debug({
-                title: 'voucherMainId',
-                details: voucherMainId
-            });
-            const voucherDetailsObject = gwAllowanceConsentNotification.getVoucherDetailsByVoucherMainId(voucherMainId);
-            log.debug({
-                title: 'voucherDetailsObject',
-                details: voucherDetailsObject
-            });
-            gwAllowanceConsentNotification.updateAllowanceConsentNotificationRecord(result, voucherDetailsObject);
+            if(result.needToEnterRecordValue === 'true') {
+                const voucherMainId = gwAllowanceConsentNotification.getVoucherMainId(result.requestId);
+                log.debug({
+                    title: 'voucherMainId',
+                    details: voucherMainId
+                });
+                const voucherDetailsObject = gwAllowanceConsentNotification.getVoucherDetailsByVoucherMainId(voucherMainId);
+                log.debug({
+                    title: 'voucherDetailsObject',
+                    details: voucherDetailsObject
+                });
+                gwAllowanceConsentNotification.updateAllowanceConsentNotificationRecord(result, voucherDetailsObject);
+            }
+
+            gwAllowanceConsentNotificationEmail.sendEmailNotification(result);
+        } catch (e) {
+            log.error({
+                title: '[map stage]- error',
+                details: e
+            })
         }
-
-        gwAllowanceConsentNotificationEmail.sendEmailNotification(result);
     }
 
     /**
