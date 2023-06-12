@@ -76,7 +76,7 @@ define([
         );
         searchColumns.push(
             search.createColumn({
-                name: "custrecord_gw_item_seq",
+                name: "custrecord_gw_item_quantity",
                 join: "CUSTRECORD_GW_VOUCHER_MAIN_INTERNAL_ID"
             })
         );
@@ -145,8 +145,8 @@ define([
                 name: 'custrecord_gw_item_description',
                 join: 'CUSTRECORD_GW_VOUCHER_MAIN_INTERNAL_ID'
             });
-            voucherDetailsObject['custrecord_gw_item_seq'] = result.getValue({
-                name: 'custrecord_gw_item_seq',
+            voucherDetailsObject['custrecord_gw_item_quantity'] = result.getValue({
+                name: 'custrecord_gw_item_quantity',
                 join: 'CUSTRECORD_GW_VOUCHER_MAIN_INTERNAL_ID'
             });
             voucherDetailsObject['custrecord_gw_item_tax_amount'] = result.getValue({
@@ -257,29 +257,13 @@ define([
                 sublistId: allowanceConsentDetailsSublistId,
                 fieldId: 'custrecord_gw_acd_item_qty',
                 line: subRecordLine,
-                value: voucherMainDetailsArray[line]['custrecord_gw_item_seq']
+                value: voucherMainDetailsArray[line]['custrecord_gw_item_quantity']
             });
 
             subRecordLine++;
         }
 
         voucherMainRecordObject.save();
-
-        // record.submitFields({
-        //     type: 'customrecord_gw_allowance_consent_notify',
-        //     id: result.requestId,
-        //     values: {
-        //         custrecord_buyer_email: voucherMainDetailsObject['buyer_email'],
-        //         custrecord_item_description: voucherMainDetailsObject['custrecord_gw_item_description'],
-        //         custrecord_egui_invoice_number: voucherMainDetailsObject['custrecord_gw_original_gui_number'],
-        //         custrecord_egui_invoice_date: voucherMainDetailsObject['custrecord_gw_original_gui_date'],
-        //         custrecord_return_quantity: voucherMainDetailsObject['custrecord_gw_item_quantity'],
-        //         custrecord_amount_without_tax: voucherMainDetailsObject['custrecord_gw_item_amount'],
-        //         custrecord_tax_amount: Math.round(parseFloat(voucherMainDetailsObject['custrecord_gw_item_tax_amount'])),
-        //         custrecord_allowance_total_amount: Math.round(parseInt(voucherMainDetailsObject['custrecord_gw_item_amount']) + parseFloat(voucherMainDetailsObject['custrecord_gw_item_tax_amount'])),
-        //         custrecord_notification_expired_date: getExpiredDate()
-        //     }
-        // });
     }
 
     function createScriptDeploymentByInternalId(scriptId) {
