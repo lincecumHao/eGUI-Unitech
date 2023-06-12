@@ -38,9 +38,12 @@ define([
     function getVoucherDetailsByVoucherMainId(voucherMainId) {
         let searchFilters = [];
         searchFilters.push(['internalid', 'anyof', voucherMainId]);
-        searchFilters.push('AND');
-        searchFilters.push(['custrecord_gw_ns_transaction.mainline', 'is', 'T']);
+
         let searchColumns = [];
+        searchColumns.push('custrecord_gw_sales_amount');
+        searchColumns.push('custrecord_gw_tax_amount');
+        searchColumns.push('custrecord_gw_total_amount');
+
         searchColumns.push(
             search.createColumn({
                 name: "custrecord_gw_original_gui_internal_id",
@@ -73,7 +76,7 @@ define([
         );
         searchColumns.push(
             search.createColumn({
-                name: "custrecord_gw_item_quantity",
+                name: "custrecord_gw_item_seq",
                 join: "CUSTRECORD_GW_VOUCHER_MAIN_INTERNAL_ID"
             })
         );
@@ -98,10 +101,9 @@ define([
         searchColumns.push(
             search.createColumn({
                 name: "email",
-                join: "CUSTRECORD_GW_NS_TRANSACTION"
+                join: "custrecord_gw_ns_transaction"
             })
         );
-
         var customrecord_gw_voucher_mainSearchObj = search.create({
             type: "customrecord_gw_voucher_main",
             filters: searchFilters,
@@ -109,13 +111,24 @@ define([
         });
         var searchResultCount = customrecord_gw_voucher_mainSearchObj.runPaged().count;
         log.debug("customrecord_gw_voucher_mainSearchObj result count", searchResultCount);
-        let voucherDetailsObject = {};
+        let voucherDetailsArray = [];
         customrecord_gw_voucher_mainSearchObj.run().each(function (result) {
+            let voucherDetailsObject = {};
             // .run().each has a limit of 4,000 results
-            // log.debug({
-            //     title: 'result',
-            //     details: result
-            // });
+            log.debug({
+                title: 'getVoucherDetailsByVoucherMainId - result',
+                details: result
+            });
+            voucherDetailsObject['custrecord_gw_sales_amount'] = result.getValue({
+                name: 'custrecord_gw_sales_amount',
+            });
+            voucherDetailsObject['custrecord_gw_tax_amount'] = result.getValue({
+                name: 'custrecord_gw_tax_amount',
+            });
+            voucherDetailsObject['custrecord_gw_total_amount'] = result.getValue({
+                name: 'custrecord_gw_total_amount',
+            });
+
             voucherDetailsObject['custrecord_gw_original_gui_number'] = result.getValue({
                 name: 'custrecord_gw_original_gui_number',
                 join: 'CUSTRECORD_GW_VOUCHER_MAIN_INTERNAL_ID'
@@ -132,8 +145,8 @@ define([
                 name: 'custrecord_gw_item_description',
                 join: 'CUSTRECORD_GW_VOUCHER_MAIN_INTERNAL_ID'
             });
-            voucherDetailsObject['custrecord_gw_item_quantity'] = result.getValue({
-                name: 'custrecord_gw_item_quantity',
+            voucherDetailsObject['custrecord_gw_item_seq'] = result.getValue({
+                name: 'custrecord_gw_item_seq',
                 join: 'CUSTRECORD_GW_VOUCHER_MAIN_INTERNAL_ID'
             });
             voucherDetailsObject['custrecord_gw_item_tax_amount'] = result.getValue({
@@ -150,12 +163,18 @@ define([
             });
             voucherDetailsObject['buyer_email'] = result.getValue({
                 name: 'email',
-                join: 'CUSTRECORD_GW_NS_TRANSACTION'
+                join: 'custrecord_gw_ns_transaction'
             });
+            voucherDetailsArray.push(voucherDetailsObject);
             return true;
         });
 
-        return voucherDetailsObject;
+        log.debug({
+            title: 'getVoucherDetailsByVoucherMainId - voucherDetailsArray',
+            details: voucherDetailsArray
+        })
+
+        return voucherDetailsArray;
     }
 
     function getExpiredDate() {
@@ -164,22 +183,103 @@ define([
         return `${expiredDate.getMonth() + 1}/${expiredDate.getDate()}/${expiredDate.getFullYear()}`
     }
 
-    function updateAllowanceConsentNotificationRecord(result, voucherDetailsObject) {
-        record.submitFields({
+    function updateAllowanceConsentNotificationRecord(result, voucherMainDetailsArray) {
+
+        const voucherMainRecordObject = record.load({
             type: 'customrecord_gw_allowance_consent_notify',
-            id: result.requestId,
-            values: {
-                custrecord_buyer_email: voucherDetailsObject['buyer_email'],
-                custrecord_item_description: voucherDetailsObject['custrecord_gw_item_description'],
-                custrecord_egui_invoice_number: voucherDetailsObject['custrecord_gw_original_gui_number'],
-                custrecord_egui_invoice_date: voucherDetailsObject['custrecord_gw_original_gui_date'],
-                custrecord_return_quantity: voucherDetailsObject['custrecord_gw_item_quantity'],
-                custrecord_amount_without_tax: voucherDetailsObject['custrecord_gw_item_amount'],
-                custrecord_tax_amount: Math.round(parseFloat(voucherDetailsObject['custrecord_gw_item_tax_amount'])),
-                custrecord_allowance_total_amount: Math.round(parseInt(voucherDetailsObject['custrecord_gw_item_amount']) + parseFloat(voucherDetailsObject['custrecord_gw_item_tax_amount'])),
-                custrecord_notification_expired_date: getExpiredDate()
-            }
+            id: result.requestId
         });
+        voucherMainRecordObject.setValue({
+            fieldId: 'custrecord_buyer_email',
+            value: voucherMainDetailsArray[0]['buyer_email']
+        });
+        // voucherMainRecordObject.setValue({
+        //     fieldId: 'custrecord_item_description',
+        //     value: voucherMainDetailsObject['custrecord_gw_item_description']
+        // });
+        voucherMainRecordObject.setValue({
+            fieldId: 'custrecord_egui_invoice_number',
+            value: voucherMainDetailsArray[0]['custrecord_gw_original_gui_number']
+        });
+        voucherMainRecordObject.setValue({
+            fieldId: 'custrecord_egui_invoice_date',
+            value: voucherMainDetailsArray[0]['custrecord_gw_original_gui_date']
+        });
+        // voucherMainRecordObject.setValue({
+        //     fieldId: 'custrecord_return_quantity',
+        //     value: voucherMainDetailsObject['custrecord_gw_item_quantity']
+        // });
+        voucherMainRecordObject.setValue({
+            fieldId: 'custrecord_amount_without_tax',
+            value: voucherMainDetailsArray[0]['custrecord_gw_sales_amount']
+        });
+        voucherMainRecordObject.setValue({
+            fieldId: 'custrecord_tax_amount',
+            value: Math.round(parseFloat(voucherMainDetailsArray[0]['custrecord_gw_tax_amount']))
+        });
+        voucherMainRecordObject.setValue({
+            fieldId: 'custrecord_allowance_total_amount',
+            value: Math.round(parseFloat(voucherMainDetailsArray[0]['custrecord_gw_total_amount']))
+        });
+        voucherMainRecordObject.setValue({
+            fieldId: 'custrecord_notification_expired_date',
+            value: new Date(getExpiredDate())
+        });
+
+        let subRecordLine = 0;
+        for (let line = 0; line < voucherMainDetailsArray.length; line++) {
+            const allowanceConsentDetailsSublistId = 'recmachcustrecord_gw_acd_gacn';
+            voucherMainRecordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_name',
+                line: subRecordLine,
+                value: voucherMainDetailsArray[line]['custrecord_gw_item_description']
+            });
+            voucherMainRecordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_amt',
+                line: subRecordLine,
+                value: voucherMainDetailsArray[line]['custrecord_gw_item_amount']
+            });
+            voucherMainRecordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_tax_amt',
+                line: subRecordLine,
+                value: voucherMainDetailsArray[line]['custrecord_gw_item_tax_amount']
+            });
+            voucherMainRecordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_total_amt',
+                line: subRecordLine,
+                value: voucherMainDetailsArray[line]['custrecord_gw_item_total_amount']
+            });
+            voucherMainRecordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_qty',
+                line: subRecordLine,
+                value: voucherMainDetailsArray[line]['custrecord_gw_item_seq']
+            });
+
+            subRecordLine++;
+        }
+
+        voucherMainRecordObject.save();
+
+        // record.submitFields({
+        //     type: 'customrecord_gw_allowance_consent_notify',
+        //     id: result.requestId,
+        //     values: {
+        //         custrecord_buyer_email: voucherMainDetailsObject['buyer_email'],
+        //         custrecord_item_description: voucherMainDetailsObject['custrecord_gw_item_description'],
+        //         custrecord_egui_invoice_number: voucherMainDetailsObject['custrecord_gw_original_gui_number'],
+        //         custrecord_egui_invoice_date: voucherMainDetailsObject['custrecord_gw_original_gui_date'],
+        //         custrecord_return_quantity: voucherMainDetailsObject['custrecord_gw_item_quantity'],
+        //         custrecord_amount_without_tax: voucherMainDetailsObject['custrecord_gw_item_amount'],
+        //         custrecord_tax_amount: Math.round(parseFloat(voucherMainDetailsObject['custrecord_gw_item_tax_amount'])),
+        //         custrecord_allowance_total_amount: Math.round(parseInt(voucherMainDetailsObject['custrecord_gw_item_amount']) + parseFloat(voucherMainDetailsObject['custrecord_gw_item_tax_amount'])),
+        //         custrecord_notification_expired_date: getExpiredDate()
+        //     }
+        // });
     }
 
     function createScriptDeploymentByInternalId(scriptId) {
@@ -193,9 +293,9 @@ define([
             columns: searchColumns
         });
         const searchResultCount = scriptSearchObj.runPaged().count;
-        log.debug("scriptSearchObj result count",searchResultCount);
+        log.debug("scriptSearchObj result count", searchResultCount);
         let scriptInternalId = '';
-        scriptSearchObj.run().each(function(result){
+        scriptSearchObj.run().each(function (result) {
             // .run().each has a limit of 4,000 results
             scriptInternalId = result.id;
             return true;
@@ -205,7 +305,7 @@ define([
     }
 
     function createScriptDeployment(scriptId) {
-        const deploymentRecord = record.create ({
+        const deploymentRecord = record.create({
             type: record.Type.SCRIPT_DEPLOYMENT,
             defaultValues: {
                 script: scriptId
@@ -230,9 +330,9 @@ define([
         try {
             scriptTask.submit();
         } catch (e) {
-            const deploymentRecord  = createScriptDeployment(scriptInternalId);
+            const deploymentRecord = createScriptDeployment(scriptInternalId);
             log.debug('executeScript - deploymentRecord', deploymentRecord);
-            if(deploymentRecord) scriptTask.submit();
+            if (deploymentRecord) scriptTask.submit();
         }
     }
 

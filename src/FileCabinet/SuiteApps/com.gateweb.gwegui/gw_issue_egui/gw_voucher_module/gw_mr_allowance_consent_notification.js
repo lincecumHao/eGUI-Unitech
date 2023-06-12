@@ -82,12 +82,12 @@ define([
                     title: 'voucherMainId',
                     details: voucherMainId
                 });
-                const voucherDetailsObject = gwAllowanceConsentNotification.getVoucherDetailsByVoucherMainId(voucherMainId);
+                const voucherMainDetailsArray = gwAllowanceConsentNotification.getVoucherDetailsByVoucherMainId(voucherMainId);
                 log.debug({
-                    title: 'voucherDetailsObject',
-                    details: voucherDetailsObject
+                    title: 'voucherMainDetailsArray',
+                    details: voucherMainDetailsArray
                 });
-                gwAllowanceConsentNotification.updateAllowanceConsentNotificationRecord(result, voucherDetailsObject);
+                gwAllowanceConsentNotification.updateAllowanceConsentNotificationRecord(result, voucherMainDetailsArray);
             }
 
             gwAllowanceConsentNotificationEmail.sendEmailNotification(result);

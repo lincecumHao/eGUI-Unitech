@@ -40,7 +40,92 @@ define([
 
     }
 
-    function createAllowanceConsentNotificationRecord(recordId) {
+    function createAllowanceConsentDetails(recordObject, scriptContext) {
+        const voucherMainDetailsSublistId = 'recmachcustrecord_gw_voucher_main_internal_id';
+
+        const voucherMainRecordObject = record.load({
+            type: 'customrecord_gw_voucher_main',
+            id: scriptContext.newRecord.id
+        })
+        const lineCount = voucherMainRecordObject.getLineCount({sublistId: voucherMainDetailsSublistId});
+        log.debug({title: 'createAllowanceConsentDetails - lineCount', details: lineCount});
+
+        let subRecordLine = 0;
+        for (let line = 0; line < lineCount; line ++ ) {
+            const itemDescription = voucherMainRecordObject.getSublistValue({
+                sublistId: voucherMainDetailsSublistId,
+                fieldId: 'custrecord_gw_item_description',
+                line
+            });
+            const itemAmount = voucherMainRecordObject.getSublistValue({
+                sublistId: voucherMainDetailsSublistId,
+                fieldId: 'custrecord_gw_item_amount',
+                line
+            });
+            const itemTaxAmount = voucherMainRecordObject.getSublistValue({
+                sublistId: voucherMainDetailsSublistId,
+                fieldId: 'custrecord_gw_item_tax_amount',
+                line
+            });
+            const itemTotalAmount = voucherMainRecordObject.getSublistValue({
+                sublistId: voucherMainDetailsSublistId,
+                fieldId: 'custrecord_gw_item_total_amount',
+                line
+            });
+            const itemQuantity = voucherMainRecordObject.getSublistValue({
+                sublistId: voucherMainDetailsSublistId,
+                fieldId: 'custrecord_gw_item_seq',
+                line
+            });
+
+            log.debug({
+                title: 'createAllowanceConsentDetails - VoucherDetailRecord info',
+                details: {
+                    itemDescription,
+                    itemAmount,
+                    itemTaxAmount,
+                    itemTotalAmount,
+                    itemQuantity
+                }
+            });
+
+            const allowanceConsentDetailsSublistId = 'recmachcustrecord_gw_acd_gacn';
+            recordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_name',
+                line: subRecordLine,
+                value: itemDescription
+            });
+            recordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_amt',
+                line: subRecordLine,
+                value: itemAmount
+            });
+            recordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_tax_amt',
+                line: subRecordLine,
+                value: itemTaxAmount
+            });
+            recordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_total_amt',
+                line: subRecordLine,
+                value: itemTotalAmount
+            });
+            recordObject.setSublistValue({
+                sublistId: allowanceConsentDetailsSublistId,
+                fieldId: 'custrecord_gw_acd_item_qty',
+                line: subRecordLine,
+                value: itemQuantity
+            });
+
+            subRecordLine ++;
+        }
+    }
+
+    function createAllowanceConsentNotificationRecord(scriptContext) {
         let recordObject = record.create({
             type: 'customrecord_gw_allowance_consent_notify'
         });
@@ -51,12 +136,15 @@ define([
         });
         recordObject.setValue({
             fieldId: 'custrecord_gw_voucher_main_id',
-            value: recordId
+            value: scriptContext.newRecord.id
         });
         recordObject.setValue({
             fieldId: 'custrecord_need_to_enter_record_info',
             value: true
         });
+
+        // createAllowanceConsentDetails(recordObject, scriptContext);
+
         const resultId = recordObject.save({
             enableSourcing: true,
             ignoreMandatoryFields: true
@@ -82,9 +170,7 @@ define([
             if (scriptContext.type === scriptContext.UserEventType.CREATE && voucherType === 'ALLOWANCE') {
                 log.debug({title: 'proceed create Allowance Consent Notification Record', details: ''});
                 // TODO - create Allowance Consent Notification Record
-                const lineCount = scriptContext.newRecord.getLineCount({sublistId: 'recmachcustrecord_gw_voucher_main_internal_id'});
-                log.debug({title: 'lineCount', details: lineCount});
-                const allowanceConsentNotificationRecordId = createAllowanceConsentNotificationRecord(recordId);
+                const allowanceConsentNotificationRecordId = createAllowanceConsentNotificationRecord(scriptContext);
                 if(allowanceConsentNotificationRecordId) {
                     log.debug({title: 'proceed execute Map/Reduce to send the notification', details: `allowanceConsentNotificationRecordId: ${allowanceConsentNotificationRecordId}`});
                     // TODO - execute Map/Reduce to send the notification
