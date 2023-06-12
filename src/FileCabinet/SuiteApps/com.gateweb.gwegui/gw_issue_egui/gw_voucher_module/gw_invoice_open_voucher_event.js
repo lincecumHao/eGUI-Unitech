@@ -66,6 +66,7 @@ define([
 
   function onButtonClickForAllowance() {
     var _internalId = _current_record.id
+    console.log('onButtonClickForAllowance-_internalId', _internalId);
     if (_internalId != 0) {
       try {
         var _user_obj = runtime.getCurrentUser()
