@@ -1,4 +1,4 @@
-define(['N/url', 'N/https', 'N/runtime', 'N/file'], function (url, https, runtime, file) {
+define(['N/url', 'N/https', 'N/runtime'], function (url, https, runtime) {
   /**
    * Module Description...
    *
@@ -125,10 +125,9 @@ define(['N/url', 'N/https', 'N/runtime', 'N/file'], function (url, https, runtim
 
   function postToGwApi(xmlFileObjects) {}
 
-  function downloadAllowancePDF(params) {
-
+  function getAllowanceContent(params) {
     log.debug({
-      title: 'in downloadAllowancePDF - params',
+      title: 'in getAllowanceContent - params',
       details: params
     });
 
@@ -145,23 +144,11 @@ define(['N/url', 'N/https', 'N/runtime', 'N/file'], function (url, https, runtim
     });
 
     log.debug({
-      title: 'in downloadAllowancePDF - response',
+      title: 'in getAllowanceContent - response',
       details: response
     });
 
-    var allowanceFileName = params.filename.replace('.xml', '.pdf');
-    var allowanceAttachment = file.create({
-      name: allowanceFileName,
-      fileType: file.Type.PDF,
-      contents: response.body
-    });
-
-    log.debug({
-      title: 'downloadAllowancePDF - allowanceAttachment',
-      details: allowanceAttachment
-    });
-
-    return allowanceAttachment;
+    return response.body;
   }
 
   exports.downloadPdfs = downloadPdfs;
@@ -170,5 +157,6 @@ define(['N/url', 'N/https', 'N/runtime', 'N/file'], function (url, https, runtim
   exports.DOCSTATUS = documentStatus;
   exports.downloadSinglePdf = downloadSinglePdf;
   exports.downloadAllowancePDF = downloadAllowancePDF;
+  exports.getAllowanceContent = getAllowanceContent;
   return exports
 })

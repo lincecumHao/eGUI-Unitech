@@ -207,6 +207,22 @@ define([
         return text;
     }
 
+    function generateAllowanceAttachment(xmlFileObject, allowanceContent) {
+        const allowanceFileName = xmlFileObject.filename.replace('.xml', '.pdf');
+        const allowanceAttachment = file.create({
+            name: allowanceFileName,
+            fileType: file.Type.PDF,
+            contents: allowanceContent
+        });
+
+        log.debug({
+            title: 'generateAllowanceAttachment - allowanceAttachment',
+            details: allowanceAttachment
+        });
+
+        return allowanceAttachment;
+    }
+
     function getAllowanceAttachmentByVoucherId(voucherMainId) {
         const b2bs_xml = loadInvoiceMigXml('ALLOWANCE', 'B2BS');
         const b2be_xml = loadInvoiceMigXml('ALLOWANCE', 'B2BE');
@@ -249,7 +265,8 @@ define([
             reprint: true
         };
 
-        const allowanceAttachment = gwApiClient.downloadAllowancePDF(xmlFileObject);
+        const allowanceContent = gwApiClient.getAllowanceContent(xmlFileObject);
+        const allowanceAttachment = generateAllowanceAttachment(xmlFileObject, allowanceContent);
 
         return allowanceAttachment;
     }
