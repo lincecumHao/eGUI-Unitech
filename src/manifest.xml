@@ -19,13 +19,5 @@
             <feature required="false">PAYABLES</feature>
             <feature required="false">MULTILOCINVT</feature>
         </features>
-        <bundles>
-            <bundle id="373804">
-                <objects>
-                    <object>custbody_iv_company_attributed</object>
-                    <object>customlist_iv_company_attributed</object>
-                </objects>
-            </bundle>
-        </bundles>
     </dependencies>
 </manifest>
