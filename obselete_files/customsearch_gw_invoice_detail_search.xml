@@ -1,8 +1,6 @@
 <!-- This XML must be system-generated. Do not edit it manually. !-->
 <savedsearch scriptid="customsearch_gw_invoice_detail_search">
   <dependencies>
-    <dependency>[bundleid=373804, scriptid=custbody_iv_company_attributed]</dependency>
-    <dependency>[bundleid=373804, scriptid=customlist_iv_company_attributed]</dependency>
     <dependency>[scriptid=custbody_gw_allowance_num_end]</dependency>
     <dependency>[scriptid=custbody_gw_allowance_num_start]</dependency>
     <dependency>[scriptid=custbody_gw_applicable_zero_tax]</dependency>
