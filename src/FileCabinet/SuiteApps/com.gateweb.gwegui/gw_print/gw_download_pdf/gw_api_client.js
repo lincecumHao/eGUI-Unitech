@@ -156,7 +156,6 @@ define(['N/url', 'N/https', 'N/runtime'], function (url, https, runtime) {
   exports.DOCTYPE = documentType;
   exports.DOCSTATUS = documentStatus;
   exports.downloadSinglePdf = downloadSinglePdf;
-  exports.downloadAllowancePDF = downloadAllowancePDF;
   exports.getAllowanceContent = getAllowanceContent;
   return exports
 })
