@@ -9,8 +9,11 @@
   <allowquickadd>T</allowquickadd>
   <allowquicksearch>F</allowquicksearch>
   <allowuiaccess>T</allowuiaccess>
+  <customsegment></customsegment>
   <description></description>
+  <enabledle>T</enabledle>
   <enablekeywords>T</enablekeywords>
+  <enablemailmerge>F</enablemailmerge>
   <enablenametranslation>F</enablenametranslation>
   <enablenumbering>F</enablenumbering>
   <enableoptimisticlocking>T</enableoptimisticlocking>
@@ -506,31 +509,119 @@
       <storevalue>T</storevalue>
       <subtab></subtab>
     </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_gw_conf_allowance_consent_n">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <defaultselection></defaultselection>
+      <defaultvalue></defaultvalue>
+      <description></description>
+      <displayheight></displayheight>
+      <displaytype>NORMAL</displaytype>
+      <displaywidth></displaywidth>
+      <dynamicdefault></dynamicdefault>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>CHECKBOX</fieldtype>
+      <globalsearch>F</globalsearch>
+      <help></help>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Allowance Consent Notification</label>
+      <linktext></linktext>
+      <maxlength></maxlength>
+      <maxvalue></maxvalue>
+      <minvalue></minvalue>
+      <onparentdelete></onparentdelete>
+      <parentsubtab></parentsubtab>
+      <rolerestrict>F</rolerestrict>
+      <searchcomparefield></searchcomparefield>
+      <searchdefault></searchdefault>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype></selectrecordtype>
+      <showinlist>T</showinlist>
+      <sourcefilterby></sourcefilterby>
+      <sourcefrom></sourcefrom>
+      <sourcelist></sourcelist>
+      <storevalue>T</storevalue>
+      <subtab></subtab>
+    </customrecordcustomfield>
+    <customrecordcustomfield scriptid="custrecord_gw_conf_allowance_consent_np">
+      <accesslevel>2</accesslevel>
+      <allowquickadd>F</allowquickadd>
+      <applyformatting>F</applyformatting>
+      <checkspelling>F</checkspelling>
+      <defaultchecked>F</defaultchecked>
+      <defaultselection></defaultselection>
+      <defaultvalue></defaultvalue>
+      <description></description>
+      <displayheight></displayheight>
+      <displaytype>NORMAL</displaytype>
+      <displaywidth></displaywidth>
+      <dynamicdefault></dynamicdefault>
+      <encryptatrest>F</encryptatrest>
+      <fieldtype>TEXT</fieldtype>
+      <globalsearch>F</globalsearch>
+      <help></help>
+      <isformula>F</isformula>
+      <ismandatory>F</ismandatory>
+      <isparent>F</isparent>
+      <label>Allowance Consent Notification Parameter</label>
+      <linktext></linktext>
+      <maxlength></maxlength>
+      <maxvalue></maxvalue>
+      <minvalue></minvalue>
+      <onparentdelete></onparentdelete>
+      <parentsubtab></parentsubtab>
+      <rolerestrict>F</rolerestrict>
+      <searchcomparefield></searchcomparefield>
+      <searchdefault></searchdefault>
+      <searchlevel>2</searchlevel>
+      <selectrecordtype></selectrecordtype>
+      <showinlist>T</showinlist>
+      <sourcefilterby></sourcefilterby>
+      <sourcefrom></sourcefrom>
+      <sourcelist></sourcelist>
+      <storevalue>T</storevalue>
+      <subtab></subtab>
+    </customrecordcustomfield>
   </customrecordcustomfields>
   <instances>
     <instance scriptid="val_9598_2130928_280">
-      <custrecord_gw_config_dl_base_url>https://gw-ns-service-dev.tweinv.com</custrecord_gw_config_dl_base_url>
+      <custrecord_gw_conf_acceptable_variation>1</custrecord_gw_conf_acceptable_variation>
       <custrecord_gw_conf_active>F</custrecord_gw_conf_active>
-      <custrecord_gw_conf_ns_acct_id></custrecord_gw_conf_ns_acct_id>
-      <custrecord_gw_conf_print_base_url>https://gw-ns-service-dev.tweinv.com</custrecord_gw_conf_print_base_url>
-      <custrecord_gw_conf_turnkey_base_url>https://sstest.gwis.com.tw:443</custrecord_gw_conf_turnkey_base_url>
-      <custrecord_gw_conf_tax_calc_method>[scriptid=customrecord_gw_tax_calc_method_option.val_111434_t2411467_263]</custrecord_gw_conf_tax_calc_method>
-      <custrecord_gw_conf_acceptable_variation>1.00</custrecord_gw_conf_acceptable_variation>
+      <custrecord_gw_conf_allowance_consent_n>F</custrecord_gw_conf_allowance_consent_n>
+      <custrecord_gw_conf_allowance_consent_np></custrecord_gw_conf_allowance_consent_np>
       <custrecord_gw_conf_allowance_init_fmt>[scriptid=customrecord_gw_ap_doc_type_option.val_352585_t2302493_331]</custrecord_gw_conf_allowance_init_fmt>
       <custrecord_gw_conf_egui_init_fmt>[scriptid=customrecord_gw_ap_doc_type_option.val_352585_t2302493_352]</custrecord_gw_conf_egui_init_fmt>
+      <custrecord_gw_conf_ns_acct_id></custrecord_gw_conf_ns_acct_id>
+      <custrecord_gw_conf_print_base_url>https://gw-ns-service-dev.tweinv.com</custrecord_gw_conf_print_base_url>
+      <custrecord_gw_conf_tax_calc_method>[scriptid=customrecord_gw_tax_calc_method_option.val_111434_t2411467_263]</custrecord_gw_conf_tax_calc_method>
+      <custrecord_gw_conf_turnkey_base_url>https://sstest.gwis.com.tw:443</custrecord_gw_conf_turnkey_base_url>
+      <custrecord_gw_config_allowance_prefix></custrecord_gw_config_allowance_prefix>
+      <custrecord_gw_config_dl_base_url>https://gw-ns-service-dev.tweinv.com</custrecord_gw_config_dl_base_url>
+      <custrecord_gw_config_item_field></custrecord_gw_config_item_field>
+      <custrecord_gw_config_temp_folder_id></custrecord_gw_config_temp_folder_id>
       <isinactive>F</isinactive>
       <name>測試設定-default</name>
     </instance>
     <instance scriptid="val_9599_2130928_608">
-      <custrecord_gw_config_dl_base_url>https://gw-ns-service.tweinv.com</custrecord_gw_config_dl_base_url>
+      <custrecord_gw_conf_acceptable_variation>1</custrecord_gw_conf_acceptable_variation>
       <custrecord_gw_conf_active>F</custrecord_gw_conf_active>
-      <custrecord_gw_conf_ns_acct_id></custrecord_gw_conf_ns_acct_id>
-      <custrecord_gw_conf_print_base_url>https://gw-ns-service.tweinv.com</custrecord_gw_conf_print_base_url>
-      <custrecord_gw_conf_turnkey_base_url>https://api.gwis.com.tw</custrecord_gw_conf_turnkey_base_url>
-      <custrecord_gw_conf_tax_calc_method>[scriptid=customrecord_gw_tax_calc_method_option.val_111434_t2411467_263]</custrecord_gw_conf_tax_calc_method>
-      <custrecord_gw_conf_acceptable_variation>1.00</custrecord_gw_conf_acceptable_variation>
+      <custrecord_gw_conf_allowance_consent_n>F</custrecord_gw_conf_allowance_consent_n>
+      <custrecord_gw_conf_allowance_consent_np></custrecord_gw_conf_allowance_consent_np>
       <custrecord_gw_conf_allowance_init_fmt>[scriptid=customrecord_gw_ap_doc_type_option.val_352585_t2302493_331]</custrecord_gw_conf_allowance_init_fmt>
       <custrecord_gw_conf_egui_init_fmt>[scriptid=customrecord_gw_ap_doc_type_option.val_352585_t2302493_352]</custrecord_gw_conf_egui_init_fmt>
+      <custrecord_gw_conf_ns_acct_id></custrecord_gw_conf_ns_acct_id>
+      <custrecord_gw_conf_print_base_url>https://gw-ns-service.tweinv.com</custrecord_gw_conf_print_base_url>
+      <custrecord_gw_conf_tax_calc_method>[scriptid=customrecord_gw_tax_calc_method_option.val_111434_t2411467_263]</custrecord_gw_conf_tax_calc_method>
+      <custrecord_gw_conf_turnkey_base_url>https://api.gwis.com.tw</custrecord_gw_conf_turnkey_base_url>
+      <custrecord_gw_config_allowance_prefix></custrecord_gw_config_allowance_prefix>
+      <custrecord_gw_config_dl_base_url>https://gw-ns-service.tweinv.com</custrecord_gw_config_dl_base_url>
+      <custrecord_gw_config_item_field></custrecord_gw_config_item_field>
+      <custrecord_gw_config_temp_folder_id></custrecord_gw_config_temp_folder_id>
       <isinactive>F</isinactive>
       <name>正式環境設定-default</name>
     </instance>
