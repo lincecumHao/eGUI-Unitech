@@ -45,6 +45,30 @@ define([
         });
     }
 
+    function getAllowanceConsentNotificationParameter() {
+        var accountId = runtime.accountId.toUpperCase();
+        var searchFilters = [];
+        searchFilters.push(['custrecord_gw_conf_ns_acct_id', 'is', accountId]);
+        var searchColumns = [];
+        searchColumns.push('custrecord_gw_conf_allowance_consent_n');
+        searchColumns.push('custrecord_gw_conf_allowance_consent_np');
+        var customrecord_gw_egui_configSearchObj = search.create({
+            type: 'customrecord_gw_egui_config',
+            filters: searchFilters,
+            columns: searchColumns
+        });
+        var searchResultCount = customrecord_gw_egui_configSearchObj.runPaged().count;
+        log.debug('customrecord_gw_egui_configSearchObj result count', searchResultCount);
+        var scriptParameter = null;
+        customrecord_gw_egui_configSearchObj.run().each(function(result){
+            // .run().each has a limit of 4,000 results
+            scriptParameter = result.getValue({name: 'custrecord_gw_conf_allowance_consent_np'});
+            return true;
+        });
+
+        return scriptParameter;
+    }
+
     function getApproveLink(result) {
 
         var scriptURL = url.resolveScript({
@@ -58,11 +82,13 @@ define([
             accountId: runtime.accountId
         });
 
+        var allowanceConsentNotificationScriptParameter = getAllowanceConsentNotificationParameter();
+
         log.debug({title: 'scriptURL', details: scriptURL});
-        log.debug({title: 'FULL URL', details: `https://${domainUrl}${scriptURL}&h=75b538f36ae489e9b750`});
+        log.debug({title: 'FULL URL', details: `https://${domainUrl}${scriptURL}&h=${allowanceConsentNotificationScriptParameter}`});
 
         const fieldLookUpObj = getUniqueIdAndInvoiceNumber(result);
-        let newLink = `https://${domainUrl}${scriptURL}&h=75b538f36ae489e9b750&uniqueId=${fieldLookUpObj.custrecord_unique_id}&recordId=${result.requestId}&invoiceNumber=${fieldLookUpObj.custrecord_egui_invoice_number}`;
+        let newLink = `https://${domainUrl}${scriptURL}&h=${allowanceConsentNotificationScriptParameter}&uniqueId=${fieldLookUpObj.custrecord_unique_id}&recordId=${result.requestId}&invoiceNumber=${fieldLookUpObj.custrecord_egui_invoice_number}`;
         log.debug({title: 'newLink', details: newLink});
 
         return newLink;
