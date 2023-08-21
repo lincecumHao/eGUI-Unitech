@@ -6,18 +6,22 @@
 define(['N/format'], function (format) {
   //取得當地時間
   function getLocalDate() {
+	/**
     var _date = new Date()
     var _dateString = format.format({
       value: _date,
       type: format.Type.DATETIME,
       timezone: format.Timezone.ASIA_TAIPEI,
     }) //Returns "8/25/2015 9:27:16 am"
-
-    return new Date(_dateString)
+    */
+    var _date = new Date(new Date().toLocaleString('zh', {timeZone: 'Asia/Taipei'}))
+    
+	return _date 
   }
 
   //取得Netsuite當地時間
   function getNetSuiteLocalDate() {
+	/**
     var _date = new Date()
     
     var _formatDate = format.format({
@@ -27,6 +31,10 @@ define(['N/format'], function (format) {
     }) //Returns "8/25/2015 9:27:16 am"
 
     return new Date(_formatDate)
+    */
+    var _date = new Date(new Date().toLocaleString('zh', {timeZone: 'Asia/Taipei'}))	
+    
+	return _date 
   }
 
   //取得日期=20200709

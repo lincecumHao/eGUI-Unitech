@@ -478,6 +478,12 @@ define([
       var _egui_number  = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_number'}) 
       var _voucher_date = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_date'}) 
       var _year_month   = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_yearmonth'}) 
+      log.debug('_seller', _seller)
+      log.debug('_invoice_type', _invoice_type)
+      log.debug('_format_code', _format_code)
+      log.debug('_egui_number', _egui_number)
+      log.debug('_voucher_date', _voucher_date)
+      log.debug('_year_month', _year_month)
       
       updateAssignLog(_seller, _invoice_type, _format_code, _year_month, _egui_number ,_voucher_date)
   }
@@ -493,6 +499,7 @@ define([
 		        search.createColumn({ name: 'custrecord_gw_assignlog_startno' }),
 		        search.createColumn({ name: 'custrecord_gw_assignlog_endno' }),
 		        search.createColumn({ name: 'custrecord_gw_assignlog_usedcount' }),
+		        search.createColumn({ name: 'custrecord_gw_assignlog_status' }),
 		        search.createColumn({ name: 'custrecord_gw_last_invoice_date' }) 
 		      ]
 		    })
@@ -524,7 +531,8 @@ define([
 						        ['custrecord_gw_assignlog_status', search.Operator.IS, '22']
 						      ])
 			*/	      
-			//alert('_filterArray:' + JSON.stringify(_filterArray))			      
+			//alert('_filterArray:' + JSON.stringify(_filterArray))		
+		    log.debug('_filterArray', JSON.stringify(_filterArray))
 		    _assignLogSearch.filterExpression = _filterArray
 		    
 		    var _assignLogSearchResult = _assignLogSearch.run().getRange({start: 0, end: 1})
@@ -534,7 +542,13 @@ define([
 		         var _assignlog_startno = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_startno'})
 		         var _assignlog_endno = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_endno'})
 		         var _usedcount = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_usedcount'})
-			      		      
+			     //外部發票匯入, 字軌狀態需變更
+		         var _gw_assignlog_status = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_status'})
+			   
+		         if (_gw_assignlog_status=='21' || _gw_assignlog_status=='31'){ 
+		        	 _gw_assignlog_status=(parseInt(_gw_assignlog_status)+1).toString() 
+		    	 }
+		         
 		         var _last_invoice_number = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_lastinvnumbe'})
 		         var _check_invoice_number = 0
 		         if (_last_invoice_number!=''){
@@ -542,17 +556,17 @@ define([
 		         }
 		         if (_index_invoice_number >= _check_invoice_number){	 
 		        	 var values = {}
-                     
+		        	 values['custrecord_gw_assignlog_status'] = _gw_assignlog_status     
                      values['custrecord_gw_last_invoice_date'] = voucher_date                     
                      values['custrecord_gw_assignlog_usedcount'] = _index_invoice_number-_assignlog_startno+1
                      
                      _index_invoice_number = padding('' + _index_invoice_number, 8)
                      values['custrecord_gw_assignlog_lastinvnumbe'] = _index_invoice_number
-                                          
+                     /**                     
                      if(_index_invoice_number == _assignlog_endno){
-                     	values['custrecord_gw_assignlog_status'] = '23'
+                     	values['custrecord_gw_assignlog_status'] = _gw_assignlog_status.substring(0,1)+'3'   
                      }
-                     
+                     */
 		        	 var _id = record.submitFields({
 			                type: 'customrecord_gw_assignlog',
 			                id: _internal_id,
@@ -639,6 +653,18 @@ define([
 				      var _voucher_main_record = saveVoucherMain(_apply_id, line.value)
 			          saveVoucherDetail(line.value, _voucher_main_record)
 				    
+			          //外部發票匯入, 字軌狀態需變更
+			          /**
+			          var _track = (_voucher_main_record.custrecord_gw_voucher_number).substring(0,2)
+			          var _invoice_number = (_voucher_main_record.custrecord_gw_voucher_number).substring(2,10)
+			          //更新狀態
+			          invoiceutility.checkInvoiceManualNumberExistRange(_voucher_main_record.custrecord_gw_seller, 
+			        		                                            _voucher_main_record.custrecord_gw_voucher_yearmonth, 
+			        		                                            _track, 
+			        		                                            _invoice_number, 
+			        		                                            _voucher_main_record.custrecord_gw_voucher_format_code, 
+			        		                                            _voucher_main_record.custrecord_gw_invoice_type)
+			          */		                                            
 			          _count++
 			      }
 		      }

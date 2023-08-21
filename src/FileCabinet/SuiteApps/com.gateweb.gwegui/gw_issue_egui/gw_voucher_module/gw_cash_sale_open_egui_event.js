@@ -25,9 +25,9 @@ define(['N/runtime', 'N/currentRecord', 'N/record', 'N/url', '../gw_common_utili
 		  id: _internalId,
 		  isDynamic: true,
 		})
-		var _subsidiary = _record.getValue({
-		  fieldId: 'custbody_iv_company_attributed',
-		})		
+		
+		var _subsidiary = '1'
+		
 		var _lock_transaction = _record.getValue({
                fieldId: 'custbody_gw_lock_transaction'
         })

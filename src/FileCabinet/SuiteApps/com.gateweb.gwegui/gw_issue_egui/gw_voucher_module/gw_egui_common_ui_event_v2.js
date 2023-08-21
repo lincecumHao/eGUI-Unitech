@@ -927,6 +927,10 @@ define([
       var voucher_list_id = _currentRecord.getValue({
         fieldId: 'custpage_voucher_hiddent_listid',
       })
+      //是否含下載錯誤資料PDF
+	  var _select_error_item = _currentRecord.getValue({
+			fieldId: 'custpage_select_error_item'
+	  });   
       if (voucher_list_id == '') {
         var _pre_text = '電子發票'
         if (voucher_type == 'EGUI') {
@@ -978,7 +982,8 @@ define([
         _b2be_xml,
         _b2c_xml,
         _genxml_toftp_result,
-        _genxml_toftp_message
+        _genxml_toftp_message,
+        _select_error_item
       )
 
       var _xmlFileObjects = []
@@ -989,7 +994,7 @@ define([
         _doc_type = gwapiclient.DOCTYPE.ALLOWANCE
       }
 
-      if (_xmlObjectAry != null) {
+      if (_xmlObjectAry != null && _xmlObjectAry.length!=0) {
         for (var i = 0; i < _xmlObjectAry.length; i++) {
           var _obj = _xmlObjectAry[i]
 
@@ -1080,17 +1085,27 @@ define([
 
           ///////////////////////////////////////////////////////////////////////////////////////
         }
+        try {
+	        if (printType == 'PDF') {
+	          gwapiclient.downloadPdfs(_xmlFileObjects)
+	        } else {
+	          gwapiclient.printToPrinter(_xmlFileObjects)
+	        }
+	    } catch (e) {
+	        console.log('error', e)
+	    }
+      } else{
+    	var _title = '下載PDF管理'; 
+  		var _text = '電子發票'
+  		if (voucher_type != 'EGUI') {
+  			_text = '電子發票折讓單'
+  		} 
+  		var _message = '請勿選取開立錯誤或非'+_text+'憑證下載!'									
+  		gwmessage.showErrorMessage(_title, _message)
+  		return		
       }
 
-      try {
-        if (printType == 'PDF') {
-          gwapiclient.downloadPdfs(_xmlFileObjects)
-        } else {
-          gwapiclient.printToPrinter(_xmlFileObjects)
-        }
-      } catch (e) {
-        console.log('error', e)
-      }
+      
     } catch (e) {
       console.log(e.name + ':' + e.message)
     }

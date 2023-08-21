@@ -1761,35 +1761,11 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
     }
 
     return _taxObjAry
-  }
+  } 
   
-  //json_obj==>result_obj.values
-  //split_str==>分割符號 +,$,#,|
-  //space_str==>連接符號 -
-  //item_names==>設定值 item_id+display_name
-  function getDisplayName(json_obj, split_str, space_str, item_names) {
-	 var _data=''
-	 var _count=1
-	 var _names_ary = item_names.split(split_str) 
-	 _names_ary.forEach(item_name => { 	       
-	      var _value='' 
-	      var _text='' 
-		  if (typeof json_obj[item_name] == 'object') {
-			  _value=json_obj[item_name][0].value  
-			  //_text=json_obj[item_name][0].text  
-		  } else {
-			  _value=json_obj[item_name] 
-		  } 			  
-          if (_names_ary.length==_count) { 
-              _data+=_value 
-		  } else {
-              _data+=_value+space_str
-		  }	 
-		  _count++ 
-	 })	 
-     return _data.trim()
+  function getManualOpenID() {
+    return 'MI' 
   }
-
   /////////////////////////////////////////////////////////////////////////////////////////////
 
   return {
@@ -1817,8 +1793,8 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
     getAssignLogNumberAndCheckDuplicate: getAssignLogNumberAndCheckDuplicate,
     getRandomNum: getRandomNum,
     getSellerInfoBySubsidiary: getSellerInfoBySubsidiary,
-	getRandomNumNew: getRandomNumNew,
-	getDisplayName: getDisplayName,
+	getRandomNumNew: getRandomNumNew, 
+	getManualOpenID: getManualOpenID,
 	getPrintMark: getPrintMark
   }
 })

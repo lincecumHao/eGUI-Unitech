@@ -29,6 +29,9 @@ define([
   var invoiceEditDeployId = gwconfigure.getGwInvoiceUIEditDeployId()
 
   var _gw_voucher_properties = gwconfigure.getGwVoucherProperties() //設定檔
+  
+  //手開發票指定狀態
+  var _manual_evidence_status_value = invoiceutility.getManualOpenID()
 
   //欄位寬度
   var _field_height = 80
@@ -91,6 +94,9 @@ define([
 
     _filterArray.push('and')
     _filterArray.push(['custbody_gw_is_issue_egui', search.Operator.IS, true])
+    //_filterArray.push('and')
+    //_filterArray.push(['CUSTBODY_GW_EVIDENCE_ISSUE_STATUS.custrecord_gw_evidence_status_value', search.Operator.IS, _manual_evidence_status_value])
+  
      
     if (subsidiary != '') {
     	//非oneworld版本沒有subsidiary欄位 
@@ -161,11 +167,13 @@ define([
       var _result = JSON.parse(JSON.stringify(result))
       
       log.debug('invoice _result', JSON.stringify(_result))
-      var _my_subsidiary;
+      var _my_subsidiary = subsidiary;
+      /**
       if (_result.values.custbody_iv_company_attributed.length != 0) {
     	  log.debug('invoice custbody_iv_company_attributed', JSON.stringify(_result.values.custbody_iv_company_attributed))
        	  _my_subsidiary = _result.values.custbody_iv_company_attributed[0].value
       } 
+      */
       /**
       var _item_subsidiary;
       if (_result.values.subsidiary.length != 0) {
@@ -318,6 +326,9 @@ define([
     _filterArray.push(['custbody_gw_lock_transaction', 'is', false])
     _filterArray.push('and')
     _filterArray.push(['custbody_gw_is_issue_egui', 'is', true])
+    //_filterArray.push('and')
+    //_filterArray.push(['CUSTBODY_GW_EVIDENCE_ISSUE_STATUS.custrecord_gw_evidence_status_value', search.Operator.IS, _manual_evidence_status_value])
+  
 
     if (subsidiary != '') {
     	//非oneworld版本沒有subsidiary欄位
@@ -384,10 +395,12 @@ define([
         var _result = JSON.parse(JSON.stringify(result))
         log.debug('credit memo _result', JSON.stringify(_result))
         
-        var _my_subsidiary;
+        var _my_subsidiary = subsidiary;
+        /**
         if (_result.values.custbody_iv_company_attributed.length != 0) {
         	_my_subsidiary = _result.values.custbody_iv_company_attributed[0].value
         }  
+        */
         if (_my_subsidiary==subsidiary) {
 	        var internalid = _result.id
 	
@@ -624,9 +637,8 @@ define([
           text: _internalid + '-' + _name,
         })
         return true
-      })
-    //NE-193 湧傑-發票開立不帶預設部門
-    _selectDeptCode.defaultValue = ''
+     })
+     
     //類別代碼
     var _selectClassification = form.addField({
       id: 'custpage_select_classification',
@@ -666,9 +678,8 @@ define([
           text: _internalid + '-' + _name,
         })
         return true
-      })
-    //NE-193 湧傑-發票開立不帶預設部門
-    _selectClassification.defaultValue = ''
+    })
+    
     ///////////////////////////////////////////////////////////////////////////////
     var _selectEmployee = form.addField({
       id: 'custpage_select_employee',

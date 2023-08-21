@@ -30,10 +30,12 @@ define([
     	    id: _internalId,
     	    isDynamic: true,
     	})
+    	var _subsidiary = '1'
+    	/**
         var _subsidiary = _record.getValue({
           fieldId: 'custbody_iv_company_attributed'
         })
-        
+        */
         var _lock_transaction = _record.getValue({
                fieldId: 'custbody_gw_lock_transaction'
         })
@@ -73,9 +75,13 @@ define([
           id: _internalId,
           isDynamic: true
         })
+        
+        var _subsidiary = '1'
+        /**	
         var _subsidiary = _record.getValue({
           fieldId: 'custbody_iv_company_attributed'
         })
+        */
         var _lock_transaction = _record.getValue({
                fieldId: 'custbody_gw_lock_transaction'
         })

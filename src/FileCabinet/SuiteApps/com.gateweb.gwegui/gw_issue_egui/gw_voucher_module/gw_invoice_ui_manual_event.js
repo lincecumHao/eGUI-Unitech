@@ -1163,7 +1163,7 @@ define([
             console.log(e.name + ':' + e.message)
           }         
         }
-                
+        //外部發票匯入, 字軌狀態需變更        
         updateAssignLog(mainObj.company_ban, _detailObj.invoice_type, _detailObj.egui_format_code, _detailObj.year_month, _detailObj.egui_number ,_detailObj.egui_date)
         
       }
@@ -1171,7 +1171,7 @@ define([
 
     return _voucherIDAry
   }
-  
+  //外部發票匯入, 字軌狀態需變更        
   function updateAssignLog(ban, invoice_type, format_code, year_month, voucher_number, voucher_date) {
 	  try {		  
 		  var _assignLogSearch = search.create({
@@ -1183,6 +1183,7 @@ define([
 		        search.createColumn({ name: 'custrecord_gw_assignlog_startno' }),
 		        search.createColumn({ name: 'custrecord_gw_assignlog_endno' }),
 		        search.createColumn({ name: 'custrecord_gw_assignlog_usedcount' }),
+		        search.createColumn({ name: 'custrecord_gw_assignlog_status' }),
 		        search.createColumn({ name: 'custrecord_gw_last_invoice_date' }) 
 		      ]
 		    })
@@ -1224,7 +1225,8 @@ define([
 		         
 		         var _assignlog_startno = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_startno'})
 		         var _assignlog_endno = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_endno'})
-			      
+			       
+			     var _gw_assignlog_status = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_status'})
 		         var _usedcount = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_usedcount'})
 		      
 		         var _last_invoice_number = _assignLogSearchResult[i].getValue({name: 'custrecord_gw_assignlog_lastinvnumbe'})
@@ -1237,14 +1239,18 @@ define([
 		        	 var values = {}                     
                      values['custrecord_gw_last_invoice_date'] = voucher_date
                      values['custrecord_gw_assignlog_usedcount'] = _index_invoice_number-_assignlog_startno+1
+                     //外部發票匯入, 字軌狀態需變更 
+                     if (_gw_assignlog_status=='21' || _gw_assignlog_status=='31'){
+                    	 values['custrecord_gw_assignlog_status'] = (parseInt(_gw_assignlog_status)+1).toString()
+                     }
                      
                      _index_invoice_number = padding('' + _index_invoice_number, 8)
                      values['custrecord_gw_assignlog_lastinvnumbe'] = _index_invoice_number
-                     
-                     if(_index_invoice_number == _assignlog_endno){
-                    	values['custrecord_gw_assignlog_status'] = '23'
+                     /**
+                     if(_index_invoice_number == _assignlog_endno){ 
+                    	values['custrecord_gw_assignlog_status'] = (parseInt(_gw_assignlog_status)+1).toString()
                      }
-                     
+                     */
 		        	 var _id = record.submitFields({
 			                type: 'customrecord_gw_assignlog',
 			                id: _internal_id,
@@ -1353,6 +1359,9 @@ define([
               sort: search.Sort.ASC,
             }),
             search.createColumn({ name: 'custrecord_gw_dtl_voucher_type' }),
+            search.createColumn({ name: 'custrecord_gw_dtl_voucher_number' }),//AR80942000
+            search.createColumn({ name: 'custrecord_gw_dtl_voucher_yearmonth' }),//11112
+            search.createColumn({ name: 'custrecord_gw_dtl_item_tax_code' }) //7
           ],
         })
 
@@ -1370,9 +1379,33 @@ define([
         ])
 
         _detailSearch.filterExpression = _filterArray
-
+        
+        //外部發票匯入, 字軌狀態需變更
+        var _all_delete_voucher_ary = []
+        
         _detailSearch.run().each(function (result) {
           var _internalId = result.id
+          
+          var _voucher_main_internal_id = result.getValue({
+              name: 'custrecord_gw_voucher_main_internal_id' 
+          })
+          var _voucher_yearmonth = result.getValue({
+              name: 'custrecord_gw_dtl_voucher_yearmonth' 
+          })
+          var _voucher_number = result.getValue({
+              name: 'custrecord_gw_dtl_voucher_number' 
+          })
+          var _item_tax_code = result.getValue({
+              name: 'custrecord_gw_dtl_item_tax_code' 
+          })
+          
+          //外部發票匯入, 字軌狀態需變更           
+          refreshInvoiceNumber(_all_delete_voucher_ary, 
+        		               _voucher_main_internal_id,
+			        		   _voucher_yearmonth,
+			        		   _voucher_number,
+			        		   _item_tax_code) 
+          
           try {
             record.delete({
               type: _voucher_details_record,
@@ -1398,6 +1431,8 @@ define([
             }
           }
         }
+        //3.檢查是否字軌區間沒有發票==>外部發票匯入, 字軌狀態需變更
+        searchVoucherMainRange(_all_delete_voucher_ary)        
         //////////////////////////////////////////////////////////////////////////////////////////////
 
         var _message = '刪除完成!'
@@ -1408,6 +1443,258 @@ define([
     }
 
     document.forms[0].submit()
+  }
+  
+  //整理Invoice_number
+   
+  function refreshInvoiceNumber(all_delete_voucher_ary, 
+		                        voucher_main_internal_id,
+		                        voucher_yearmonth,
+		                        voucher_number,
+		                        item_tax_code){
+	  var _start_voucher_number=''	
+	  var _end_voucher_number=''	
+	  var _track = voucher_number.substring(0,2)
+	  var _pre_voucher_number  = voucher_number.substring(2,8)
+	  var _last_voucher_number = voucher_number.substring(8,10)	
+		//alert('_track='+_track+',_pre_voucher_number='+_pre_voucher_number+',_last_voucher_number='+_last_voucher_number)
+	  if(parseInt(_last_voucher_number)>49){
+	      _start_voucher_number=_pre_voucher_number+'50'
+	      _end_voucher_number  =_pre_voucher_number+'99'
+	  }else{
+	      _start_voucher_number=_pre_voucher_number+'00'
+	      _end_voucher_number  =_pre_voucher_number+'49'
+      } 
+	  
+	  if(JSON.stringify(all_delete_voucher_ary).indexOf(_start_voucher_number)==-1){	
+		  var _voucher_main_record = record.load({
+	          type: 'customrecord_gw_voucher_main',
+	          id: voucher_main_internal_id,
+	          isDynamic: true
+	     })
+	     
+	     var _gw_seller    = _voucher_main_record.getValue({fieldId: 'custrecord_gw_seller'})
+	     var _invoice_type = _voucher_main_record.getValue({fieldId: 'custrecord_gw_invoice_type'})
+	     var _format_code  = _voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_format_code'})
+	    
+	     if((_format_code=='32' && _invoice_type=='03') ||
+	        (_format_code=='35' && _invoice_type=='06')){
+	    	 _last_voucher_number = voucher_number.substring(7,10)	//250張
+	    	 _pre_voucher_number  = voucher_number.substring(2,7)
+	    	 
+	    	 if(parseInt(_last_voucher_number)<=249){
+	    		_start_voucher_number=_pre_voucher_number+'000'
+	   	        _end_voucher_number  =_pre_voucher_number+'249'
+	    	 }else if(parseInt(_last_voucher_number)>=250 && parseInt(_last_voucher_number)<=499){
+	    	    _start_voucher_number=_pre_voucher_number+'250'
+		   	    _end_voucher_number  =_pre_voucher_number+'499'
+	    	 }else if(parseInt(_last_voucher_number)>=500 && parseInt(_last_voucher_number)<=749){
+	    		_start_voucher_number=_pre_voucher_number+'500'
+			   	_end_voucher_number  =_pre_voucher_number+'749' 
+	    	 }else if(parseInt(_last_voucher_number)>=750 && parseInt(_last_voucher_number)<=999){
+	    		_start_voucher_number=_pre_voucher_number+'750'
+				_end_voucher_number  =_pre_voucher_number+'999'  
+	    	 }
+	    	 
+	     }
+	     
+		 var _voucher_obj={
+	           'gw_seller':_gw_seller,
+	           'invoice_type':_invoice_type, 
+	           'voucher_yearmonth':voucher_yearmonth,
+	           'start_voucher_number':_track+_start_voucher_number,
+	           'end_voucher_number':_track+_end_voucher_number,
+	           'format_code':_format_code
+	     } 
+		  
+		 all_delete_voucher_ary.push(_voucher_obj)
+	  }    
+  }
+ 
+  //檢查是否還有手開/歷史發票
+  function searchVoucherMainRange(all_delete_voucher_ary){
+	  
+	  all_delete_voucher_ary.forEach(function(voucher_obj){
+		  var _gw_seller=voucher_obj.gw_seller
+		  var _invoice_type=voucher_obj.invoice_type
+		  var _voucher_yearmonth=voucher_obj.voucher_yearmonth
+		  var _start_voucher_number=voucher_obj.start_voucher_number
+		  var _end_voucher_number=voucher_obj.end_voucher_number
+		  var _format_code=voucher_obj.format_code
+		   
+		  if (checkVoucherMain(voucher_obj)==false){
+			  //若VoucherMain無資料, 將12->11, 22->21, 32->31
+			  checkInvoiceManualNumberExistRangeAndOpen(_gw_seller, 
+					                                    _invoice_type, 
+					                                    _voucher_yearmonth, 
+					                                    _start_voucher_number.substring(0,2), 
+					                                    _start_voucher_number.substring(2,10), 
+					                                    _end_voucher_number.substring(2,10), 
+					                                    _format_code)
+		  } 
+	  }); 
+	  
+  }  
+
+  //檢查外部號碼區間
+  function checkInvoiceManualNumberExistRangeAndOpen(businessno, invoicetype, year_month, track, start_invoice_number, end_voucher_number, format_code) {
+    
+    try {
+      var _mySearch = search.load({
+        id: 'customsearch_gw_assignlog_search'
+      })
+      var _filterArray = []  
+      _filterArray.push(['custrecord_gw_assignlog_businessno', search.Operator.IS, businessno])
+      _filterArray.push('and') 
+      _filterArray.push(['custrecord_gw_assignlog_invoicetype', search.Operator.IS, invoicetype])
+      _filterArray.push('and')
+      
+      //31,32...35
+      _filterArray.push(['custrecord_gw_egui_format_code', search.Operator.IS, format_code])
+      
+      _filterArray.push('and')
+      _filterArray.push(['custrecord_gw_assignlog_yearmonth', search.Operator.IS, year_month]) 
+  
+      _filterArray.push('and') 
+      _filterArray.push([
+        ['custrecord_gw_assignlog_status', search.Operator.ISNOT, '13'],
+        'and',
+        ['custrecord_gw_assignlog_status', search.Operator.ISNOT, '23'],
+        'and',
+        ['custrecord_gw_assignlog_status', search.Operator.ISNOT, '33']
+      ])       
+      _filterArray.push('and')
+      _filterArray.push(['custrecord_gw_assignlog_invoicetrack', search.Operator.IS, track])
+      _filterArray.push('and')
+      _filterArray.push([
+    	[
+          'custrecord_gw_assignlog_startno',
+          search.Operator.GREATERTHANOREQUALTO,
+          parseInt(start_invoice_number)
+        ],
+        'and', 
+        [
+          'custrecord_gw_assignlog_endno',
+          search.Operator.LESSTHANOREQUALTO,
+          parseInt(end_voucher_number)
+        ]
+      ])
+      _mySearch.filterExpression = _filterArray
+      //alert('_filterArray='+JSON.stringify(_filterArray))
+      _mySearch.run().each(function (result) {
+    	  var _internalId = result.id
+    	  
+    	  var _record = record.load({
+    	        type: 'customrecord_gw_assignlog',
+    	        id: _internalId,
+    	        isDynamic: true
+    	  })  
+    	  var _gw_assignlog_status = _record.getValue({fieldId: 'custrecord_gw_assignlog_status'})
+    	  //alert('_gw_assignlog_status='+_gw_assignlog_status)
+    	  if (_gw_assignlog_status.substring(1,2) != '3') {    		  
+    		  _record.setValue({
+  		        fieldId: 'custrecord_gw_assignlog_status',
+  		        value: _gw_assignlog_status.substring(0,1)+'1'
+  		      })
+    	  }     
+		  _record.setValue({
+		        fieldId: 'custrecord_gw_assignlog_lastinvnumbe',
+		        value: ''
+		  })
+		  _record.setValue({
+		        fieldId: 'custrecord_gw_last_invoice_date',
+		        value: '0'
+		  })
+		  _record.setValue({
+		        fieldId: 'custrecord_gw_assignlog_usedcount',
+		        value: 0
+		  })
+		  
+    	  _record.save() 
+      })
+    } catch (e) {
+      console.log(e.name + ':' + e.message)
+    }
+     
+  }
+  
+  function checkVoucherMain(voucher_obj){
+	  var _gw_seller=voucher_obj.gw_seller
+	  var _invoice_type=voucher_obj.invoice_type
+	  var _voucher_yearmonth=voucher_obj.voucher_yearmonth
+	  var _start_voucher_number=voucher_obj.start_voucher_number
+	  var _end_voucher_number=voucher_obj.end_voucher_number
+	  var _format_code=voucher_obj.format_code
+	  
+	  var _search = search.create({
+	      type: 'customrecord_gw_voucher_main',
+	      columns: [
+	        search.createColumn({ name: 'internalid' }), 
+	        search.createColumn({ name: 'custrecord_gw_invoice_type' }), 
+	        search.createColumn({ name: 'custrecord_gw_voucher_number' }),  
+	        search.createColumn({ name: 'custrecord_gw_seller' }), 
+	        search.createColumn({ name: 'custrecord_gw_voucher_upload_status' }), 
+	        search.createColumn({ name: 'custrecord_gw_voucher_yearmonth' }), 
+	        search.createColumn({ name: 'custrecord_gw_voucher_format_code' }) 
+	      ]
+	    })
+
+	    var _filterArray = []
+	  
+	    _filterArray.push(['custrecord_gw_seller', search.Operator.IS, _gw_seller])
+	    _filterArray.push('and')
+	    _filterArray.push(['custrecord_gw_invoice_type', search.Operator.IS, _invoice_type])
+	    _filterArray.push('and')
+	    //A,C,P
+	    _filterArray.push(['custrecord_gw_voucher_upload_status', search.Operator.ISNOT, 'E'])
+	    _filterArray.push('and')
+	    //11112
+	    _filterArray.push(['custrecord_gw_voucher_yearmonth', search.Operator.IS, _voucher_yearmonth])
+	    _filterArray.push('and')
+	    //01,02,03..07
+	    _filterArray.push(['custrecord_gw_voucher_format_code', search.Operator.IS, _format_code])
+ 
+	    //AA12345600~AA12345649
+	    _filterArray.push('and')	
+	    var _search_or_filter_ary = resetFilterNumber(_start_voucher_number, _end_voucher_number)	    
+	    _filterArray.push(_search_or_filter_ary)	 
+	    
+	    _search.filterExpression = _filterArray
+	     
+	    var _search_result = _search.run().getRange({
+	        start: 0, end: 1
+	    })
+	     
+	    if (_search_result.length!=0)return true
+	    else return false	  
+  } 
+  
+  function resetFilterNumber(start_number, end_number){ 
+     var _index_voucher_number  = start_number.substring(0,7)
+     var _number_1  = parseInt(start_number.substring(7,10))
+	 var _number_2  = parseInt(end_number.substring(7,10))
+      
+	 var _all_ary=[]
+	 for(var i=_number_1; i<=_number_2; i++){ 
+	     var _check_voucher_number =''
+	    	 
+	     var _append_zero=''
+	     var _number_length=(i.toString()).length;
+	     for(var a=_number_length; a<3; a++){ 
+	    	 _append_zero+='0'
+	     }
+	     _check_voucher_number=_index_voucher_number+_append_zero+i 
+		 
+		 var _ary = ['custrecord_gw_voucher_number','is',_check_voucher_number]		  
+		 if (_all_ary.length==0){ 
+		     _all_ary.push(_ary) 
+		 }else{
+		     _all_ary.push('or')
+			 _all_ary.push(_ary)
+		 }
+	 }
+	 
+	 return _all_ary
   }
 
   function mark(

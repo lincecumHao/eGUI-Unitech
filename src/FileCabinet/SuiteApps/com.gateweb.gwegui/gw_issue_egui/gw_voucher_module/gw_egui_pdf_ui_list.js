@@ -1002,6 +1002,18 @@ define([
     })
     //default calue=2行
     _selectLinePrintSpaceField.defaultValue = '2'    
+    	 
+	//是否含下載錯誤資料PDF
+	var _errorLinePrintField = form.addField({
+	      id: 'custpage_select_error_item',
+	      type: serverWidget.FieldType.CHECKBOX,
+	      label: '下載開立正確電子發票PDF',
+    }) 
+    _errorLinePrintField.updateLayoutType({
+      layoutType: serverWidget.FieldLayoutType.OUTSIDEBELOW,
+    })  
+    _errorLinePrintField.defaultValue = 'T';
+    
   }
 
   //發票明細

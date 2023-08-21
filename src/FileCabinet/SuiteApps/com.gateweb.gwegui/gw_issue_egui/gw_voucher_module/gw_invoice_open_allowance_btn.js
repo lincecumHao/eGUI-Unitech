@@ -13,15 +13,13 @@ define(['N/runtime','N/record','../gw_common_utility/gw_common_invoice_utility']
     var _lock_transaction = _current_record.getValue({
       fieldId: 'custbody_gw_lock_transaction',
     })
-
+    var _gw_is_issue_egui = _current_record.getValue({
+        fieldId: 'custbody_gw_is_issue_egui',
+    })
+    /**
     var _subsidiary = _current_record.getValue({
 		  fieldId: 'custbody_iv_company_attributed',
-	})	
-	/**
-	var _subsidiary = _current_record.getValue({
-		  fieldId: 'subsidiary',
-	})	
-	*/
+	})	 
 	var _auth = false;
 	var _user_obj    = runtime.getCurrentUser()
 	var _company_ary = invoiceutility.getBusinessEntitByUserId(_user_obj.id, _subsidiary)
@@ -33,12 +31,11 @@ define(['N/runtime','N/record','../gw_common_utility/gw_common_invoice_utility']
 			}    		 
     	}
     } 
-   
-    log.debug('_lock_transaction', '_lock_transaction:' + _lock_transaction)
-	log.debug('_auth', '_auth:' + _auth)
+    */
+    log.debug('_lock_transaction', '_lock_transaction:' + _lock_transaction) 
     if (
-      context.type == context.UserEventType.VIEW &&
-	  _auth == true &&
+      context.type == context.UserEventType.VIEW && 
+      _gw_is_issue_egui == true &&
       _lock_transaction == false
     ) {
       frm.addButton({

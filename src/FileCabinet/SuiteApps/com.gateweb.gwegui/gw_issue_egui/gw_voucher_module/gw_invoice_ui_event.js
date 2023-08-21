@@ -33,12 +33,11 @@ define([
   gwmessage
 ) {
   function initializeVar() {
-    _allowance_pre_code = getAllowancePreCode()
-    _tax_diff_balance = getTaxDiffBalance()
+    _allowance_pre_code = getAllowancePreCode() 
   }
 
   function checkVarExists() {
-    return _allowance_pre_code !== '' && _tax_diff_balance !== ''
+    return _allowance_pre_code !== ''  
   }
 
   function constructorWrapper(func) {
@@ -77,13 +76,7 @@ define([
   var _defaultAssignLogType = 'TYPE_1'
 
   var _default_upload_status = 'A' //A->P->C,E
-  var _tax_diff_balance = ''
-  //稅差
-  function getTaxDiffBalance() {
-    _tax_diff_balance = stringutility.convertToFloat(
-      invoiceutility.getConfigureValue('TAX_GROUP', 'TAX_DIFF_BALANCE')
-    )
-  }
+  var _tax_diff_balance = -1 
 
   var _allowance_pre_code = ''
   function getAllowancePreCode() {
@@ -774,6 +767,8 @@ define([
 
   //Init Company Information TODO
   function pageInit(context) {
+    _tax_diff_balance = stringutility.convertToInt(invoiceutility.getConfigureValue('TAX_GROUP', 'TAX_DIFF_BALANCE'))  
+            
     _current_record.setValue({
       fieldId: 'custpage_print_type',
       value: '熱感式印表機',

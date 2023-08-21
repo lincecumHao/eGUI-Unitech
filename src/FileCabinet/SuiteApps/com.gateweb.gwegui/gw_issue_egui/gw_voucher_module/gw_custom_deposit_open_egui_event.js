@@ -29,9 +29,8 @@ define(['N/currentRecord', 'N/record', 'N/url', '../gw_common_utility/gw_common_
           fieldId: 'salesorder',
         })
         
-        var _subsidiary = _record.getValue({
-          fieldId: 'custbody_iv_company_attributed',
-        })        
+        var _subsidiary = '1'
+        	
         var _lock_transaction = _record.getValue({
                fieldId: 'custbody_gw_lock_transaction'
         })

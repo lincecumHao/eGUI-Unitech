@@ -1476,16 +1476,14 @@ define([
     var _dept_codeField = form.getField({
       id: 'custpage_dept_code'
     })
-    //_dept_codeField.defaultValue = _default_department_id
-    //NE-193 湧傑-發票開立不帶預設部門
-    _dept_codeField.defaultValue = ''
+    _dept_codeField.defaultValue = _default_department_id    
+    //_dept_codeField.defaultValue = ''
 
     var _classificationField = form.getField({
       id: 'custpage_classification'
     })
-    //_classificationField.defaultValue = _selectClassification
-    //NE-193 湧傑-發票開立不帶預設部門
-    _classificationField.defaultValue = ''
+    _classificationField.defaultValue = _selectClassification    
+    //_classificationField.defaultValue = ''
 
     var _voucherExtraMemoField = form.getField({
       id: 'custpage_voucher_extra_memo'
@@ -2466,16 +2464,14 @@ define([
     var _dept_codeField = form.getField({
       id: 'custpage_dept_code'
     })
-    //_dept_codeField.defaultValue = _default_department_id
-    //NE-193 湧傑-發票開立不帶預設部門
-    _dept_codeField.defaultValue = ''
+    _dept_codeField.defaultValue = _default_department_id 
+    //_dept_codeField.defaultValue = ''
 
     var _classificationField = form.getField({
       id: 'custpage_classification'
     })
+    _classificationField.defaultValue = _selectClassification    
     //_classificationField.defaultValue = _selectClassification
-    //NE-193 湧傑-發票開立不帶預設部門
-    _classificationField.defaultValue = _selectClassification
     log.debug(
       '_customer_id',
       '_customer_id=' +

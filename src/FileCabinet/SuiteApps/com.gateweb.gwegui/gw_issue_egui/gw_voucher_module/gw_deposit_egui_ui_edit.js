@@ -880,16 +880,14 @@ define([
     var _dept_codeField = form.getField({
       id: 'custpage_dept_code',
     })
-    //_dept_codeField.defaultValue = _department
-    //NE-193 湧傑-發票開立不帶預設部門
-    _dept_codeField.defaultValue = ''
+    _dept_codeField.defaultValue = _department 
+    //_dept_codeField.defaultValue = ''
 
     var _classificationField = form.getField({
       id: 'custpage_classification',
     })
-    //_classificationField.defaultValue = _class
-    //NE-193 湧傑-發票開立不帶預設部門
-    _classificationField.defaultValue = ''
+    _classificationField.defaultValue = _class   
+    //_classificationField.defaultValue = ''
 
     if (_customer_id > 0) {
       var _companyObj = getCustomerInformation(_customer_id)

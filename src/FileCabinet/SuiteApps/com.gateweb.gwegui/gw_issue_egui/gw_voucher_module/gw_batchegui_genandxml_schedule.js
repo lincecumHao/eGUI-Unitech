@@ -591,12 +591,7 @@ define([
 				_prodcut_text = _result.values.item[0].text //NI20200811000099
 			}
             var _item_displayname = _result.values[_ns_item_name_field] //新客戶折扣
-            /**
-            if (_ns_item_name_field=='item.displayname') {
-                //NE-193 湧傑-發票開立不帶預設部門&商品名稱(數量0的問題)
-            	_item_displayname = _prodcut_text+_item_displayname
-            }
-            */
+      
             //if (stringutility.trim(_memo) != '') _item_displayname = _memo
 
             var _item_salestaxcode_value = '' //5
@@ -3048,12 +3043,7 @@ define([
 				_prodcut_text = _result.values.item[0].text //NI20200811000099
 			}
             var _item_displayname = _result.values[_ns_item_name_field] //新客戶折扣
-            /**
-            if (_ns_item_name_field=='item.displayname') {
-                //NE-193   湧傑-發票開立不帶預設部門&商品名稱(數量0的問題)
-            	_item_displayname = _prodcut_text+_item_displayname
-            }
-			*/
+         
             //if (stringutility.trim(_memo) != '') _item_displayname = _memo
 
             var _item_salestaxcode_value = '' //5
