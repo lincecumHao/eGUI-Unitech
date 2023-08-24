@@ -18,6 +18,7 @@ define([
   '../../gw_dao/taxType/gw_dao_tax_type_21',
   '../../gw_dao/docFormat/gw_dao_doc_format_21', 
   '../../gw_dao/carrierType/gw_dao_carrier_type_21',
+  '../gw_common_utility/gw_common_search_utility'
 ], function (
   runtime,
   config,
@@ -31,7 +32,8 @@ define([
   synceguidocument,
   taxyype21,
   doc_format_21,
-  carriertypedao
+  carriertypedao,
+  searchUtility
 ) {
   var _invoceFormatCode = gwconfigure.getGwVoucherFormatInvoiceCode()
   var _creditMemoFormatCode = gwconfigure.getGwVoucherFormatAllowanceCode()
@@ -43,9 +45,7 @@ define([
   var _defaultARAccount = gwconfigure.getGwInvoiceEditDefaultAccount() //54
   var _defaultAPAccount = gwconfigure.getGwCreditMemoEditDefaultAccount() //54
   var _voucher_apply_list_record = gwconfigure.getGwVoucherApplyListRecord()
-  var _gw_invoice_detail_search_id = gwconfigure.getGwInvoiceDetailSearchId() //Invoice Detail Search
-  var _gw_creditmemo_detail_search_id = gwconfigure.getGwCreditmemoDetailSearchId() //Credit Memo Detail Search
-
+   
   var _gwDepositVoucherRecordId = gwconfigure.getGwDepositVoucherRecord()
 
   //稅別代碼
@@ -441,54 +441,9 @@ define([
       log.debug('_nsTaxFreeTaxValue', _nsTaxFreeTaxValue)
       log.debug('_nsTaxZeroTaxValue', _nsTaxZeroTaxValue)
 
-      var _mySearch = search.load({
-        id: _gw_invoice_detail_search_id,
-      })
-      var _filterArray = []
-      if (internalIdAry != null) {
-        //_filterArray.push('and');
-        _filterArray.push(['internalid', search.Operator.ANYOF, internalIdAry])
-        ////////////////////////////////////////////////////////////////
-        _filterArray.push('and')
-        _filterArray.push(['recordtype', search.Operator.IS, 'invoice'])
-        //_filterArray.push('and');
-        //_filterArray.push(['mainline',search.Operator.IS, false]);
-        _filterArray.push('and')
-        _filterArray.push(['taxline', search.Operator.IS, false]) //擋稅別科目
-        _filterArray.push('and')
-        _filterArray.push(['cogs', search.Operator.IS, false]) //擋庫存及成本科目
-        //_filterArray.push('and');
-        //_filterArray.push(['custbody_gw_lock_transaction',search.Operator.IS, false]); //擋做過的
-        //擋做過的
-        _filterArray.push('and')
-        _filterArray.push([
-          'custbody_gw_gui_num_start',
-          search.Operator.ISEMPTY,
-          '',
-        ])
-        _filterArray.push('and')
-        _filterArray.push([
-          'custbody_gw_gui_num_end',
-          search.Operator.ISEMPTY,
-          '',
-        ])
-        _filterArray.push('and')
-        _filterArray.push([
-          'custbody_gw_allowance_num_start',
-          search.Operator.ISEMPTY,
-          '',
-        ])
-        _filterArray.push('and')
-        _filterArray.push([
-          'custbody_gw_allowance_num_end',
-          search.Operator.ISEMPTY,
-          '',
-        ])
-        ////////////////////////////////////////////////////////////////
-
-        _mySearch.filterExpression = _filterArray
-        log.debug('_filterArray', JSON.stringify(_filterArray))
-
+      var _mySearch = searchUtility.getSelectedInvoiceObj(internalIdAry.toString())   
+      
+      if (internalIdAry != null) { 
         var _checkID = ''
         var _mainJsonObj
         var _discountItemJsonObj
@@ -2900,58 +2855,9 @@ define([
       var _ban = companyInfo.tax_id_number
       var _legalname = companyInfo.be_gui_title
       ////////////////////////////////////////////////////////////
-      //this search is ordered by id, taxrate
-      var _mySearch = search.load({
-        id: _gw_creditmemo_detail_search_id,
-      })
-      var _filterArray = []
-      //_filterArray.push(['itemtype',search.Operator.ISNOTEMPTY, '']);
-      _filterArray.push(['mainline', 'is', false])
-      if (internalIdAry != null) {
-        _filterArray.push('and')
-        //_filterArray.push(['createdfrom',search.Operator.ANYOF, internalIdAry]);
-        _filterArray.push(['createdfrom', 'anyof', internalIdAry])
-        //_filterArray.push('and');
-        //_filterArray.push([_creditmemo_control_field_id,search.Operator.IS, _creditmemo_unlock_control_field_value]);
-        ////////////////////////////////////////////////////////////////
-        _filterArray.push('and')
-        _filterArray.push(['recordtype', 'is', 'creditmemo'])
-        _filterArray.push('and')
-        _filterArray.push(['mainline', 'is', false])
-        _filterArray.push('and')
-        _filterArray.push(['taxline', 'is', false]) //擋稅別科目
-        _filterArray.push('and')
-        _filterArray.push(['cogs', 'is', false]) //擋庫存及成本科目
-        ////////////////////////////////////////////////////////////////
-        //擋做過的
-        _filterArray.push('and')
-        _filterArray.push([
-          'custbody_gw_gui_num_start',
-          search.Operator.ISEMPTY,
-          '',
-        ])
-        _filterArray.push('and')
-        _filterArray.push([
-          'custbody_gw_gui_num_end',
-          search.Operator.ISEMPTY,
-          '',
-        ])
-        _filterArray.push('and')
-        _filterArray.push([
-          'custbody_gw_allowance_num_start',
-          search.Operator.ISEMPTY,
-          '',
-        ])
-        _filterArray.push('and')
-        _filterArray.push([
-          'custbody_gw_allowance_num_end',
-          search.Operator.ISEMPTY,
-          '',
-        ])
-        ////////////////////////////////////////////////////////////////
-        _mySearch.filterExpression = _filterArray
-        log.debug('_filterArray', JSON.stringify(_filterArray))
-
+      var _mySearch = searchUtility.getSelectedCreditMemoObj(internalIdAry.toString())
+    
+      if (internalIdAry != null) {  
         var _checkID = ''
         var _mainJsonObj
         var _discountItemJsonObj

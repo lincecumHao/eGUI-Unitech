@@ -16,6 +16,7 @@ define([
   '../gw_common_utility/gw_common_configure',
   '../../gw_dao/taxType/gw_dao_tax_type_21',
   '../../gw_dao/carrierType/gw_dao_carrier_type_21',
+  '../gw_common_utility/gw_common_search_utility'
 ], function (
   config,
   serverWidget,
@@ -27,7 +28,8 @@ define([
   searchutility,
   gwconfigure,
   taxyype21,
-  carriertypedao
+  carriertypedao,
+  searchUtility
 ) {
   var _numericToFixed = gwconfigure.getGwNumericToFixed() //小數點位數
   var _invoiceActionScriptId = gwconfigure.getGwInvoiceActionScriptId()
@@ -866,26 +868,9 @@ define([
     //1.處理 Invoice Detail Items
     var _selectDepartment = ''
     var _selectClassification = ''
-    var _mySearch = search.load({
-      id: 'customsearch_gw_cash_sale_detail_search',
-    })
-    var _filterArray = []
-    if (selected_cash_sale_Id != null) {
-      var _internalIdAry = selected_cash_sale_Id.split(',')
-      _filterArray.push(['internalid', 'anyof', _internalIdAry])
-    }
-    ////////////////////////////////////////////////////////////////
-    _filterArray.push('and')
-    _filterArray.push(['recordtype', 'is', 'cashsale'])
-    //_filterArray.push('and');
-    //_filterArray.push(['mainline','is', false]);
-    _filterArray.push('and')
-    _filterArray.push(['taxline', 'is', false]) //擋稅別科目
-    _filterArray.push('and')
-    _filterArray.push(['cogs', 'is', false]) //擋庫存及成本科目
-    ////////////////////////////////////////////////////////////////
-    _mySearch.filterExpression = _filterArray
-    log.debug('_filterArray', JSON.stringify(_filterArray))
+    	
+   	var _mySearch = searchUtility.getSelectedCashSalesObj(selected_cash_sale_Id) 	
+  
     ////////////////////////////////////////////////////////////////////////////////////////
     var row = 0
     //客戶代碼

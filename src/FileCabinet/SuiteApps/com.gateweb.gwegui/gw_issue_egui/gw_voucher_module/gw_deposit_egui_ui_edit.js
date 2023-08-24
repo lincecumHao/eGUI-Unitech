@@ -122,13 +122,13 @@ define([
     }
   }
 
-  //取得稅別資料
+  //取得稅別資料 
   function getTaxInformation(eguiTaxId) {
     return _taxObjAry.filter(function (_obj) {
-    	var _tax_code_value=_obj.netsuite_id_value
-      return _tax_code_value.indexOf(netsuiteId) != -1
+    	var _tax_code_value=_obj.voucher_property_value
+      return _tax_code_value.indexOf(eguiTaxId) != -1
     })[0] 
-  }
+  } 
   
   //取得賣方公司資料
   function getSellerInfo(businessNo) {

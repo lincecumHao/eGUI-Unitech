@@ -29,9 +29,7 @@ define([
   var _invoiceActionScriptId = gwconfigure.getGwInvoiceActionScriptId()
   var _invoiceActionDeploymentId = gwconfigure.getGwInvoiceActionDeploymentId()
   var _salesAccountValue = gwconfigure.getGwSalesAccountValue() //4000 Sales (銷貨收入的accountnumber)
-
-  var _gw_invoice_detail_search_id = gwconfigure.getGwInvoiceDetailSearchId() //Invoice Detail Search
-
+ 
   var _voucher_main_record = gwconfigure.getGwVoucherMainRecord()
 
   //取得客戶資料

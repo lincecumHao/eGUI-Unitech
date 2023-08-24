@@ -15,7 +15,8 @@ define([
   '../gw_common_utility/gw_common_configure',
   '../../gw_dao/taxType/gw_dao_tax_type_21',
   '../../gw_dao/carrierType/gw_dao_carrier_type_21',
-  '../../gw_dao/busEnt/gw_dao_business_entity_21'
+  '../../gw_dao/busEnt/gw_dao_business_entity_21',
+  '../gw_common_utility/gw_common_search_utility'
 ], function (
   config,
   serverWidget,
@@ -28,15 +29,13 @@ define([
   gwconfigure,
   taxyype21,
   carriertypedao,
-  businessEntityDao
+  businessEntityDao,
+  searchUtility
 ) {
   var _numericToFixed = gwconfigure.getGwNumericToFixed() //小數點位數
   var _invoiceActionScriptId = gwconfigure.getGwInvoiceActionScriptId()
   var _invoiceActionDeploymentId = gwconfigure.getGwInvoiceActionDeploymentId()
-
-  var _gw_invoice_detail_search_id = gwconfigure.getGwInvoiceDetailSearchId() //Invoice Detail Search
-  var _gw_creditmemo_detail_search_id = gwconfigure.getGwCreditmemoDetailSearchId() //Credit Memo Detail Search
-
+ 
   var _gw_voucher_properties = gwconfigure.getGwVoucherProperties() //設定檔
 
   var _customer_deposit_text = '顧客押金'
@@ -948,27 +947,10 @@ define([
     //1.處理 Invoice Detail Items
     var _selectDepartment = ''
     var _selectClassification = ''
-    var _mySearch = search.load({
-      id: _gw_invoice_detail_search_id
-    })
-    var _filterArray = []
-    if (_selected_invoice_Id != null) {
-      var _internalIdAry = _selected_invoice_Id.split(',')
-      _filterArray.push(['internalid', 'anyof', _internalIdAry])
-    }
-    ////////////////////////////////////////////////////////////////
-    //check this issue 20201028
-    _filterArray.push('and')
-    _filterArray.push(['recordtype', 'is', 'invoice'])
-    //_filterArray.push('and');
-    //_filterArray.push(['mainline','is', false]);
-    _filterArray.push('and')
-    _filterArray.push(['taxline', 'is', false]) //擋稅別科目
-    _filterArray.push('and')
-    _filterArray.push(['cogs', 'is', false]) //擋庫存及成本科目
-    ////////////////////////////////////////////////////////////////
-    _mySearch.filterExpression = _filterArray
-    log.debug('_filterArray', JSON.stringify(_filterArray))
+    
+   	var _searObj = {}
+   	var _mySearch = searchUtility.getSelectedInvoiceObj(_selected_invoice_Id) 
+  
     ////////////////////////////////////////////////////////////////////////////////////////
     var row = 0
     //客戶代碼
@@ -2012,29 +1994,10 @@ define([
     //1.處理 CreditMemo Detail Items
     var _selectDepartment = ''
     var _selectClassification = ''
-    var _mySearch = search.load({
-      id: _gw_creditmemo_detail_search_id
-    })
-    var _filterArray = []
-    if (_selected_creditmemo_Id != null) {
-      var _internalIdAry = _selected_creditmemo_Id.split(',')
-      _filterArray.push(['internalid', 'anyof', _internalIdAry])
-    }
-    ////////////////////////////////////////////////////////////////
-    //check this issue 20201028
-    _filterArray.push('and')
-    _filterArray.push(['recordtype', 'is', 'creditmemo'])
-    //_filterArray.push('and');
-    //_filterArray.push(['mainline','is', false]);
-    _filterArray.push('and')
-    _filterArray.push(['taxline', 'is', false]) //擋稅別科目
-    _filterArray.push('and')
-    _filterArray.push(['cogs', 'is', false]) //擋庫存及成本科目
-    _filterArray.push('AND')
-    _filterArray.push([[['mainline', 'is', 'T']], 'OR', [['mainline', 'is', 'F'], 'AND', ['item', 'noneof', '@NONE@']]])
-    ////////////////////////////////////////////////////////////////
-    _mySearch.filterExpression = _filterArray
-    ////////////////////////////////////////////////////////////////////////////////////////
+
+    var _searObj ={}	
+   	var _mySearch = searchUtility.getSelectedCreditMemoObj(_selected_creditmemo_Id) 
+    	 
     var row = 0
     //客戶代碼
     var _customer_id = 0

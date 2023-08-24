@@ -12,6 +12,7 @@ define([
   '../gw_common_utility/gw_common_string_utility',
   '../gw_common_utility/gw_common_invoice_utility',
   '../gw_common_utility/gw_common_configure',
+  '../gw_common_utility/gw_common_search_utility',
 ], function (
   runtime,
   serverWidget,
@@ -20,14 +21,12 @@ define([
   format,
   stringutility,
   invoiceutility,
-  gwconfigure
-) {
-  var _gw_invoice_detail_search_id = gwconfigure.getGwInvoiceDetailSearchId() //Invoice Detail Search
-  var _gw_creditmemo_detail_search_id = gwconfigure.getGwCreditmemoDetailSearchId() //Credit Memo Detail Search
-
+  gwconfigure,
+  searchUtility
+) { 
   var invoiceEditScriptId = gwconfigure.getGwInvoiceUIEditScriptId()
   var invoiceEditDeployId = gwconfigure.getGwInvoiceUIEditDeployId()
-
+   
   var _gw_voucher_properties = gwconfigure.getGwVoucherProperties() //設定檔
   
   //手開發票指定狀態
@@ -76,89 +75,18 @@ define([
     transtartdate,
     tranenddate,
     invoice_status
-  ) {
-    
-    var _mySearch = search.load({
-      id: _gw_invoice_detail_search_id,
-    })
+  ) { 
+	  
+    var _searObj = {
+    	customerid: customerid,
+    	deptcode: deptcode,
+    	classification: classification,
+    	employee: employee,
+    	tranid: tranid,
+    	status: invoice_status 
+    }
 
-    var _filterArray = []
-    _filterArray.push(['mainline', search.Operator.IS, true])
-
-    _filterArray.push('and')
-    _filterArray.push([
-      'custbody_gw_lock_transaction',
-      search.Operator.IS,
-      false,
-    ])
-
-    _filterArray.push('and')
-    _filterArray.push(['custbody_gw_is_issue_egui', search.Operator.IS, true])
-    //_filterArray.push('and')
-    //_filterArray.push(['CUSTBODY_GW_EVIDENCE_ISSUE_STATUS.custrecord_gw_evidence_status_value', search.Operator.IS, _manual_evidence_status_value])
-  
-     
-    if (subsidiary != '') {
-    	//非oneworld版本沒有subsidiary欄位 
-	    //_filterArray.push('and')
-	    //_filterArray.push(['subsidiary', search.Operator.ANYOF, subsidiary])
-	    //_filterArray.push(['custbody_gw_tax_id_number', search.Operator.IS, subsidiary])
-	}
-
-    if (customerid != '') {
-      _filterArray.push('and')
-      _filterArray.push(['entity', search.Operator.IS, customerid])
-    }
-    if (deptcode != '') {
-      _filterArray.push('and')
-      _filterArray.push(['department', search.Operator.IS, deptcode])
-    }
-    if (classification != '') {
-      _filterArray.push('and')
-      _filterArray.push(['class', search.Operator.IS, classification])
-    }
-    if (employee != '') {
-      _filterArray.push('and')
-      _filterArray.push(['createdby', search.Operator.IS, employee])
-    }
-    if (tranid != '') {
-      _filterArray.push('and')
-      _filterArray.push(['tranid', search.Operator.IS, tranid])
-    }
-    if (transtartdate != '') {
-      var _formattedDate = format.format({
-        value: transtartdate,
-        type: format.Type.DATETIMETZ,
-      })
-
-      _filterArray.push('and')
-      _filterArray.push(['trandate', search.Operator.ONORAFTER, _formattedDate])
-    }
-    if (tranenddate != '') {
-      var _formattedDate = format.format({
-        value: tranenddate,
-        type: format.Type.DATETIMETZ,
-      })
-      _filterArray.push('and')
-      _filterArray.push([
-        'trandate',
-        search.Operator.ONORBEFORE,
-        _formattedDate,
-      ])
-    }
-    //////////////////////////////////////////////////////////////////////////
-    //20210908 walter add status filter
-    if (invoice_status.length !=0) {    
-	    var _status_ary = []
-	    //Invoice 
-	    _status_ary.push(invoice_status)   
-	    _filterArray.push('and')
-	    _filterArray.push(['status', search.Operator.ANYOF, _status_ary])    	      
-    }    
-    //////////////////////////////////////////////////////////////////////////
-    
-    _mySearch.filterExpression = _filterArray
-    log.debug('invoice filterArray', JSON.stringify(_filterArray))
+    var _mySearch = searchUtility.getInvoiceSearchObj(_searObj, transtartdate, tranenddate, '') 
     ///////////////////////////////////////////////////////////////////////////////////
     //處理結果
     var i = 0
@@ -314,78 +242,17 @@ define([
     tranenddate,
     creditmemo_status
   ) { 
-    var _mySearch = search.load({
-      id: _gw_creditmemo_detail_search_id,
-    })
-
-    //
-    var _filterArray = []
-     
-    _filterArray.push(['mainline', 'is', true])
-    _filterArray.push('and')
-    _filterArray.push(['custbody_gw_lock_transaction', 'is', false])
-    _filterArray.push('and')
-    _filterArray.push(['custbody_gw_is_issue_egui', 'is', true])
-    //_filterArray.push('and')
-    //_filterArray.push(['CUSTBODY_GW_EVIDENCE_ISSUE_STATUS.custrecord_gw_evidence_status_value', search.Operator.IS, _manual_evidence_status_value])
-  
-
-    if (subsidiary != '') {
-    	//非oneworld版本沒有subsidiary欄位
-	    //_filterArray.push('and')	    
-	    //_filterArray.push(['custbody_iv_company_attributed', search.Operator.IS, subsidiary])
+    var _searObj = {
+    	customerid: customerid,
+    	deptcode: deptcode,
+    	classification: classification,
+    	employee: employee,
+    	tranid: tranid,
+    	status: creditmemo_status 
 	}
     
-    if (customerid != '') {
-      _filterArray.push('and')
-      _filterArray.push(['entity', 'is', customerid])
-    }
-    if (deptcode != '') {
-      _filterArray.push('and')
-      _filterArray.push(['department', 'is', deptcode])
-    }
-    if (classification != '') {
-      _filterArray.push('and')
-      _filterArray.push(['class', 'is', classification])
-    }
-    if (employee != '') {
-      _filterArray.push('and')
-      _filterArray.push(['createdby', 'is', employee])
-    }
-    if (tranid != '') {
-      _filterArray.push('and')
-      _filterArray.push(['tranid', 'is', tranid])
-    }
-    if (transtartdate != '') {
-      var _formattedDate = format.format({
-        value: transtartdate,
-        type: format.Type.DATETIMETZ,
-      })
-
-      _filterArray.push('and')
-      _filterArray.push(['trandate', 'onorafter', _formattedDate])
-    }
-    if (tranenddate != '') {
-      var _formattedDate = format.format({
-        value: tranenddate,
-        type: format.Type.DATETIMETZ,
-      })
-      _filterArray.push('and')
-      _filterArray.push(['trandate', 'onorbefore', _formattedDate])
-    }
-    //////////////////////////////////////////////////////////////////////////
-    //20210908 walter add status filter
-    if (creditmemo_status.length !=0) { 
-	    var _status_ary = []      
-	    //Create Memo status list
-	    _status_ary.push(creditmemo_status)  
-	    _filterArray.push('and')
-	    _filterArray.push(['status', search.Operator.ANYOF, _status_ary])   
-    }   
-    //////////////////////////////////////////////////////////////////////////
-    _mySearch.filterExpression = _filterArray
-    ///////////////////////////////////////////////////////////////////////////////////
-
+    var _mySearch = searchUtility.getCreditMemoSearchObj(_searObj, transtartdate, tranenddate, '')   
+ 
     //處理結果
     var i = 0
     var _check_id = -1
