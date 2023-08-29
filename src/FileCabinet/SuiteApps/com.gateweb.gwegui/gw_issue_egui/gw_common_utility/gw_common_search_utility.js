@@ -737,8 +737,7 @@ define(['N/format', 'N/search'], function (format, search) {
 	      "custbody_gw_gui_carrier_id_1",
 	      "custbody_gw_gui_carrier_id_2",
 	      "custbody_gw_gui_carrier_type",
-	      "custbody_gw_gui_main_memo",
-	      "custbody_iv_company_attributed"
+	      "custbody_gw_gui_main_memo" 
 	   ]
 	});
     
