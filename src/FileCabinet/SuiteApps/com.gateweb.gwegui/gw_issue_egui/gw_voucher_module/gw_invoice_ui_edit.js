@@ -1759,10 +1759,11 @@ define([
             value: _customer_deposit_text
           })
           //放未稅金額
+          //NE-338
           sublist.setSublistValue({
             id: 'custpage_unit_price',
             line: row,
-            value: Math.abs(_deduction_amount)
+            value: _deduction_amount
           })
           sublist.setSublistValue({
             id: 'custpage_item_quantity',

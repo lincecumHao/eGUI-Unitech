@@ -165,6 +165,12 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
       case 'M':
         statusDesc = '不上傳'
         break
+      case 'EU':
+          statusDesc = '外部平台代上傳'
+          break
+      case 'RT':
+          statusDesc = '待回收上傳' //RETRIEVE
+          break
       case 'D':
         statusDesc = '已刪除'
         break
