@@ -351,9 +351,16 @@ define([
     var _voucher_upload_status = _voucher_record.getValue({
       fieldId: 'custrecord_gw_voucher_upload_status',
     })
-    var _voucher_upload_status_desc = invoiceutility.getUploadStatusDesc(
-      _voucher_upload_status
-    )
+    var _voucher_upload_status_desc = invoiceutility.getUploadStatusDesc(_voucher_upload_status)
+    //NE-338
+    var _gw_need_upload_egui_mig = _voucher_record.getValue({
+      fieldId: 'custrecord_gw_need_upload_egui_mig',
+    })
+    if (_gw_need_upload_egui_mig=='RETRIEVE'){
+    	_voucher_upload_status_desc = invoiceutility.getUploadStatusDesc('RT')
+    }else if (_gw_need_upload_egui_mig=='NONE'){
+    	_voucher_upload_status_desc = invoiceutility.getUploadStatusDesc('M')
+    }
 
     var _voucher_upload_status_field = form.addField({
       id: 'custpage_voucher_upload_status',

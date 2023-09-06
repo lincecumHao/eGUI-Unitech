@@ -533,8 +533,10 @@ define([
             stringutility.trim(_need_upload_egui_mig) == 'N' ||
             stringutility.trim(_need_upload_egui_mig) == 'NONE'
           ) {
-            _voucher_manual_egui = '是'
-            _voucher_upload_status = 'M'
+             _voucher_manual_egui = '是'
+             //_voucher_upload_status = 'M'
+           	 //NE-338
+             _voucher_upload_status = 'EU'  	
           }
 
           var _voucher_upload_status_desc = invoiceutility.getUploadStatusDesc(
@@ -1121,7 +1123,7 @@ define([
     _sublist.addField({
       id: 'customer_voucher_manual_egui',
       type: serverWidget.FieldType.TEXT,
-      label: '是否歷史發票',
+      label: '是否歷史或外部發票',
     })
     _sublist.addField({
       id: 'customer_voucher_isprinted_pdf',
