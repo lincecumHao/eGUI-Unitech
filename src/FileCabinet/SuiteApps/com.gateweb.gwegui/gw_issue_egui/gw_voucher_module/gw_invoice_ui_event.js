@@ -4359,7 +4359,9 @@ define([
 
         var _document_type = 'INVOICE'
         if (stringutility.trim(_discount) === 'SALES_ORDER') {
-          _document_type = 'SALES_ORDER'
+            _document_type = 'SALES_ORDER'
+           	//NE-355 客戶押金項目的單價欄位改為負數
+            _unit_price=Math.abs(_unit_price)
         }
         //alert('_total_tax_amount='+_total_tax_amount+' ,_total_sum_amount='+_total_sum_amount);
         //目前taxCode=10 [應稅] , taxCode=5 [免稅] ,

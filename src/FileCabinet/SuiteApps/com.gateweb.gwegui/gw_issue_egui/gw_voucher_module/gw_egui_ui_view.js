@@ -744,6 +744,8 @@ define([
           _document_list_ary.push(_ns_document_type_id) 
       }
       //////////////////////////////////////////////////////////////////////////////////////////
+      //NE-355
+      if (_item_amount<0)_unit_price=-1*_unit_price
       
       sublist.setSublistValue({
         id: 'customer_search_internal_id',
