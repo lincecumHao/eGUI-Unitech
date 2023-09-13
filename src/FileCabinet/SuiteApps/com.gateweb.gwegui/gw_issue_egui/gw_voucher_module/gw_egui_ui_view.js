@@ -209,8 +209,11 @@ define([
     var _gw_need_upload_egui_mig = _voucher_record.getValue({
       fieldId: 'custrecord_gw_need_upload_egui_mig',
     })
-    if (_voucher_upload_status=='C' && _gw_need_upload_egui_mig=='NONE'){
+    
+    if (_voucher_upload_status=='C' && _gw_need_upload_egui_mig=='NONE' && _is_gw_voucher_format_35_code =='35'){
     	_voucher_upload_status_desc = invoiceutility.getUploadStatusDesc('EU')
+    }else if (_is_gw_voucher_format_35_code !='35'){
+    	_voucher_upload_status_desc = invoiceutility.getUploadStatusDesc('M')
     }
 
     //處理重傳

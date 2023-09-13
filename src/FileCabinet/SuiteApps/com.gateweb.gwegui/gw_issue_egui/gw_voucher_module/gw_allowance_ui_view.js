@@ -254,7 +254,15 @@ define([
     var _is_printed_pdf = _voucher_record.getValue({
       fieldId: 'custrecord_gw_is_printed_pdf',
     })
-    if (_is_printed_pdf == true) {
+    
+    var _gw_invoice_type = _voucher_record.getValue({
+      fieldId: 'custrecord_gw_invoice_type',
+    })
+    var _voucher_format_code = _voucher_record.getValue({
+      fieldId: 'custrecord_gw_voucher_format_code',
+    })
+        
+    if (_is_printed_pdf == true || _gw_invoice_type != '07' || _voucher_format_code != '33') {
       var _print_pdf_button = form.getButton({
         id: 'custpage_print_pdf_button',
       })

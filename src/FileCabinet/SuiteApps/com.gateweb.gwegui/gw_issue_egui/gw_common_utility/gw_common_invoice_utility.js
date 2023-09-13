@@ -30,6 +30,28 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
 	  return _print_mark
   }
   
+  function getAllowanceTaxCode(invoiceTaxCode) {
+    var _taxCode = ''
+    switch (invoiceTaxCode) {
+      case '31':
+    	  _taxCode = '33'
+        break
+      case '32':
+    	  _taxCode = '34'
+        break
+      case '35':
+    	  _taxCode = '33'
+        break
+      case '36':
+    	  _taxCode = '34'
+        break
+      case '37':
+    	  _taxCode = '38'
+        break 
+    }
+    return _taxCode
+  }
+  
   //字串補0
   function getInvoiceTypeDesc(invoiceType) {
     var invoiceTypeDesc = ''
@@ -1964,6 +1986,7 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
     getSellerInfoBySubsidiary: getSellerInfoBySubsidiary,
 	getRandomNumNew: getRandomNumNew,
 	checkInvoiceManualNumberExistRange: checkInvoiceManualNumberExistRange,
+    getAllowanceTaxCode: getAllowanceTaxCode,
     getManualOpenID: getManualOpenID,
     getPrintMark: getPrintMark,
 	getVoucherMigType: getVoucherMigType,

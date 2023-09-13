@@ -2817,11 +2817,12 @@ define([
             fieldId: 'custrecord_gw_voucher_extra_memo',
             value: _main.extraMemo
           })
-
+        
           _voucherMainRecord.setValue({
             fieldId: 'custrecord_gw_need_upload_egui_mig',
             value: assignLogType
           })
+          
           //20201105 walter modify
           _voucherMainRecord.setValue({
             fieldId: 'custrecord_gw_voucher_main_apply_user_id',
@@ -3224,10 +3225,14 @@ define([
               ) {
                 var _obj = _deductionEGUIItems_TYPE_1.eGUIResult[a]
                 _history_Deduction_EGUIItems.push(_obj)
+                
+                _main.invoice_type = _obj.invoice_type
+                _creditMemoFormatCode = invoiceutility.getAllowanceTaxCode(_obj.format_code)                
               }
             }
           }
         }
+        
         var _deductionEGUIItems_TYPE_2
         if (_deductionZeroAmount != 0) {
           var _checkField = '2'
@@ -3260,6 +3265,9 @@ define([
               ) {
                 var _obj = _deductionEGUIItems_TYPE_2.eGUIResult[a]
                 _history_Deduction_EGUIItems.push(_obj)
+                
+                _main.invoice_type = _obj.invoice_type
+                _creditMemoFormatCode = invoiceutility.getAllowanceTaxCode(_obj.format_code)
               }
             }
           }
@@ -3296,16 +3304,19 @@ define([
               ) {
                 var _obj = _deductionEGUIItems_TYPE_3.eGUIResult[a]
                 _history_Deduction_EGUIItems.push(_obj)
+                
+                _main.invoice_type = _obj.invoice_type
+                _creditMemoFormatCode = invoiceutility.getAllowanceTaxCode(_obj.format_code)
               }
             }
           }
         }
-
+        
         //可扣抵歷史發票
         var _all_Deduction_EGUIItems = meargeHistoryEGUI(
           _history_Deduction_EGUIItems
         )
-        //alert('_all_Deduction_EGUIItems='+JSON.stringify(_all_Deduction_EGUIItems));
+        
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         //20201113 walter modify 檢查稅差
         /**
@@ -3561,6 +3572,11 @@ define([
             fieldId: 'custrecord_gw_total_amount',
             value: _net_value * stringutility.convertToFloat(_main.total_amount)
           })
+                      
+          if (_main.invoice_type != '07' || 
+        	  _creditMemoFormatCode != '33' || 
+        	  _main.upload_egui_mig == 'NONE' ) assignLogType='NONE'
+
           _voucherMainRecord.setValue({
             fieldId: 'custrecord_gw_need_upload_egui_mig',
             value: assignLogType
@@ -5212,6 +5228,9 @@ define([
           name: 'custrecord_gw_voucher_date',
           sort: search.Sort.DESC
         }),
+        search.createColumn({ name: 'custrecord_gw_invoice_type' }), //Invoice_Type 07
+        search.createColumn({ name: 'custrecord_gw_voucher_format_code' }), //35.... 
+        search.createColumn({ name: 'custrecord_gw_need_upload_egui_mig' }), //ALL, NONE
         search.createColumn({ name: 'custrecord_gw_mig_type' }), //MigType
         search.createColumn({ name: 'custrecord_gw_voucher_number' }), //憑證號碼
         search.createColumn({ name: 'custrecord_gw_voucher_yearmonth' }), //憑證期別
@@ -5433,6 +5452,16 @@ define([
       var _discount_zero_amount = _result[i].getValue({
         name: 'custrecord_gw_discount_zero_amount'
       })
+      
+      var _gw_invoice_type = _result[i].getValue({
+        name: 'custrecord_gw_invoice_type'
+      })
+      var _gw_voucher_format_code = _result[i].getValue({
+        name: 'custrecord_gw_voucher_format_code'
+      }) 
+      var _gw_need_upload_egui_mig = _result[i].getValue({
+          name: 'custrecord_gw_need_upload_egui_mig'
+      })
       ///////////////////////////////////////////////////////////////////////////////////
       //可扣抵餘額
       var _balance_amount = 0
@@ -5459,6 +5488,9 @@ define([
         var _obj = {
           internalid: _internalid,
           mig_type: _mig_type,
+          invoice_type: _gw_invoice_type,
+          format_code: _gw_voucher_format_code,
+          upload_egui_mig: _gw_need_upload_egui_mig,
           voucher_number: _voucher_number,
           voucher_date: _voucher_date,
           voucher_yearmonth: _voucher_yearmonth,
@@ -5497,6 +5529,9 @@ define([
         var _obj = {
           internalid: _internalid,
           mig_type: _mig_type,
+          invoice_type: _gw_invoice_type,
+          format_code: _gw_voucher_format_code,
+          upload_egui_mig: _gw_need_upload_egui_mig,
           voucher_number: _voucher_number,
           voucher_date: _voucher_date,
           voucher_yearmonth: _voucher_yearmonth,
@@ -5549,7 +5584,7 @@ define([
       checkResult: _ok,
       eGUIResult: _objAry
     }
- 
+     
     return _checkObj
   }
 

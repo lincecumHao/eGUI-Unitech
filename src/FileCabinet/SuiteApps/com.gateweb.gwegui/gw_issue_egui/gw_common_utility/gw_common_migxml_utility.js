@@ -1978,6 +1978,8 @@ define([
       if (select_error_item==true){
 	      _filterArray.push('and');
 	      _filterArray.push(['custrecord_gw_voucher_upload_status',search.Operator.ISNOT, 'E']); 
+	      _filterArray.push('and');
+	      _filterArray.push(['custrecord_gw_invoice_type',search.Operator.IS, '07']); 
 	      //custrecord_gw_voucher_format_code
 	      _filterArray.push('and'); 
 	      _filterArray.push([

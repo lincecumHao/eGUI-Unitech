@@ -363,6 +363,7 @@ define([
         var _buyer = _result.values.custrecord_gw_buyer
         var _buyer_name = _result.values.custrecord_gw_buyer_name
         var _invoice_type = _result.values.custrecord_gw_invoice_type
+        var _voucher_format_code = _result.values.custrecord_gw_voucher_format_code
         var _sales_amount = _result.values.custrecord_gw_sales_amount
         var _free_sales_amount = _result.values.custrecord_gw_free_sales_amount
         var _zero_sales_amount = _result.values.custrecord_gw_zero_sales_amount
@@ -536,7 +537,8 @@ define([
              _voucher_manual_egui = '是'
              //_voucher_upload_status = 'M'
            	 //NE-338
-             _voucher_upload_status = 'EU'  	
+           	 if (_voucher_format_code!='35')_voucher_upload_status = 'M'
+             else _voucher_upload_status = 'EU'  	
           }
 
           var _voucher_upload_status_desc = invoiceutility.getUploadStatusDesc(
