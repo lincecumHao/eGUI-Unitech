@@ -745,13 +745,11 @@ define(['N/format', 'N/search'], function (format, search) {
     if (selected_cashSales_Id != null) {
         var _internalIdAry = selected_cashSales_Id.split(',')
         _filterArray.push(['internalid', 'anyof', _internalIdAry])
-    } 
+    }
     _filterArray.push('and')
-    _filterArray.push(['recordtype', 'is', 'creditmemo']) 
+    _filterArray.push(['taxline', 'is', 'F']) //擋稅別科目
     _filterArray.push('and')
-    _filterArray.push(['taxline', 'is', false]) //擋稅別科目
-    _filterArray.push('and')
-    _filterArray.push(['cogs', 'is', false]) //擋庫存及成本科目
+    _filterArray.push(['cogs', 'is', 'F']) //擋庫存及成本科目
        
     cashsaleSearchObj.filterExpression = _filterArray 
     
