@@ -20,7 +20,9 @@ define(['N/record',
              var _document_type = _document_ary[0].toUpperCase()
              var _document_internal_id = _document_ary[_document_ary.length-1]
              
-             _document_type = _document_type.toString().replace('_'+_document_internal_id, '');
+             //NE_383
+             //_document_type = _document_type.toString().replace('_'+_document_internal_id, '');
+             _document_type = document_ary.toString().replace('_'+_document_internal_id, '');
              
              syncToNetsuiteDocument(voucher_main_record, _document_type, _document_internal_id)
     	}
