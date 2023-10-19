@@ -63,7 +63,6 @@ define(['N/currentRecord', '../vo/gw_ap_doc_fields'], function (currentRecord, g
                 sublistId: ACCOUNT_PAYABLE_VOUCHER_SUBLIST_ID,
                 fieldId: eachField,
                 value: fieldValue,
-                ignoreFieldChange: true
             })
         })
     }
