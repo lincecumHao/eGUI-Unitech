@@ -21,7 +21,6 @@ define(['N/currentRecord', '../vo/gw_ap_doc_fields'], function (currentRecord, g
         'custrecord_gw_ap_doc_currency',
         'custrecord_gw_ap_doc_deduct_code',
         'custrecord_gw_ap_doc_exempt_amt',
-        'custrecord_gw_ap_doc_gui_num',
         'custrecord_gw_ap_doc_issue_date',
         'custrecord_gw_ap_doc_sales_amt',
         'custrecord_gw_ap_doc_source',
@@ -52,21 +51,6 @@ define(['N/currentRecord', '../vo/gw_ap_doc_fields'], function (currentRecord, g
         currentRecordObj.selectNewLine({
             sublistId: ACCOUNT_PAYABLE_VOUCHER_SUBLIST_ID
         })
-
-        // Object.keys(gwApDocFields.fields).forEach(function (propertyName) {
-        //     var fieldValue = currentRecordObj.getSublistValue({
-        //         sublistId: ACCOUNT_PAYABLE_VOUCHER_SUBLIST_ID,
-        //         fieldId: gwApDocFields.fields[propertyName].id,
-        //         line: lastLineIndex
-        //     })
-        //     console.log('copyLastLine - fieldValue', fieldValue)
-        //     currentRecordObj.setCurrentSublistValue({
-        //         sublistId: ACCOUNT_PAYABLE_VOUCHER_SUBLIST_ID,
-        //         fieldId: gwApDocFields.fields[propertyName].id,
-        //         value: fieldValue,
-        //         ignoreFieldChange: true
-        //     })
-        // })
 
         ACCOUNT_PAYABLE_VOUCHER_SUBLIST_FIELDS.forEach(function (eachField) {
             var fieldValue = currentRecordObj.getSublistValue({
