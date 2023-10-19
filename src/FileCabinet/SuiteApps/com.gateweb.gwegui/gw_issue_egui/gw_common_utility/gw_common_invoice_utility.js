@@ -31,25 +31,18 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
   }
   
   function getAllowanceTaxCode(invoiceTaxCode) {
-    var _taxCode = ''
-    switch (invoiceTaxCode) {
-      case '31':
-    	  _taxCode = '33'
-        break
-      case '32':
-    	  _taxCode = '34'
-        break
-      case '35':
-    	  _taxCode = '33'
-        break
-      case '36':
-    	  _taxCode = '34'
-        break
-      case '37':
-    	  _taxCode = '38'
-        break 
+    const invTaxCodeMapAllowanceTaxCode = {
+      '31':'33',
+      '32':'34',
+      '35':'33',
+      '36':'34',
+      '37':'38'
     }
-    return _taxCode
+    log.debug({
+      title: 'getAllowanceTaxCode - invoiceTaxCode | mapped taxCode',
+      details: `${invoiceTaxCode} | ${invTaxCodeMapAllowanceTaxCode[invoiceTaxCode]}`
+    })
+    return invTaxCodeMapAllowanceTaxCode[invoiceTaxCode]
   }
   
   //字串補0
