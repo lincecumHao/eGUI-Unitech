@@ -22,7 +22,8 @@ define(['N/record',
              
              //NE_383
              //_document_type = _document_type.toString().replace('_'+_document_internal_id, '');
-             _document_type = document_ary.toString().replace('_'+_document_internal_id, '');
+             //NE_404
+             _document_type = _document_list.toString().replace('_'+_document_internal_id, '');
              
              syncToNetsuiteDocument(voucher_main_record, _document_type, _document_internal_id)
     	}
@@ -40,107 +41,111 @@ define(['N/record',
     		_record_type_id = record.Type.INVOICE		              
         } else if (document_type == 'CREDITMEMO') {
         	_record_type_id = record.Type.CREDIT_MEMO	
-        } else if (document_type == 'CASH_SALE') {
-        	_record_type_id = record.Type.CASH_SALE		               
+        } else if (document_type == 'CASH_SALE' || document_type == 'cashsale') {
+        	_record_type_id = record.Type.CASH_SALE		     
+        } else if (document_type == 'CASH_REFUND' || document_type == 'cashrefund') {
+        	_record_type_id = record.Type.CASH_REFUND	
         } else if (document_type == 'CUSTOMER' || document_type == 'CUSTOMER_DEPOSIT') {
         	_record_type_id = record.Type.CUSTOMER_DEPOSIT		               
         }
-    	
-    	var _document_record = record.load({
-    	      type: _record_type_id,
-    	      id: document_internal_id,
-    	      isDynamic: true,
-    	})
-    	
-    	var _gw_gui_format   = _document_record.getValue({fieldId: 'custbody_gw_gui_format'}) 
-    	var _gw_gui_tax_type = _document_record.getValue({fieldId: 'custbody_gw_gui_tax_type'}) 
-    	log.debug('syncToNetsuiteDocument format', 'record_type_id='+_record_type_id+',gw_gui_format='+_gw_gui_format+',gw_gui_tax_type='+_gw_gui_tax_type)
-    	
-    	//有資料就不再更新
-        //if (_gw_gui_format.trim().length==0 && _gw_gui_tax_type.trim().length==0 && _record_type_id.length !=0) {
-	    	var values = {} 
-	    	//_access_model NETSUITE / GATEWEB
-	    	var _access_model = voucher_main_record.getValue({fieldId: 'custrecord_gw_upload_access_model'}) 
+        //NE_404
+    	if (_record_type_id!='') {
+	    	var _document_record = record.load({
+	    	      type: _record_type_id,
+	    	      id: document_internal_id,
+	    	      isDynamic: true,
+	    	})
 	    	
-	    	//應稅銷售額
-	    	var _gui_sales_amt = voucher_main_record.getValue({fieldId: 'custrecord_gw_sales_amount'})
-	    	//稅額
-	    	var _gui_tax_amt = voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_amount'})
-	    	//總計
-	    	var _gui_total_amt = voucher_main_record.getValue({fieldId: 'custrecord_gw_total_amount'})
-	    	if (_access_model=='GATEWEB') {
-	    		_gui_total_amt = (parseFloat(_gui_total_amt)-parseFloat(_gui_tax_amt)).toString()
-	    		//稅率 tax_rate = 0.05
-	    		var _tax_rate = voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_rate'})
-	    		_gui_tax_amt = Math.round(parseFloat(_sales_amount) * parseFloat(_tax_rate)).toString()
-	    		
-	    		_gui_total_amt = (parseFloat(_gui_total_amt)+parseFloat(_gui_tax_amt)).toString()  
-	    	} 
-	    	//稅額
-	  	    values['custbody_gw_gui_tax_amt'] = _gui_tax_amt
-	  	    //發票期別
-		    values['custbody_gw_gui_tax_file_date'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_yearmonth'}) 
-		    //稅率  
-		    values['custbody_gw_gui_tax_rate'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_rate'})	
-		    //課稅別  
-		    values['custbody_gw_gui_tax_type'] = getTaxTypeIdByValue(voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_type'}))	
-	 
-		    //總計
-		    values['custbody_gw_gui_total_amt'] = _gui_total_amt
-		    //發票日期  
-		    var _gw_voucher_date = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_date'})
-	        values['custbody_gw_gui_date'] = convertStringToDate(_gw_voucher_date.toString())
-		    //發票不上傳
-		    if (_need_upload_egui_mig=='NONE') values['custbody_gw_gui_not_upload'] = true 
-		    //應稅銷售額
-		    values['custbody_gw_gui_sales_amt'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_sales_amount'})    
-		    //免稅銷售額	
-		    values['custbody_gw_gui_sales_amt_tax_exempt'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_free_sales_amount'}) 
-		    //零稅銷售額 
-		    values['custbody_gw_gui_sales_amt_tax_zero'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_zero_sales_amount'})	 
-		    //發票部門
-		    values['custbody_gw_gui_department'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_dept_code'}) 
-		    //發票分類
-		    values['custbody_gw_gui_class'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_classification'}) 
-		    //營業稅申報期別  
-		    values['custbody_gw_gui_apply_period'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_yearmonth'})  
-		    
-		    //開立狀態   
-		    var _gw_voucher_status = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_status'})
-		    var _gw_voucher_upload_status = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_upload_status'})
-		    var _need_upload_egui_mig = voucher_main_record.getValue({fieldId: 'custrecord_gw_need_upload_egui_mig'})
-		        	    
-		    values['custbody_gw_evidence_issue_status'] = getGwEvidenceStatus(_gw_voucher_status, _gw_voucher_upload_status, _need_upload_egui_mig)
-		    //憑證格式代號 
-		    var _mof_code = voucher_main_record.getValue({fieldId: 'custrecord_gw_invoice_type'})
-		    var _format_code = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_format_code'})
-		    log.debug('custbody_gw_gui_format', 'mof_code='+_mof_code+',format_code='+_format_code)
-		    
-		    var _gw_gui_format_obj = doc_format_21.getByValueAndMofCode(_format_code, _mof_code)
-		    values['custbody_gw_gui_format'] = _gw_gui_format_obj.id
+	    	var _gw_gui_format   = _document_record.getValue({fieldId: 'custbody_gw_gui_format'}) 
+	    	var _gw_gui_tax_type = _document_record.getValue({fieldId: 'custbody_gw_gui_tax_type'}) 
+	    	log.debug('syncToNetsuiteDocument format', 'record_type_id='+_record_type_id+',gw_gui_format='+_gw_gui_format+',gw_gui_tax_type='+_gw_gui_tax_type)
+	    	
+	    	//有資料就不再更新
+	        //if (_gw_gui_format.trim().length==0 && _gw_gui_tax_type.trim().length==0 && _record_type_id.length !=0) {
+		    	var values = {} 
+		    	//_access_model NETSUITE / GATEWEB
+		    	var _access_model = voucher_main_record.getValue({fieldId: 'custrecord_gw_upload_access_model'}) 
+		    	
+		    	//應稅銷售額
+		    	var _gui_sales_amt = voucher_main_record.getValue({fieldId: 'custrecord_gw_sales_amount'})
+		    	//稅額
+		    	var _gui_tax_amt = voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_amount'})
+		    	//總計
+		    	var _gui_total_amt = voucher_main_record.getValue({fieldId: 'custrecord_gw_total_amount'})
+		    	if (_access_model=='GATEWEB') {
+		    		_gui_total_amt = (parseFloat(_gui_total_amt)-parseFloat(_gui_tax_amt)).toString()
+		    		//稅率 tax_rate = 0.05
+		    		var _tax_rate = voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_rate'})
+		    		_gui_tax_amt = Math.round(parseFloat(_sales_amount) * parseFloat(_tax_rate)).toString()
+		    		
+		    		_gui_total_amt = (parseFloat(_gui_total_amt)+parseFloat(_gui_tax_amt)).toString()  
+		    	} 
+		    	//稅額
+		  	    values['custbody_gw_gui_tax_amt'] = _gui_tax_amt
+		  	    //發票期別
+			    values['custbody_gw_gui_tax_file_date'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_yearmonth'}) 
+			    //稅率  
+			    values['custbody_gw_gui_tax_rate'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_rate'})	
+			    //課稅別  
+			    values['custbody_gw_gui_tax_type'] = getTaxTypeIdByValue(voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_type'}))	
 		 
-		    log.debug('custbody_gw_gui_format', 'custbody_gw_gui_format='+JSON.stringify(values))
-		    
-		    //通關注記 
-		    var _clearance_mark = voucher_main_record.getValue({fieldId: 'custrecord_gw_clearance_mark'})
-	    	if (_clearance_mark!='') {
-	    	    values['custbody_gw_egui_clearance_mark'] = getCustomClearanceMarkByValue(_clearance_mark)
-		    }
-	  	    log.debug('record.submitFields', 'record_type_id='+_record_type_id+' ,document_internal_id='+document_internal_id)
-		  
-	 	    var _id = record.submitFields({
-	            type: _record_type_id,
-	            id: document_internal_id,
-	            values: values,
-	            options: {
-	              enableSourcing: false,
-	              ignoreMandatoryFields: true
-	            }
-	        })
-	        log.debug('record.submitFields', 'saved success'+_record_type_id+' ,document_internal_id='+document_internal_id)
+			    //總計
+			    values['custbody_gw_gui_total_amt'] = _gui_total_amt
+			    //發票日期  
+			    var _gw_voucher_date = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_date'})
+		        values['custbody_gw_gui_date'] = convertStringToDate(_gw_voucher_date.toString())
+			    //發票不上傳
+			    if (_need_upload_egui_mig=='NONE') values['custbody_gw_gui_not_upload'] = true 
+			    //應稅銷售額
+			    values['custbody_gw_gui_sales_amt'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_sales_amount'})    
+			    //免稅銷售額	
+			    values['custbody_gw_gui_sales_amt_tax_exempt'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_free_sales_amount'}) 
+			    //零稅銷售額 
+			    values['custbody_gw_gui_sales_amt_tax_zero'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_zero_sales_amount'})	 
+			    //發票部門
+			    values['custbody_gw_gui_department'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_dept_code'}) 
+			    //發票分類
+			    values['custbody_gw_gui_class'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_classification'}) 
+			    //營業稅申報期別  
+			    values['custbody_gw_gui_apply_period'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_yearmonth'})  
+			    
+			    //開立狀態   
+			    var _gw_voucher_status = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_status'})
+			    var _gw_voucher_upload_status = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_upload_status'})
+			    var _need_upload_egui_mig = voucher_main_record.getValue({fieldId: 'custrecord_gw_need_upload_egui_mig'})
+			        	    
+			    values['custbody_gw_evidence_issue_status'] = getGwEvidenceStatus(_gw_voucher_status, _gw_voucher_upload_status, _need_upload_egui_mig)
+			    //憑證格式代號 
+			    var _mof_code = voucher_main_record.getValue({fieldId: 'custrecord_gw_invoice_type'})
+			    var _format_code = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_format_code'})
+			    log.debug('custbody_gw_gui_format', 'mof_code='+_mof_code+',format_code='+_format_code)
+			    
+			    var _gw_gui_format_obj = doc_format_21.getByValueAndMofCode(_format_code, _mof_code)
+			    values['custbody_gw_gui_format'] = _gw_gui_format_obj.id
+			 
+			    log.debug('custbody_gw_gui_format', 'custbody_gw_gui_format='+JSON.stringify(values))
+			    
+			    //通關注記 
+			    var _clearance_mark = voucher_main_record.getValue({fieldId: 'custrecord_gw_clearance_mark'})
+		    	if (_clearance_mark!='') {
+		    	    values['custbody_gw_egui_clearance_mark'] = getCustomClearanceMarkByValue(_clearance_mark)
+			    }
+		  	    log.debug('record.submitFields', 'record_type_id='+_record_type_id+' ,document_internal_id='+document_internal_id)
 			  
-	        
-	    //}
+		 	    var _id = record.submitFields({
+		            type: _record_type_id,
+		            id: document_internal_id,
+		            values: values,
+		            options: {
+		              enableSourcing: false,
+		              ignoreMandatoryFields: true
+		            }
+		        })
+		        log.debug('record.submitFields', 'saved success'+_record_type_id+' ,document_internal_id='+document_internal_id)
+				  
+		        
+		    //}
+    	}
     } catch (e) {
         log.error(e.name, e.message)
     } 
