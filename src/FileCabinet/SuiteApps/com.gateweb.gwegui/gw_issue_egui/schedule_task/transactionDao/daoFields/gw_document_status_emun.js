@@ -1,0 +1,74 @@
+/**
+ *document status enum
+ *gw_document_status_emun.js
+ *@NApiVersion 2.x
+ */
+define([], function () {
+  const INVOICE_OPEN_EXTERNAL_DOCUMENT = {
+		  VOUCHERTYPE: 'EGUI',    
+		  DOCUMENTTYPE: 'INVOICE',    
+		  OPEN: 'EU',   //憑證已開立, 外部代上傳
+		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
+		  ERROR: 'IE'   //憑證開立上傳已失敗
+  };
+  const INVOICE_VOID_EXTERNAL_DOCUMENT = {
+		  VOUCHERTYPE: 'EGUI',    
+		  DOCUMENTTYPE: 'INVOICE',
+		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
+		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
+		  ERROR: 'IE'   //憑證開立上傳已失敗
+  };
+  const CREDITMEMO_OPEN_EXTERNAL_DOCUMENT = {
+		  VOUCHERTYPE: 'ALLOWANCE',    
+		  DOCUMENTTYPE: 'CREDIT_MEMO',
+		  OPEN: 'EU',   //憑證已開立, 外部代上傳
+		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
+		  ERROR: 'IE'   //憑證開立上傳已失敗
+  };
+  const CREDITMEMO_VOID_EXTERNAL_DOCUMENT = {
+		  VOUCHERTYPE: 'ALLOWANCE',    
+		  DOCUMENTTYPE: 'CREDIT_MEMO',
+		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
+		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
+		  ERROR: 'IE'   //憑證開立上傳已失敗
+  };
+  const CASHSALES_OPEN_EXTERNAL_DOCUMENT = {
+		  VOUCHERTYPE: 'EGUI',    
+		  DOCUMENTTYPE: 'CASH_SALE',
+		  OPEN: 'EU',   //憑證已開立, 外部代上傳
+		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
+		  ERROR: 'IE'   //憑證開立上傳已失敗
+  };
+  const CASHSALES_VOID_EXTERNAL_DOCUMENT = {
+		  VOUCHERTYPE: 'EGUI',    
+		  DOCUMENTTYPE: 'CASH_SALE',
+		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
+		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
+		  ERROR: 'IE'   //憑證開立上傳已失敗
+  };
+  const CASHREFUND_OPEN_EXTERNAL_DOCUMENT = {
+		  VOUCHERTYPE: 'ALLOWANCE',    
+		  DOCUMENTTYPE: 'CASH_REFUND',
+		  OPEN: 'EU',   //憑證已開立, 外部代上傳
+		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
+		  ERROR: 'IE'   //憑證開立上傳已失敗
+  };
+  const CASHREFUND_VOID_EXTERNAL_DOCUMENT = {
+		  VOUCHERTYPE: 'ALLOWANCE',    
+		  DOCUMENTTYPE: 'CASH_REFUND',
+		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
+		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
+		  ERROR: 'IE'   //憑證開立上傳已失敗
+  };
+  
+  return {
+	  INVOICE_OPEN_EXTERNAL_DOCUMENT: INVOICE_OPEN_EXTERNAL_DOCUMENT,
+	  INVOICE_VOID_EXTERNAL_DOCUMENT: INVOICE_VOID_EXTERNAL_DOCUMENT,
+	  CREDITMEMO_OPEN_EXTERNAL_DOCUMENT: CREDITMEMO_OPEN_EXTERNAL_DOCUMENT,
+	  CREDITMEMO_VOID_EXTERNAL_DOCUMENT: CREDITMEMO_VOID_EXTERNAL_DOCUMENT,
+	  CASHSALES_OPEN_EXTERNAL_DOCUMENT: CASHSALES_OPEN_EXTERNAL_DOCUMENT,
+	  CASHSALES_VOID_EXTERNAL_DOCUMENT: CASHSALES_VOID_EXTERNAL_DOCUMENT,
+	  CASHREFUND_OPEN_EXTERNAL_DOCUMENT: CASHREFUND_OPEN_EXTERNAL_DOCUMENT,
+	  CASHREFUND_VOID_EXTERNAL_DOCUMENT: CASHREFUND_VOID_EXTERNAL_DOCUMENT
+  } 
+})
