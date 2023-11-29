@@ -130,7 +130,6 @@ define(['N/format', 'N/search'], function (format, search) {
 			 formula: "{amount}+{taxamount}"
 		  }),
 		  "custbody_gw_tax_id_number",
-		  "custcol_gw_item_memo",
 		  "custbody_gw_gui_address",
 		  "custbody_gw_gui_title",
 		  "custbody_gw_lock_transaction",
@@ -149,7 +148,8 @@ define(['N/format', 'N/search'], function (format, search) {
 		  "custbody_gw_gui_carrier_id_2",
 		  "custbody_gw_gui_donation_mark",
 		  "custbody_gw_gui_donation_code",
-		  "custbody_gw_gui_main_memo"
+		  "custbody_gw_gui_main_memo",
+          'custcol_gw_item_memo',
 	   ]
 	});
 	
@@ -318,7 +318,7 @@ define(['N/format', 'N/search'], function (format, search) {
 		  "custbody_gw_gui_carrier_id_2",
 		  "custbody_gw_gui_donation_mark",
 		  "custbody_gw_gui_donation_code",
-		  "custbody_gw_gui_main_memo"
+		  "custbody_gw_gui_main_memo",
 	   ]
 	});
 	
@@ -613,7 +613,8 @@ define(['N/format', 'N/search'], function (format, search) {
 	      search.createColumn({
 	         name: "custrecord_gw_ap_doc_type_value",
 	         join: "CUSTBODY_GW_GUI_FORMAT"
-	      })
+	      }),
+          'custcol_gw_item_memo'
 	   ]
 	});
 	  

@@ -2360,6 +2360,12 @@ define([
           value: stringutility.trimOrAppendBlank(_ns_total_tax_amount)
         })
         sublist.setSublistValue({
+          id: 'custpage_item_remark',
+          line: row,
+          value: _result.values.custcol_gw_item_memo
+        })
+
+        sublist.setSublistValue({
           id: 'custpage_creditmemo_total_sum_amount',
           line: row,
           value: stringutility.trimOrAppendBlank(_ns_total_sum_amount)
