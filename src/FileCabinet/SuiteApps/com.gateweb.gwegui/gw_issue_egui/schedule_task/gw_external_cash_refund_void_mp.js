@@ -6,10 +6,11 @@
 define(['./transactionDao/gw_cash_refund_dao',
 	    './transactionDao/gw_seller_dao',	    
 		'./transactionDao/gw_evidence_status_dao',
+		'./transactionDao/gw_ap_doc_type_option_dao',
 		'./transactionDao/daoFields/gw_document_status_emun',
 	    './voucherDao/gw_voucher_main_dao',	
 	    './utils/gw_map_utils',
-		'N/record'], function(cashRefundDao, sellerDao, evidenceStatusDao, StatusEmun, mainDao, gwMapUtils, record) { 
+		'N/record'], function(cashRefundDao, sellerDao, evidenceStatusDao, apDocTypeOptionDao, StatusEmun, mainDao, gwMapUtils, record) { 
 	
 	var voucherType = StatusEmun.CASHREFUND_VOID_EXTERNAL_DOCUMENT.VOUCHERTYPE;  //EGUI or ALLOWANCE 
 	var documentType = StatusEmun.CASHREFUND_VOID_EXTERNAL_DOCUMENT.DOCUMENTTYPE;
@@ -19,6 +20,7 @@ define(['./transactionDao/gw_cash_refund_dao',
 	
 	var defaultSubsidiary = 1; 
 	var applyPeriodOptionsAry = [];
+	var applyApDocTypeOption  = [];
 	 
     // Use the getInputData function to return two strings.	
     function getInputData(context) {
@@ -126,16 +128,16 @@ define(['./transactionDao/gw_cash_refund_dao',
 					var seller = sellerObj.businessNo;
 					
 					var buyer = voucherMainValues['custrecord_gw_buyer'];
-					var yearMonth = voucherMainValues['custrecord_gw_voucher_yearmonth'];
-					var invoiceType = voucherMainValues['custrecord_gw_invoice_type'];
-					var formatCode = voucherMainValues['custrecord_gw_voucher_format_code'];
+					var yearMonth = voucherMainValues['custrecord_gw_voucher_yearmonth']; 
+					var formatCode = voucherMainValues['custrecord_gw_voucher_format_code']; 
+					var invoiceTypeAry = getApDocTypeOption(applyApDocTypeOption, formatCode);  
 					var voucherNumber = voucherMainValues['custrecord_gw_voucher_number']; 
 					var needUpload = voucherMainValues['custrecord_gw_need_upload_egui_mig']; 
 					var voucherUploadStatus = voucherMainValues['custrecord_gw_voucher_upload_status']; // C/E
 					log.debug({ title: '[summarize] needUpload:', details: needUpload }) ; 
 					log.debug({ title: '[summarize] voucherUploadStatus:', details: voucherUploadStatus }) ; 
 					
-					var voucherMainInternalId = mainDao.getVoucherNumberOpenSuccess(voucherType, seller, buyer, yearMonth, invoiceType, formatCode, voucherNumber);
+					var voucherMainInternalId = mainDao.getVoucherNumberOpenSuccess(voucherType, seller, buyer, yearMonth, invoiceTypeAry, formatCode, voucherNumber);
 					log.debug({ title: '[summarize] get voucherMainInternalId:', details: voucherMainInternalId }) ; 
 				    if (voucherMainInternalId != -1) {
 						var values = {};
@@ -157,8 +159,11 @@ define(['./transactionDao/gw_cash_refund_dao',
 									 enableSourcing: false,
 									 ignoreMandatoryFields: true,
 								  }
-							})   
-						}
+							})  
+							
+							completedEvidenceStatusValue = StatusEmun.CASHREFUND_VOID_EXTERNAL_DOCUMENT.SUCCESS;
+						} 
+						
 				    } else {
 				    	completedEvidenceStatusValue = errorEvidenceStatusValue; //憑證開立上傳已失敗
 				    }
@@ -193,6 +198,17 @@ define(['./transactionDao/gw_cash_refund_dao',
               ignoreMandatoryFields: true,
             },
         })  
+    }
+    
+	//憑證格式代號選項
+	function getApDocTypeOption(applyApDocTypeOption, formatCode) {
+    	log.debug({ title: '[summarize] applyApDocTypeOption:', details: formatCode }); 
+    	//obj = {'internalid':internalid,'typeValue':apDocTypeValue,'typeCode':apDocMofDocTypeCode}   
+		var resultAry = applyApDocTypeOption.filter((optionObj) => optionObj.typeValue==formatCode);
+    	if (resultAry.length == 0){
+			resultAry = apDocTypeOptionDao.getApDocTypeOptionByFormatCode(formatCode); 
+		}  
+    	return resultAry;		    	 
     }
 
     // Link each entry point to the appropriate function.

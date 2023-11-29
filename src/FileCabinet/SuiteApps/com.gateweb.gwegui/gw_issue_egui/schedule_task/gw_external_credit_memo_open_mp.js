@@ -8,11 +8,12 @@ define(['./transactionDao/gw_credit_memo_dao',
 	    './transactionDao/gw_assignlog_dao',
 		'./transactionDao/gw_evidence_status_dao',
 		'./transactionDao/gw_apply_period_options_dao',
+		'./transactionDao/gw_ap_doc_type_option_dao',
 		'./transactionDao/daoFields/gw_document_status_emun',
 	    './voucherDao/gw_voucher_main_dao',
 	    './voucherDao/gw_voucher_detail_dao',
 	    './utils/gw_map_utils',
-		'N/record'], function(creditMemoDao, sellerDao, assignlogDao, evidenceStatusDao, applyPeriodOptionsDao, StatusEmun, mainDao, detailDao, gwMapUtils, record) { 
+		'N/record'], function(creditMemoDao, sellerDao, assignlogDao, evidenceStatusDao, applyPeriodOptionsDao, apDocTypeOptionDao, StatusEmun, mainDao, detailDao, gwMapUtils, record) { 
 	
 	var voucherType = StatusEmun.CREDITMEMO_OPEN_EXTERNAL_DOCUMENT.VOUCHERTYPE;  //EGUI or ALLOWANCE 
 	var documentType = StatusEmun.CREDITMEMO_OPEN_EXTERNAL_DOCUMENT.DOCUMENTTYPE;
@@ -22,6 +23,7 @@ define(['./transactionDao/gw_credit_memo_dao',
 	var defaultSubsidiary = 1;
 		
 	var applyPeriodOptionsAry = [];
+	var applyApDocTypeOption  = [];
 	  
     // Use the getInputData function to return two strings.	
     function getInputData(context) {
@@ -159,9 +161,17 @@ define(['./transactionDao/gw_credit_memo_dao',
 				 
 					voucherMainValues['custrecord_voucher_sale_tax_apply_period'] =  getApplyPeriodOptionsObj(applyPeriodOptionsAry, voucherMainValues['custrecord_voucher_sale_tax_apply_period']);
 					log.debug({ title: '[summarize] voucherMainValues:', details: voucherMainValues });
-							 
-					var mainInternalId = mainDao.createVoucherMainRecord(voucherMainValues);
 					
+					var mainFormatCode = voucherMainValues['custrecord_gw_voucher_format_code'];
+					var invoiceTypeAry = getApDocTypeOption(applyApDocTypeOption, mainFormatCode);
+					if (invoiceTypeAry != 0){
+						voucherMainValues['custrecord_gw_invoice_type'] = invoiceTypeAry[0].typeCode;
+					}
+							 
+					var invoiceFormatCodeAry = apDocTypeOptionDao.getDeductionFormatCodeAry( getApDocTypeOption(applyApDocTypeOption, mainFormatCode) );
+			  		 		 
+					var mainInternalId = mainDao.createVoucherMainRecord(voucherMainValues); 
+					 
 					var voucherItemValues = _value.items; //values Item List
 					log.debug({ title: '[summarize] voucherItemValues:', details: voucherItemValues });
 					
@@ -174,6 +184,8 @@ define(['./transactionDao/gw_credit_memo_dao',
 							 //itemValues['custrecord_gw_ns_document_type'] = documentType;
 							 itemValues['custrecord_gw_dtl_voucher_number'] = voucherMainValues['custrecord_gw_voucher_number'];
 							 itemValues['custrecord_gw_dtl_voucher_apply_period'] = voucherMainValues['custrecord_voucher_sale_tax_apply_period'];
+							 //負金額轉正
+							 reverseAllowanceNumber(itemValues);
 							 
 							 //檢查發票
 							 //扣抵號碼
@@ -182,22 +194,34 @@ define(['./transactionDao/gw_credit_memo_dao',
 							 var seller = voucherMainValues['custrecord_gw_seller']; 
 							 var buyer = voucherMainValues['custrecord_gw_buyer']; 
 							 //var yearMonth = voucherMainValues['custrecord_gw_voucher_yearmonth']; 
-							 var yearMonth = "";
-							 var invoiceType = '07';
-							 var formatCode = '35'; 
-							  
-							 var voucherNumberObj = mainDao.getVoucherNumberByVoucherNumber('EGUI', seller, buyer, yearMonth, invoiceType, formatCode, originalGuiNumber);
-								
-							 //扣抵發票號碼
-							 itemValues['custrecord_gw_original_gui_internal_id'] = voucherNumberObj.internalid;
-							 itemValues['custrecord_gw_original_gui_number'] = voucherNumberObj.voucherNumber; //HY24545150
-							 itemValues['custrecord_gw_original_gui_date'] = voucherNumberObj.voucherDate; //20230821
-							 itemValues['custrecord_gw_original_gui_yearmonth'] = voucherNumberObj.voucherTime; //11208
-							 
-							 log.debug({ title: 'summarize itemValues', details: itemValues });
+							 var yearMonth = "";  
+							 var voucherNumberObj = mainDao.getVoucherNumberByVoucherNumber('EGUI', seller, buyer, yearMonth, invoiceFormatCodeAry, originalGuiNumber);
+							 if (voucherNumberObj != null) {
+								 //扣抵發票號碼
+								 itemValues['custrecord_gw_original_gui_internal_id'] = voucherNumberObj.internalid;
+								 itemValues['custrecord_gw_original_gui_number'] = voucherNumberObj.voucherNumber; //HY24545150
+								 itemValues['custrecord_gw_original_gui_date'] = voucherNumberObj.voucherDate; //20230821
+								 itemValues['custrecord_gw_original_gui_yearmonth'] = voucherNumberObj.voucherTime; //11208
+								 
+								 completedEvidenceStatusValue = StatusEmun.CREDITMEMO_OPEN_EXTERNAL_DOCUMENT.SUCCESS;  
+								 defaultLocked = true;
+								 
+								 log.debug({ title: 'summarize itemValues', details: itemValues });
+							 } else {
+								 completedEvidenceStatusValue = errorEvidenceStatusValue; //憑證開立上傳已失敗
+								 defaultLocked = false;
+							 }
 							 //逐筆處理
 							 detailDao.createVoucherDetailRecord(itemValues)
 						} 
+					} else {
+						completedEvidenceStatusValue = errorEvidenceStatusValue; //憑證開立上傳已失敗
+						defaultLocked = false;
+					}
+
+					//Error
+					if (completedEvidenceStatusValue == errorEvidenceStatusValue) {
+					    updateVoucherMainRecordUploadStatus(mainInternalId);
 					} 
 					
 				} else{
@@ -217,6 +241,15 @@ define(['./transactionDao/gw_credit_memo_dao',
 		
 		log.debug({ title: 'Summarize Task End', details: 'Success' });
     }
+    
+    function reverseAllowanceNumber(itemValues) {
+    	log.debug({ title: '[summarize] reverseAllowanceNumber:', details: itemValues });
+    	
+    	itemValues['custrecord_gw_item_quantity'] = -1 * itemValues['custrecord_gw_item_quantity']; 
+    	itemValues['custrecord_gw_item_amount'] = -1 * itemValues['custrecord_gw_item_amount']; 
+    	itemValues['custrecord_gw_item_tax_amount'] = -1 * itemValues['custrecord_gw_item_tax_amount']; 
+    	itemValues['custrecord_gw_item_total_amount'] = -1 * itemValues['custrecord_gw_item_total_amount'];  
+    }
    
     //取得期別資料 
     function getApplyPeriodOptionsObj(applyPeriodOptionsAry, yearMonth) {
@@ -234,7 +267,18 @@ define(['./transactionDao/gw_credit_memo_dao',
 	  
     	return _value;		    	 
     }
-    
+	
+	//憑證格式代號選項
+	function getApDocTypeOption(applyApDocTypeOption, formatCode) {
+    	log.debug({ title: '[summarize] applyApDocTypeOption:', details: formatCode }); 
+    	//obj = {'internalid':internalid,'typeValue':apDocTypeValue,'typeCode':apDocMofDocTypeCode}   
+		var resultAry = applyApDocTypeOption.filter((optionObj) => optionObj.typeValue==formatCode);
+    	if (resultAry.length == 0){
+			resultAry = apDocTypeOptionDao.getApDocTypeOptionByFormatCode(formatCode); 
+		}  
+    	return resultAry;		    	 
+    }
+        
     function checkUploadFlag(voucherMainValues) {
     	var uploadFlag = voucherMainValues['custrecord_gw_need_upload_egui_mig'];
 		log.debug({ title: '[summarize] checkUploadFlag:', details: uploadFlag });
@@ -272,6 +316,16 @@ define(['./transactionDao/gw_credit_memo_dao',
               ignoreMandatoryFields: true,
             },
         })  
+    }
+    
+
+    function updateVoucherMainRecordUploadStatus(internalId) {
+    	log.debug({ title: 'updateVoucherMainRecordUploadStatus internalId ', details: internalId }); 
+    	var values = {}
+    	values['custrecord_gw_voucher_status'] = 'VOUCHER_ERROR';    	 
+    	values['custrecord_gw_voucher_upload_status'] = 'E';
+    	
+    	mainDao.updateVoucherMainRecordUploadStatus(internalId, values);
     }
 
     // Link each entry point to the appropriate function.

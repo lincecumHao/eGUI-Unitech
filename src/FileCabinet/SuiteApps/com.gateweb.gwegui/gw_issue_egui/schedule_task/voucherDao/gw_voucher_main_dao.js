@@ -35,12 +35,12 @@ define(['N/search', 'N/record'], function (search, record) {
 	    return internalId;	    
     }
 	
-	function getVoucherNumberOpenSuccess(voucherType, seller, buyer, yearMonth, invoiceType, formatCode, voucherNumber) {
+	function getVoucherNumberOpenSuccess(voucherType, seller, buyer, yearMonth, formatCodeAry, formatCode, voucherNumber) {
 		log.debug({ title: 'getVoucherNumberOpenSuccess voucherType ', details: voucherType });
 		log.debug({ title: 'getVoucherNumberOpenSuccess seller ', details: seller });
 	    log.debug({ title: 'getVoucherNumberOpenSuccess buyer ', details: buyer });
 	    log.debug({ title: 'getVoucherNumberOpenSuccess yearMonth ', details: yearMonth });
-	    log.debug({ title: 'getVoucherNumberOpenSuccess invoiceType ', details: invoiceType });
+	    log.debug({ title: 'getVoucherNumberOpenSuccess invoiceType ', details: formatCodeAry });
 	    log.debug({ title: 'getVoucherNumberOpenSuccess formatCode ', details: formatCode });
 	    log.debug({ title: 'getVoucherNumberOpenSuccess voucherNumber ', details: voucherNumber });
 	    	  
@@ -70,14 +70,31 @@ define(['N/search', 'N/record'], function (search, record) {
 	      filterArray.push(['custrecord_gw_buyer', search.Operator.IS, buyer]);
 	      filterArray.push('and');
 	      filterArray.push(['custrecord_gw_voucher_yearmonth', search.Operator.IS, yearMonth]);
-	      filterArray.push('and');
-	      filterArray.push(['custrecord_gw_invoice_type', search.Operator.IS, invoiceType]);
+	      
+	      if (formatCodeAry.length !=0) {
+			  var subAllFilterArray = [];  
+			  for (var index in formatCodeAry) {
+				  var subFilterArray = [];
+				  subAllFilterArray.length == 0 ? "" : subAllFilterArray.push('or');
+					
+		          subFilterArray.push(['custrecord_gw_invoice_type', search.Operator.IS, formatCodeAry[index].typeCode]);//07
+				  subFilterArray.push('and');
+		          subFilterArray.push(['custrecord_gw_voucher_format_code', search.Operator.IS, formatCodeAry[index].typeValue]);//33
+					
+                  subAllFilterArray.push(subFilterArray);		
+			  }
+			  
+			  filterArray.push('and');
+			  filterArray.push(subAllFilterArray);
+		  }
+	      
 	      filterArray.push('and');
 	      filterArray.push(['custrecord_gw_voucher_format_code', search.Operator.IS, formatCode]);
 	      filterArray.push('and');
 	      filterArray.push(['custrecord_gw_voucher_number', search.Operator.IS, voucherNumber]); 
 	      filterArray.push('and');
-	      filterArray.push(['custrecord_gw_voucher_upload_status', search.Operator.IS, 'C']); 
+	      //filterArray.push(['custrecord_gw_voucher_upload_status', search.Operator.IS, 'C']); 
+	      filterArray.push(['custrecord_gw_voucher_upload_status', search.Operator.ISNOT, 'E']); 
 	      
 	      mySearch.filterExpression = filterArray;
 
@@ -99,13 +116,12 @@ define(['N/search', 'N/record'], function (search, record) {
     }	 
 	
 
-	function getVoucherNumberByVoucherNumber(voucherType, seller, buyer, yearMonth, invoiceType, formatCode, voucherNumber) {
+	function getVoucherNumberByVoucherNumber(voucherType, seller, buyer, yearMonth, formatCodeAry, voucherNumber) {
 		log.debug({ title: 'getVoucherNumberByVoucherNumber voucherType ', details: voucherType });
 		log.debug({ title: 'getVoucherNumberByVoucherNumber seller ', details: seller });
 	    log.debug({ title: 'getVoucherNumberByVoucherNumber buyer ', details: buyer });
-	    log.debug({ title: 'getVoucherNumberByVoucherNumber yearMonth ', details: yearMonth });
-	    log.debug({ title: 'getVoucherNumberByVoucherNumber invoiceType ', details: invoiceType });
-	    log.debug({ title: 'getVoucherNumberByVoucherNumber formatCode ', details: formatCode });
+	    log.debug({ title: 'getVoucherNumberByVoucherNumber yearMonth ', details: yearMonth }); 
+	    log.debug({ title: 'getVoucherNumberByVoucherNumber formatCodeAry ', details: JSON.stringify(formatCodeAry) });
 	    log.debug({ title: 'getVoucherNumberByVoucherNumber voucherNumber ', details: voucherNumber });
 	    	   
 	    var recordType = 'customrecord_gw_voucher_main';
@@ -138,19 +154,30 @@ define(['N/search', 'N/record'], function (search, record) {
 		      filterArray.push('and');
 		      filterArray.push(['custrecord_gw_voucher_yearmonth', search.Operator.IS, yearMonth]);
 	      }
-	      if (invoiceType.length !=0) {
-		      filterArray.push('and');	      
-		      filterArray.push(['custrecord_gw_invoice_type', search.Operator.IS, invoiceType]);
-	      }
-	      if (formatCode.length !=0) {
-		      filterArray.push('and');
-		      filterArray.push(['custrecord_gw_voucher_format_code', search.Operator.IS, formatCode]);
-	      }
+	 
+	      if (formatCodeAry.length !=0) {
+			  var subAllFilterArray = [];  
+			  for (var index in formatCodeAry) {
+				  var subFilterArray = [];
+				  subAllFilterArray.length == 0 ? "" : subAllFilterArray.push('or');
+					
+		          subFilterArray.push(['custrecord_gw_invoice_type', search.Operator.IS, formatCodeAry[index].typeCode]);//07
+				  subFilterArray.push('and');
+		          subFilterArray.push(['custrecord_gw_voucher_format_code', search.Operator.IS, formatCodeAry[index].typeValue]);//33
+					
+                  subAllFilterArray.push(subFilterArray);		
+			  }
+			  
+			  filterArray.push('and');
+			  filterArray.push(subAllFilterArray);
+		  }
+	 	   		  
 	      filterArray.push('and');
 	      filterArray.push(['custrecord_gw_voucher_number', search.Operator.IS, voucherNumber]); 
 	      filterArray.push('and');
 	      filterArray.push(['custrecord_gw_voucher_upload_status', search.Operator.ISNOT, 'E']); 
-	      
+		  
+	      log.debug({ title: 'getVoucherNumberByVoucherNumber filterArray ', details: JSON.stringify(filterArray) });
 	      mySearch.filterExpression = filterArray;
 
 	      mySearch.run().each(function (result) {
@@ -159,12 +186,16 @@ define(['N/search', 'N/record'], function (search, record) {
 			 var voucherNumber = result.getValue({name: 'custrecord_gw_voucher_number'}); 
 			 var voucherDate = result.getValue({name: 'custrecord_gw_voucher_date'});
 			 var voucherTime = result.getValue({name: 'custrecord_gw_voucher_time'});  
-			 
+			 var invoiceType = result.getValue({name: 'custrecord_gw_invoice_type'});  
+			 var formatCode = result.getValue({name: 'custrecord_gw_voucher_format_code'});  
+			  
 			 voucherNumberObj = {
 			   'internalid':internalid,
 			   'voucherNumber':voucherNumber,
 			   'voucherDate':voucherDate,
-			   'voucherTime':voucherTime					 
+			   'voucherTime':voucherTime,
+			   'invoiceType':invoiceType,
+			   'formatCode':formatCode
 			 };
 		 	 
 	         return true
@@ -176,6 +207,25 @@ define(['N/search', 'N/record'], function (search, record) {
 	    return voucherNumberObj
     }	
 	
+	function updateVoucherMainRecordUploadStatus(internalId , values) {
+    	log.debug({ title: 'updateVoucherMainRecordUploadStatus internalId', details: internalId });     	   	
+    	log.debug({ title: 'updateVoucherMainRecordUploadStatus values', details: JSON.stringify(values) });
+    	try {
+    		var _recordId = record.submitFields({
+				  type: 'customrecord_gw_voucher_main',
+				  id: internalId,
+				  values: values,
+				  options: {
+					 enableSourcing: false,
+					 ignoreMandatoryFields: true,
+				  }
+			})  		  
+	    } catch (e) {
+	    	log.error({ title: e.name, details: e.message });   	                  
+	    }	  
+    }
+	
+	exports.updateVoucherMainRecordUploadStatus = updateVoucherMainRecordUploadStatus; 
     exports.getVoucherNumberByVoucherNumber = getVoucherNumberByVoucherNumber; 
     exports.getVoucherNumberOpenSuccess = getVoucherNumberOpenSuccess; 
     exports.createVoucherMainRecord = createVoucherMainRecord;

@@ -177,7 +177,20 @@ define(['./transactionDao/gw_invoice_dao',
 								 //逐筆處理
 								 detailDao.createVoucherDetailRecord(itemValues)
 							} 
+							
+							completedEvidenceStatusValue = StatusEmun.INVOICE_OPEN_EXTERNAL_DOCUMENT.SUCCESS;  
+							defaultLocked = true;
+							
+						} else {
+							completedEvidenceStatusValue = errorEvidenceStatusValue; //憑證開立上傳已失敗
+							defaultLocked = false;
 						}
+
+						//Error
+						if (completedEvidenceStatusValue == errorEvidenceStatusValue) {
+						    updateVoucherMainRecordUploadStatus(mainInternalId);
+						}
+						
 					} else {
 						completedEvidenceStatusValue = errorEvidenceStatusValue; //憑證開立上傳已失敗
 						defaultLocked = false;
@@ -283,6 +296,15 @@ define(['./transactionDao/gw_invoice_dao',
               ignoreMandatoryFields: true,
             },
         })  
+    }
+    
+    function updateVoucherMainRecordUploadStatus(internalId) {
+    	log.debug({ title: 'updateVoucherMainRecordUploadStatus internalId ', details: internalId }); 
+    	var values = {}
+    	values['custrecord_gw_voucher_status'] = 'VOUCHER_ERROR';    	 
+    	values['custrecord_gw_voucher_upload_status'] = 'E';
+    	
+    	mainDao.updateVoucherMainRecordUploadStatus(internalId, values);
     }
 
     // Link each entry point to the appropriate function.

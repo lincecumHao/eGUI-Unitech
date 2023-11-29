@@ -49,7 +49,7 @@ define(['N/record',
         	_record_type_id = record.Type.CUSTOMER_DEPOSIT		               
         }
         //NE_404
-    	if (_record_type_id!='') {
+    	if (_record_type_id != '') {
 	    	var _document_record = record.load({
 	    	      type: _record_type_id,
 	    	      id: document_internal_id,
@@ -264,6 +264,9 @@ define(['N/record',
   		    	 var _ns_document_apply_id_obj = _result.values['CUSTRECORD_GW_VOUCHER_MAIN_INTERNAL_ID.custrecord_gw_ns_document_apply_id']
   		    	 var _ns_document_apply_id     = _ns_document_apply_id_obj[0].value
   		    	 
+  		    	 var _gw_is_manual_voucher = _result.values.custrecord_gw_is_manual_voucher 
+  		         log.debug('gw_is_manual_voucher result', _gw_is_manual_voucher)
+   		  	  	 
   		    	 var _evidence_status_id       = getGwEvidenceStatus(voucher_status, voucher_upload_status, need_upload_egui_mig)
   			  
   		    	 var _record_type_id = ''
@@ -271,25 +274,29 @@ define(['N/record',
 		    		 _record_type_id = record.Type.INVOICE		              
 		         } else if (_ns_document_type == 'CREDITMEMO') {
 		        	 _record_type_id = record.Type.CREDIT_MEMO	
-		         } else if (_ns_document_type == 'CASH_SALE') {
-		        	 _record_type_id = record.Type.CASH_SALE		               
+		         } else if (_ns_document_type == 'CASH_SALE' || _ns_document_type == 'cashsale') {
+		        	 _record_type_id = record.Type.CASH_SALE		
+		         } else if (_ns_document_type == 'CASH_REFUND' || _ns_document_type == 'cashrefund') {
+		        	 _record_type_id = record.Type.CASH_REFUND	 
 		         } else if (_ns_document_type == 'CUSTOMER' || _ns_document_type == 'CUSTOMER_DEPOSIT') {
 		        	 _record_type_id = record.Type.CUSTOMER_DEPOSIT		               
-		         }
+		         } 
   		    	 
   		    	 var values = {}   
   		  	     values['custbody_gw_evidence_issue_status'] = _evidence_status_id
   		  	     log.debug('ns_document_apply_id result', 'ns_document_apply_id='+_ns_document_apply_id+' ,evidence_status_id='+_evidence_status_id)
-  		  	     
-  		    	 var _id = record.submitFields({
-  		             type: _record_type_id,
-  		             id: _ns_document_apply_id,
-  		             values: values,
-  		             options: {
-  		               enableSourcing: false,
-  		               ignoreMandatoryFields: true
-  		             }
-  		         })
+  		  	    
+  		  	     if (_gw_is_manual_voucher != 'T' && _record_type_id !='') {
+	  		    	 var _id = record.submitFields({
+	  		             type: _record_type_id,
+	  		             id: _ns_document_apply_id,
+	  		             values: values,
+	  		             options: {
+	  		               enableSourcing: false,
+	  		               ignoreMandatoryFields: true
+	  		             }
+	  		         })
+  		  	     }
   		    	 
   			     return true;
   		     })	   		     

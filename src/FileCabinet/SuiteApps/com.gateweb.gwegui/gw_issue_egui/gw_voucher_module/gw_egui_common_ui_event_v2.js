@@ -1396,33 +1396,36 @@ define([
   		    	
   		    	 var _evidence_status_id = getGwEvidenceStatus(voucher_status, voucher_upload_status, need_upload_egui_mig)
   			
-  		    	 var _record_type_id = ''
-		    	 if (_ns_document_type == 'INVOICE') {
+  		    	 var _record_type_id = '' 
+  		    	 if (_ns_document_type == 'INVOICE') {
 		    		 _record_type_id = record.Type.INVOICE		              
 		         } else if (_ns_document_type == 'CREDITMEMO') {
 		        	 _record_type_id = record.Type.CREDIT_MEMO	
-		         } else if (_ns_document_type == 'CASH_SALE') {
-		        	 _record_type_id = record.Type.CASH_SALE		               
-		         } else if (_ns_document_type == 'CUSTOMER_DEPOSIT') {
+		         } else if (_ns_document_type == 'CASH_SALE' || _ns_document_type == 'cashsale') {
+		        	 _record_type_id = record.Type.CASH_SALE		
+		         } else if (_ns_document_type == 'CASH_REFUND' || _ns_document_type == 'cashrefund') {
+		        	 _record_type_id = record.Type.CASH_REFUND	 
+		         } else if (_ns_document_type == 'CUSTOMER' || _ns_document_type == 'CUSTOMER_DEPOSIT') {
 		        	 _record_type_id = record.Type.CUSTOMER_DEPOSIT		               
-		         }
+		         } 
   		    	 
   		    	 var values = {}   
   		  	     values['custbody_gw_evidence_issue_status'] = _evidence_status_id
   		  	     if (gui_apply_period.length !=0) {
   		  	    	 values['custbody_gw_gui_apply_period'] = gui_apply_period
   		  	     }
-  		  	     
-  		    	 var _id = record.submitFields({
-  		             type: _record_type_id,
-  		             id: _ns_document_apply_id,
-  		             values: values,
-  		             options: {
-  		               enableSourcing: false,
-  		               ignoreMandatoryFields: true
-  		             }
-  		         })
   		    	 
+  		  	     if (_record_type_id !='') {
+	  		    	 var _id = record.submitFields({
+	  		             type: _record_type_id,
+	  		             id: _ns_document_apply_id,
+	  		             values: values,
+	  		             options: {
+	  		               enableSourcing: false,
+	  		               ignoreMandatoryFields: true
+	  		             }
+	  		         })
+  		  	     }
   			     return true;
   		     })	   		     
     	 }

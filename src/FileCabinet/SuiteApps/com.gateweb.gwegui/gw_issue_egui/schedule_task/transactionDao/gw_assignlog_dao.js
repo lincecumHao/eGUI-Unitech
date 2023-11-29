@@ -77,7 +77,7 @@ define(['N/search','N/record'], function (search, record) {
 			 log.debug({ title: 'updateAssignLogStatus invoiceDate ', details: invoiceDate });
 			 log.debug({ title: 'updateAssignLogStatus gwLastInvoiceDate ', details: gwLastInvoiceDate });
 			 
-			 if ( parseFloat(invoiceNumber) >= parseFloat(gwLastInvoiceDate) && 
+			 if ( parseFloat(invoiceNumber) >= parseFloat(gwAssignlogLastinvnumber) && 
 				  parseFloat(invoiceDate) >= parseFloat(gwLastInvoiceDate) ) {
 				 values['custrecord_gw_last_invoice_date'] = invoiceDate;
 				 values['custrecord_gw_assignlog_lastinvnumbe'] = invoiceNumber;
