@@ -151,7 +151,7 @@ define(['./transactionDao/gw_invoice_dao',
 					voucherMainValues['custrecord_gw_seller_address'] = sellerObj.businessAddress;    
 					log.debug({ title: '[summarize] voucherMainValues:', details: voucherMainValues });
 				 
-					voucherMainValues['custrecord_voucher_sale_tax_apply_period'] =  getApplyPeriodOptionsObj(applyPeriodOptionsAry, voucherMainValues['custrecord_voucher_sale_tax_apply_period']);
+					voucherMainValues['custrecord_voucher_sale_tax_apply_period'] =  applyPeriodOptionsDao.getApplyPeriodOptionsObj(applyPeriodOptionsAry, voucherMainValues['custrecord_voucher_sale_tax_apply_period']);
 					log.debug({ title: '[summarize] voucherMainValues:', details: voucherMainValues });
 							
 					//檢查外部字軌
@@ -212,24 +212,7 @@ define(['./transactionDao/gw_invoice_dao',
 		}
 		
 		log.debug({ title: 'Summarize Task End', details: 'Success' });
-    }
-   
-    //取得期別資料 
-    function getApplyPeriodOptionsObj(applyPeriodOptionsAry, yearMonth) {
-    	log.debug({ title: '[summarize] getApplyPeriodOptionsObj:', details: yearMonth });
-    	//applyPeriodOptionsAry
-    	//_obj = {'value':internalid,'text':applyPeriodValue}
-    	var _value = '';
-		var result = applyPeriodOptionsAry.filter((optionObj) => optionObj.value==yearMonth);
-    	if (result.length != 0) _value = result[0].value;  
-		else {			 
-			var obj = applyPeriodOptionsDao.getApplyPeriodOptionsByYearMonth(yearMonth);
-			_value = obj.value;
-			applyPeriodOptionsAry.push(obj);
-		} 
-	  
-    	return _value;		    	 
-    }
+    } 
     
     function checkUploadFlag(voucherMainValues) {
     	var notUploadFlag = voucherMainValues['custrecord_gw_need_upload_egui_mig'];

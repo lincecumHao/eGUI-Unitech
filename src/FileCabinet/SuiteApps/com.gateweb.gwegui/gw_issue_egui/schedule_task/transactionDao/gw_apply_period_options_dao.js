@@ -67,8 +67,32 @@ define(['N/search'], function (search) {
 		
 	    return arrayObj
   } 
+  
+  //取得期別資料 
+  function getApplyPeriodOptionsObj(applyPeriodOptionsAry, yearMonth) {
+  	log.debug({ title: 'getApplyPeriodOptionsObj:', details: yearMonth }); 
+  	var _value = '';
+	//var result = applyPeriodOptionsAry.filter((optionObj) => optionObj.value==yearMonth);	
+	var resultAry = [];
+	applyPeriodOptionsAry.forEach(function (optionObj) {   
+    	if (optionObj.value === yearMonth) {	
+    		resultAry.push(optionObj);
+    	} 
+	});  
+	
+  	if (resultAry.length != 0){
+  		_value = resultAry[0].value;  
+  	} else {			 
+		var obj = getApplyPeriodOptionsByYearMonth(yearMonth);
+		_value = obj.value;
+		applyPeriodOptionsAry.push(obj);
+	} 
+	  
+  	return _value;		    	 
+  } 
  
   return {
+	  getApplyPeriodOptionsObj: getApplyPeriodOptionsObj,
 	  getAllApplyPeriodOptions: getAllApplyPeriodOptions,
 	  getApplyPeriodOptionsByYearMonth: getApplyPeriodOptionsByYearMonth
   } 

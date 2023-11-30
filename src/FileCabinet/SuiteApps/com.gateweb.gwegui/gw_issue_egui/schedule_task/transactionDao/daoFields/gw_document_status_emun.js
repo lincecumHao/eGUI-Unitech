@@ -15,8 +15,8 @@ define([], function () {
 		  VOUCHERTYPE: 'EGUI',    
 		  DOCUMENTTYPE: 'INVOICE',
 		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
-		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
-		  ERROR: 'IE'   //憑證開立上傳已失敗
+		  SUCCESS: 'CA',//憑證已作廢
+		  ERROR: 'CE'   //憑證作廢上傳已失敗
   };
   const CREDITMEMO_OPEN_EXTERNAL_DOCUMENT = {
 		  VOUCHERTYPE: 'ALLOWANCE',    
@@ -29,8 +29,8 @@ define([], function () {
 		  VOUCHERTYPE: 'ALLOWANCE',    
 		  DOCUMENTTYPE: 'CREDIT_MEMO',
 		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
-		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
-		  ERROR: 'IE'   //憑證開立上傳已失敗
+		  SUCCESS: 'CA',//憑證已作廢
+		  ERROR: 'CE'   //憑證作廢上傳已失敗
   };
   const CASHSALES_OPEN_EXTERNAL_DOCUMENT = {
 		  VOUCHERTYPE: 'EGUI',    
@@ -43,8 +43,8 @@ define([], function () {
 		  VOUCHERTYPE: 'EGUI',    
 		  DOCUMENTTYPE: 'CASH_SALE',
 		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
-		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
-		  ERROR: 'IE'   //憑證開立上傳已失敗
+		  SUCCESS: 'CA',//憑證已作廢
+		  ERROR: 'CE'   //憑證作廢上傳已失敗
   };
   const CASHREFUND_OPEN_EXTERNAL_DOCUMENT = {
 		  VOUCHERTYPE: 'ALLOWANCE',    
@@ -57,8 +57,8 @@ define([], function () {
 		  VOUCHERTYPE: 'ALLOWANCE',    
 		  DOCUMENTTYPE: 'CASH_REFUND',
 		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
-		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
-		  ERROR: 'IE'   //憑證開立上傳已失敗
+		  SUCCESS: 'CA',//憑證已作廢
+		  ERROR: 'CE'   //憑證作廢上傳已失敗
   };
   
   return {

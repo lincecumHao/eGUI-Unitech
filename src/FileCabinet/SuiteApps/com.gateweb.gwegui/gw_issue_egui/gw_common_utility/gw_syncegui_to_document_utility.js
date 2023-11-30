@@ -113,8 +113,12 @@ define(['N/record',
 			    var _gw_voucher_status = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_status'})
 			    var _gw_voucher_upload_status = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_upload_status'})
 			    var _need_upload_egui_mig = voucher_main_record.getValue({fieldId: 'custrecord_gw_need_upload_egui_mig'})
-			        	    
-			    values['custbody_gw_evidence_issue_status'] = getGwEvidenceStatus(_gw_voucher_status, _gw_voucher_upload_status, _need_upload_egui_mig)
+			    var _is_manual_voucher = voucher_main_record.getValue({fieldId: 'custrecord_gw_is_manual_voucher'})
+			    log.debug('is_manual_voucher', _is_manual_voucher);
+			   
+		  	    if (_is_manual_voucher != true) {
+			        values['custbody_gw_evidence_issue_status'] = getGwEvidenceStatus(_gw_voucher_status, _gw_voucher_upload_status, _need_upload_egui_mig)
+			    }
 			    //憑證格式代號 
 			    var _mof_code = voucher_main_record.getValue({fieldId: 'custrecord_gw_invoice_type'})
 			    var _format_code = voucher_main_record.getValue({fieldId: 'custrecord_gw_voucher_format_code'})
@@ -265,7 +269,7 @@ define(['N/record',
   		    	 var _ns_document_apply_id     = _ns_document_apply_id_obj[0].value
   		    	 
   		    	 var _gw_is_manual_voucher = _result.values.custrecord_gw_is_manual_voucher 
-  		         log.debug('gw_is_manual_voucher result', _gw_is_manual_voucher)
+  		         log.debug('gw_is_manual_voucher', _gw_is_manual_voucher)
    		  	  	 
   		    	 var _evidence_status_id       = getGwEvidenceStatus(voucher_status, voucher_upload_status, need_upload_egui_mig)
   			  
@@ -286,7 +290,7 @@ define(['N/record',
   		  	     values['custbody_gw_evidence_issue_status'] = _evidence_status_id
   		  	     log.debug('ns_document_apply_id result', 'ns_document_apply_id='+_ns_document_apply_id+' ,evidence_status_id='+_evidence_status_id)
   		  	    
-  		  	     if (_gw_is_manual_voucher != 'T' && _record_type_id !='') {
+  		  	     if (_gw_is_manual_voucher != true && _record_type_id !='') {
 	  		    	 var _id = record.submitFields({
 	  		             type: _record_type_id,
 	  		             id: _ns_document_apply_id,

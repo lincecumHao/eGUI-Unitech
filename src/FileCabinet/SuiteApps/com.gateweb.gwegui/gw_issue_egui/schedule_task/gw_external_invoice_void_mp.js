@@ -126,7 +126,7 @@ define(['./transactionDao/gw_invoice_dao',
 					var buyer = voucherMainValues['custrecord_gw_buyer'];
 					var yearMonth = voucherMainValues['custrecord_gw_voucher_yearmonth']; 
 					var formatCode = voucherMainValues['custrecord_gw_voucher_format_code'];
-					var invoiceTypeAry = getApDocTypeOption(applyApDocTypeOption, formatCode);  
+					var invoiceTypeAry = apDocTypeOptionDao.getApDocTypeOption(applyApDocTypeOption, formatCode);  
 					var voucherNumber = voucherMainValues['custrecord_gw_voucher_number']; 
 					var needUpload = voucherMainValues['custrecord_gw_need_upload_egui_mig']; 
 					var voucherUploadStatus = voucherMainValues['custrecord_gw_voucher_upload_status']; // C/E
@@ -194,19 +194,7 @@ define(['./transactionDao/gw_invoice_dao',
             },
         })  
     }
-    
-	//憑證格式代號選項
-	function getApDocTypeOption(applyApDocTypeOption, formatCode) {
-    	log.debug({ title: '[summarize] applyApDocTypeOption:', details: formatCode }); 
-    	//obj = {'internalid':internalid,'typeValue':apDocTypeValue,'typeCode':apDocMofDocTypeCode}   
-		var resultAry = applyApDocTypeOption.filter((optionObj) => optionObj.typeValue==formatCode);
-    	if (resultAry.length == 0){
-			resultAry = apDocTypeOptionDao.getApDocTypeOptionByFormatCode(formatCode); 
-		}  
-    	return resultAry;		    	 
-    }
-
-
+     
     // Link each entry point to the appropriate function.
     return {
         getInputData: getInputData,

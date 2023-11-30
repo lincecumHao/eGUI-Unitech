@@ -138,12 +138,34 @@ define(['N/search'], function (search) {
   		   
   	} 
   	
-  	log.debug({ title: '[summarize] getDeductionFormatCodeAry deductionFormatCodeAry :', details: JSON.stringify(deductionFormatCodeAry) });      	
+  	log.debug({ title: 'getDeductionFormatCodeAry deductionFormatCodeAry :', details: JSON.stringify(deductionFormatCodeAry) });      	
     
   	return deductionFormatCodeAry;		    	 
   }
+  
+  //憑證格式代號選項
+  function getApDocTypeOption(applyApDocTypeOption, formatCode) {
+  	log.debug({ title: 'getApDocTypeOption:', details: formatCode });    	 
+	//var resultAry = applyApDocTypeOption.filter((optionObj) => optionObj.typeValue==formatCode);	
+	var resultAry = [];
+	applyApDocTypeOption.forEach(function (optionObj) {   
+    	if (optionObj.typeValue === formatCode) {	
+    		resultAry.push(optionObj);
+    	} 
+	}); 
+	  
+	
+  	if (resultAry.length == 0){
+		resultAry = getApDocTypeOptionByFormatCode(formatCode); 
+		applyApDocTypeOption.push(resultAry);
+	}  
+  	
+  	return resultAry;		    	 
+  }
+
  
   return {
+	  getApDocTypeOption: getApDocTypeOption,
 	  getDeductionFormatCodeAry: getDeductionFormatCodeAry,
 	  getAllApDocTypeOption: getAllApDocTypeOption,
 	  getApDocTypeOptionByFormatCode: getApDocTypeOptionByFormatCode

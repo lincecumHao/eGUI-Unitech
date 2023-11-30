@@ -159,16 +159,16 @@ define(['./transactionDao/gw_credit_memo_dao',
 					voucherMainValues['custrecord_gw_seller_address'] = sellerObj.businessAddress;    
 					log.debug({ title: '[summarize] voucherMainValues:', details: voucherMainValues });
 				 
-					voucherMainValues['custrecord_voucher_sale_tax_apply_period'] =  getApplyPeriodOptionsObj(applyPeriodOptionsAry, voucherMainValues['custrecord_voucher_sale_tax_apply_period']);
+					voucherMainValues['custrecord_voucher_sale_tax_apply_period'] =  applyPeriodOptionsDao.getApplyPeriodOptionsObj(applyPeriodOptionsAry, voucherMainValues['custrecord_voucher_sale_tax_apply_period']);
 					log.debug({ title: '[summarize] voucherMainValues:', details: voucherMainValues });
 					
 					var mainFormatCode = voucherMainValues['custrecord_gw_voucher_format_code'];
-					var invoiceTypeAry = getApDocTypeOption(applyApDocTypeOption, mainFormatCode);
+					var invoiceTypeAry = apDocTypeOptionDao.getApDocTypeOption(applyApDocTypeOption, mainFormatCode);
 					if (invoiceTypeAry != 0){
 						voucherMainValues['custrecord_gw_invoice_type'] = invoiceTypeAry[0].typeCode;
 					}
 							 
-					var invoiceFormatCodeAry = apDocTypeOptionDao.getDeductionFormatCodeAry( getApDocTypeOption(applyApDocTypeOption, mainFormatCode) );
+					var invoiceFormatCodeAry = apDocTypeOptionDao.getDeductionFormatCodeAry( apDocTypeOptionDao.getApDocTypeOption(applyApDocTypeOption, mainFormatCode) );
 			  		 		 
 					var mainInternalId = mainDao.createVoucherMainRecord(voucherMainValues); 
 					 
@@ -249,35 +249,7 @@ define(['./transactionDao/gw_credit_memo_dao',
     	itemValues['custrecord_gw_item_amount'] = -1 * itemValues['custrecord_gw_item_amount']; 
     	itemValues['custrecord_gw_item_tax_amount'] = -1 * itemValues['custrecord_gw_item_tax_amount']; 
     	itemValues['custrecord_gw_item_total_amount'] = -1 * itemValues['custrecord_gw_item_total_amount'];  
-    }
-   
-    //取得期別資料 
-    function getApplyPeriodOptionsObj(applyPeriodOptionsAry, yearMonth) {
-    	log.debug({ title: '[summarize] getApplyPeriodOptionsObj:', details: yearMonth });
-    	//applyPeriodOptionsAry
-    	//_obj = {'value':internalid,'text':applyPeriodValue}
-    	var _value = '';
-		var result = applyPeriodOptionsAry.filter((optionObj) => optionObj.value==yearMonth);
-    	if (result.length != 0) _value = result[0].value;  
-		else {			 
-			var obj = applyPeriodOptionsDao.getApplyPeriodOptionsByYearMonth(yearMonth);
-			_value = obj.value;
-			applyPeriodOptionsAry.push(obj);
-		} 
-	  
-    	return _value;		    	 
-    }
-	
-	//憑證格式代號選項
-	function getApDocTypeOption(applyApDocTypeOption, formatCode) {
-    	log.debug({ title: '[summarize] applyApDocTypeOption:', details: formatCode }); 
-    	//obj = {'internalid':internalid,'typeValue':apDocTypeValue,'typeCode':apDocMofDocTypeCode}   
-		var resultAry = applyApDocTypeOption.filter((optionObj) => optionObj.typeValue==formatCode);
-    	if (resultAry.length == 0){
-			resultAry = apDocTypeOptionDao.getApDocTypeOptionByFormatCode(formatCode); 
-		}  
-    	return resultAry;		    	 
-    }
+    } 
         
     function checkUploadFlag(voucherMainValues) {
     	var uploadFlag = voucherMainValues['custrecord_gw_need_upload_egui_mig'];
