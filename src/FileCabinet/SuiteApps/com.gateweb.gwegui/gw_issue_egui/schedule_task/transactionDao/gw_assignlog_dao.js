@@ -60,6 +60,9 @@ define(['N/search','N/record'], function (search, record) {
 	    	 var internalid = result.id;
 				 
 			 var gwAssignlogLastinvnumber = result.getValue({name: 'custrecord_gw_assignlog_lastinvnumbe'});
+			 
+			 if (gwAssignlogLastinvnumber.length==0)gwAssignlogLastinvnumber='0';
+			 
 			 var gwLastInvoiceDate = result.getValue({name: 'custrecord_gw_last_invoice_date'});
 			 var gwAssignlogEndNo = result.getValue({name: 'custrecord_gw_assignlog_endno'});
 			 var gwAssignlogStatus = result.getValue({name: 'custrecord_gw_assignlog_status'});
