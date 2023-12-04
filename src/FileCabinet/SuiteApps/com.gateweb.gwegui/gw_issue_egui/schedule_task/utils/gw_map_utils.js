@@ -4,7 +4,7 @@
  * @NApiVersion 2.x
  * @NModuleScope Public
  */
-define(['../library/gw_date_util', './gw_preferences_utils'], function (gwDateUtil, gwPreferencesUtils) {
+define(['../library/gw_date_util'], function (gwDateUtil) {
   //Voucher Main  
   var voucherMainFieldConfigs = {
     	//custrecord_gw_apply_internal_id: {id:'', defaultValue: 0, dataType: 'Number'}, 
@@ -152,8 +152,8 @@ define(['../library/gw_date_util', './gw_preferences_utils'], function (gwDateUt
 	 return values;
   } 
   
-  function getVoucherMainFieldConfigs() { 
-	 if (gwPreferencesUtils.isOneWorldVersion() === false) {		  
+  function getVoucherMainFieldConfigs(isOneWorldVersion) { 
+	 if (isOneWorldVersion === false) {		  
 		 voucherMainFieldConfigs.custrecord_gw_subsidiary.id='';
 		 voucherMainFieldConfigs.custrecord_gw_subsidiary.defaultValue=1;
 		 voucherMainFieldConfigs.custrecord_gw_subsidiary.dataType='Number'; 

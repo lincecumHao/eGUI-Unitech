@@ -3,12 +3,12 @@
  *gw_common_dao.js
  *@NApiVersion 2.x
  */
-define(['./gw_transaction_fields','../../utils/gw_preferences_utils', 'N/search'], function (gwTransactionFields, gwPreferencesUtils, search) {
-   
-  function getToDoTransactionIds(searchFilters) {
+define(['./gw_transaction_fields', 'N/search'], function (gwTransactionFields, search) {
+    
+  function getToDoTransactionIds(searchFilters, isOneWorldVersion) {
 	 log.debug({ title: 'getToDoTransactionIds searchFilters', details: JSON.stringify(searchFilters)  });
 	  
-	 const searchTransactionResultArray = getTransactionDetailsByIds(searchFilters);
+	 const searchTransactionResultArray = getTransactionDetailsByIds(searchFilters, isOneWorldVersion);
 	 log.debug({ title: 'searchTransactionResultArray', details: JSON.stringify(searchTransactionResultArray) });
 	 
 	 const transactionArrayObject = composeResultObject(searchTransactionResultArray);
@@ -17,13 +17,13 @@ define(['./gw_transaction_fields','../../utils/gw_preferences_utils', 'N/search'
      return transactionArrayObject;
   }
 
-  function getTransactionDetailsByIds(searchFilters) {
+  function getTransactionDetailsByIds(searchFilters, isOneWorldVersion) {
     log.debug({title: 'getTransactionDetailsByIds - start ...', details: ''}); 
-    var searchColumns = getSearchColumns();
+    var searchColumns = getSearchColumns(isOneWorldVersion);
     var searchSetting = getSearchSetting();
    
     var searchObj ;
-	if (gwPreferencesUtils.isOneWorldVersion() === true) {	
+	if (isOneWorldVersion === true) {	
 		 searchObj = search.create({
 		    type: gwTransactionFields.recordId,
 		    filters: searchFilters,
@@ -57,15 +57,15 @@ define(['./gw_transaction_fields','../../utils/gw_preferences_utils', 'N/search'
  
     return searchResultArray
   } 
-  
-  function getSearchColumns() {
+	    
+  function getSearchColumns(isOneWorldVersion) {
     var searchColumns = [];     
-    log.debug({title: 'getSearchColumns - gwPreferencesUtils.isOneWorldVersion()', details: gwPreferencesUtils.isOneWorldVersion()});
+    log.debug({title: 'getSearchColumns - isOneWorldVersion()', details: isOneWorldVersion});
   
     gwTransactionFields.allSearchColumnFields.forEach(function (searchFieldId) {   
-    	if (gwPreferencesUtils.isOneWorldVersion() === true) {	
+    	if (isOneWorldVersion === true) {	
     		searchColumns.push(searchFieldId);
-    	} else if (gwPreferencesUtils.isOneWorldVersion() === false && searchFieldId !='subsidiary') {	
+    	} else if (isOneWorldVersion === false && searchFieldId !='subsidiary') {	
     		searchColumns.push(searchFieldId);
     	} 
        

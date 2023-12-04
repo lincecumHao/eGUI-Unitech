@@ -13,7 +13,8 @@ define(['./transactionDao/gw_credit_memo_dao',
 	    './voucherDao/gw_voucher_main_dao',
 	    './voucherDao/gw_voucher_detail_dao',
 	    './utils/gw_map_utils',
-		'N/record'], function(creditMemoDao, sellerDao, assignlogDao, evidenceStatusDao, applyPeriodOptionsDao, apDocTypeOptionDao, StatusEmun, mainDao, detailDao, gwMapUtils, record) { 
+	    './utils/gw_preferences_utils',
+		'N/record'], function(creditMemoDao, sellerDao, assignlogDao, evidenceStatusDao, applyPeriodOptionsDao, apDocTypeOptionDao, StatusEmun, mainDao, detailDao, gwMapUtils, gwPreferencesUtils, record) { 
 	
 	var voucherType = StatusEmun.CREDITMEMO_OPEN_EXTERNAL_DOCUMENT.VOUCHERTYPE;  //EGUI or ALLOWANCE 
 	var documentType = StatusEmun.CREDITMEMO_OPEN_EXTERNAL_DOCUMENT.DOCUMENTTYPE;
@@ -25,11 +26,15 @@ define(['./transactionDao/gw_credit_memo_dao',
 	var applyPeriodOptionsAry = [];
 	var applyApDocTypeOption  = [];
 	  
+	var isOneWorldVersion = false;
     // Use the getInputData function to return two strings.	
     function getInputData(context) {
     	log.debug({ title: 'getInputData', details: context.usage });
+    	
+    	isOneWorldVersion = gwPreferencesUtils.isOneWorldVersion(); 
+    	log.debug({ title: 'getInputData ', details: isOneWorldVersion});
     	 
-    	return creditMemoDao.getOpenTransactionIds();        
+    	return creditMemoDao.getOpenTransactionIds(isOneWorldVersion);        
     }
 
     // After the getInputData function is executed, the system creates the following
@@ -80,7 +85,7 @@ define(['./transactionDao/gw_credit_memo_dao',
 	        	//處理 Voucher Main
 	            log.debug({ title: '[reduce] Access Voucher Main', details: _result });	      
 	            
-	            var fieldConfigs = gwMapUtils.getVoucherMainFieldConfigs();
+	            var fieldConfigs = gwMapUtils.getVoucherMainFieldConfigs(isOneWorldVersion);
 	            //處理折讓單號
 	            fieldConfigs.custrecord_gw_voucher_type.id = voucherType; 
 	            fieldConfigs.custrecord_gw_voucher_number.id = 'custbody_gw_allowance_num_start'; 
