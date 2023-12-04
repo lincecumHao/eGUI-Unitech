@@ -5,24 +5,24 @@
  */
 define(['./daoFields/gw_common_dao','./daoFields/gw_document_status_emun', 'N/search'], function (gwCommonDao, StatusEmun, search) {
   //開立 
-  function getOpenTransactionIds() {
+  function getOpenTransactionIds(isOneWorldVersion) {
 	 log.debug({ title: 'getToDoTransactionIds recordType', details: '' });
 	 
 	 var evidenceStatusValue = StatusEmun.CASHREFUND_OPEN_EXTERNAL_DOCUMENT.OPEN; //憑證已開立, 外部代上傳  
-	 var searchFilters = getSearchTransactiosFilters(evidenceStatusValue, 'F');  
+	 var searchFilters = getSearchTransactiosFilters(evidenceStatusValue, false);  
 	 log.debug({ title: 'searchFilters', details: JSON.stringify(searchFilters) });
 	 
-     return gwCommonDao.getToDoTransactionIds(searchFilters);
+     return gwCommonDao.getToDoTransactionIds(searchFilters, isOneWorldVersion);
   }
   //作廢
-  function getVoidTransactionIds() {
+  function getVoidTransactionIds(isOneWorldVersion) {
 	 log.debug({ title: 'getToDoTransactionIds recordType', details: '' });
 	 
 	 var evidenceStatusValue = StatusEmun.CASHREFUND_VOID_EXTERNAL_DOCUMENT.OPEN; //憑證已作廢, 未進入關網系統  
-	 var searchFilters = getSearchTransactiosFilters(evidenceStatusValue, 'T');  
+	 var searchFilters = getSearchTransactiosFilters(evidenceStatusValue, true);  
 	 log.debug({ title: 'searchFilters', details: JSON.stringify(searchFilters) });
 	 
-     return gwCommonDao.getToDoTransactionIds(searchFilters);
+     return gwCommonDao.getToDoTransactionIds(searchFilters, isOneWorldVersion);
   }
   
   //Cash Refund
@@ -41,7 +41,7 @@ define(['./daoFields/gw_common_dao','./daoFields/gw_document_status_emun', 'N/se
     searchFilters.push('and');
     searchFilters.push(['custbody_gw_allowance_num_start', 'isnotempty', '']); 
 	searchFilters.push('and');
-    searchFilters.push(['custbody_gw_is_issue_egui', 'is', 'T']); 
+    searchFilters.push(['custbody_gw_is_issue_egui', 'is', true]); 
 	searchFilters.push('and');
     searchFilters.push(['custbody_gw_lock_transaction', 'is', isLock]); 
 	searchFilters.push('and');     

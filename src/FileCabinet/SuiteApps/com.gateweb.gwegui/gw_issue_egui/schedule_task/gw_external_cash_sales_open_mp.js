@@ -13,7 +13,8 @@ define(['./transactionDao/gw_cash_sales_dao',
 	    './voucherDao/gw_voucher_detail_dao',
 	    './utils/gw_map_utils',
 	    './utils/gw_random_num',
-		'N/record'], function(cashSalesDao, sellerDao, assignlogDao, evidenceStatusDao, applyPeriodOptionsDao, StatusEmun, mainDao, detailDao, gwMapUtils, gwRandomNum, record) { 
+	    './utils/gw_preferences_utils',
+		'N/record'], function(cashSalesDao, sellerDao, assignlogDao, evidenceStatusDao, applyPeriodOptionsDao, StatusEmun, mainDao, detailDao, gwMapUtils, gwRandomNum, gwPreferencesUtils, record) { 
 	
 	var voucherType = StatusEmun.CASHSALES_OPEN_EXTERNAL_DOCUMENT.VOUCHERTYPE;  //EGUI or ALLOWANCE 
 	var documentType = StatusEmun.CASHSALES_OPEN_EXTERNAL_DOCUMENT.DOCUMENTTYPE;
@@ -23,12 +24,17 @@ define(['./transactionDao/gw_cash_sales_dao',
 	var defaultSubsidiary = 1;
 		
 	var applyPeriodOptionsAry = [];
+	
+	var isOneWorldVersion = false;
 	  
     // Use the getInputData function to return two strings.	
     function getInputData(context) {
     	log.debug({ title: 'getInputData', details: context.usage });
-    	 
-    	return cashSalesDao.getOpenTransactionIds();        
+    	
+    	isOneWorldVersion = gwPreferencesUtils.isOneWorldVersion(); 
+    	log.debug({ title: 'getInputData ', details: isOneWorldVersion});
+    	
+    	return cashSalesDao.getOpenTransactionIds(isOneWorldVersion);        
     }
 
     // After the getInputData function is executed, the system creates the following
@@ -79,7 +85,7 @@ define(['./transactionDao/gw_cash_sales_dao',
 	        	//處理 Voucher Main
 	            log.debug({ title: '[reduce] Access Voucher Main', details: _result });	      
 	            
-	            var fieldConfigs = gwMapUtils.getVoucherMainFieldConfigs();
+	            var fieldConfigs = gwMapUtils.getVoucherMainFieldConfigs(isOneWorldVersion);
 	            //log.debug({ title: '[reduce] get Main fieldConfigs', details: JSON.stringify(fieldConfigs) });	
 	            var valueList = gwMapUtils.convertTransactionToVoucher(fieldConfigs, _result);
 	            log.debug({ title: '[reduce] get Main ValueList', details: JSON.stringify(valueList) });	

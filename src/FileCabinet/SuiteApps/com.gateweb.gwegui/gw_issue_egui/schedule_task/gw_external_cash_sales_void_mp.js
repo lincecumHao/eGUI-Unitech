@@ -10,7 +10,8 @@ define(['./transactionDao/gw_cash_sales_dao',
 		'./transactionDao/daoFields/gw_document_status_emun',
 	    './voucherDao/gw_voucher_main_dao',	
 	    './utils/gw_map_utils',
-		'N/record'], function(cashSalesDao, sellerDao, evidenceStatusDao, apDocTypeOptionDao, StatusEmun, mainDao, gwMapUtils, record) { 
+	    './utils/gw_preferences_utils',
+		'N/record'], function(cashSalesDao, sellerDao, evidenceStatusDao, apDocTypeOptionDao, StatusEmun, mainDao, gwMapUtils, gwPreferencesUtils, record) { 
 	
 	var voucherType = StatusEmun.CASHSALES_VOID_EXTERNAL_DOCUMENT.VOUCHERTYPE;  //EGUI or ALLOWANCE 
 	var documentType = StatusEmun.CASHSALES_VOID_EXTERNAL_DOCUMENT.DOCUMENTTYPE;
@@ -22,11 +23,16 @@ define(['./transactionDao/gw_cash_sales_dao',
 	var applyPeriodOptionsAry = [];
 	var applyApDocTypeOption  = [];
 	 
+	var isOneWorldVersion = false;
+	
     // Use the getInputData function to return two strings.	
     function getInputData(context) {
     	log.debug({ title: 'getInputData', details: context.usage });
+    	
+    	isOneWorldVersion = gwPreferencesUtils.isOneWorldVersion(); 
+    	log.debug({ title: 'getInputData ', details: isOneWorldVersion});
     	 
-    	return cashSalesDao.getVoidTransactionIds();        
+    	return cashSalesDao.getVoidTransactionIds(isOneWorldVersion);        
     }
 
     // After the getInputData function is executed, the system creates the following
@@ -76,7 +82,7 @@ define(['./transactionDao/gw_cash_sales_dao',
 	        	//處理 Voucher Main
 	            log.debug({ title: '[reduce] Access Voucher Main', details: _result });	      
 	            
-	            var fieldConfigs = gwMapUtils.getVoucherMainFieldConfigs();
+	            var fieldConfigs = gwMapUtils.getVoucherMainFieldConfigs(isOneWorldVersion);
 	            //log.debug({ title: '[reduce] get Main fieldConfigs', details: JSON.stringify(fieldConfigs) });	
 	            var valueList = gwMapUtils.convertTransactionToVoucher(fieldConfigs, _result);
 	            log.debug({ title: '[reduce] get Main ValueList', details: JSON.stringify(valueList) });	
