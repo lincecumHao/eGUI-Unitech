@@ -1465,12 +1465,12 @@ define([
     var _dept_codeField = form.getField({
       id: 'custpage_dept_code'
     })
-    // _dept_codeField.defaultValue = _default_department_id
+    if(isEGUIDepartmentEnable) _dept_codeField.defaultValue = _default_department_id
 
     var _classificationField = form.getField({
       id: 'custpage_classification'
     })
-    // _classificationField.defaultValue = _selectClassification
+    if(isEGUIClassEnable) _classificationField.defaultValue = _selectClassification
 
     var _voucherExtraMemoField = form.getField({
       id: 'custpage_voucher_extra_memo'
@@ -2438,12 +2438,12 @@ define([
     var _dept_codeField = form.getField({
       id: 'custpage_dept_code'
     })
-    // _dept_codeField.defaultValue = _default_department_id
+    if(isEGUIDepartmentEnable) _dept_codeField.defaultValue = _default_department_id
 
     var _classificationField = form.getField({
       id: 'custpage_classification'
     })
-    // _classificationField.defaultValue = _selectClassification
+    if(isEGUIClassEnable) _classificationField.defaultValue = _selectClassification
     log.debug(
       '_customer_id',
       '_customer_id=' +
@@ -2606,6 +2606,8 @@ define([
       title: 'onRequest - eGUIConfig',
       details: eGUIConfig
     })
+    isEGUIClassEnable = eGUIConfig.isEGUIClass
+    isEGUIDepartmentEnable = eGUIConfig.isEGUIDepartment
 
     if (_selected_invoice_Id != null) {
       var _idAry = _selected_invoice_Id.split(',')
