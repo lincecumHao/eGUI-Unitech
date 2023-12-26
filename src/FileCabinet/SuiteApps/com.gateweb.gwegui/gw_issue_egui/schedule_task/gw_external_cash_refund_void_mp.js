@@ -7,11 +7,13 @@ define(['./transactionDao/gw_cash_refund_dao',
 	    './transactionDao/gw_seller_dao',	    
 		'./transactionDao/gw_evidence_status_dao',
 		'./transactionDao/gw_ap_doc_type_option_dao',
+		'./transactionDao/gw_transaction_dao',
 		'./transactionDao/daoFields/gw_document_status_emun',
 	    './voucherDao/gw_voucher_main_dao',	
 	    './utils/gw_map_utils',
 	    './utils/gw_preferences_utils',
-		'N/record'], function(cashRefundDao, sellerDao, evidenceStatusDao, apDocTypeOptionDao, StatusEmun, mainDao, gwMapUtils, gwPreferencesUtils, record) { 
+	    'N/transaction',
+		'N/record'], function(cashRefundDao, sellerDao, evidenceStatusDao, apDocTypeOptionDao, transactionDao, StatusEmun, mainDao, gwMapUtils, gwPreferencesUtils, transaction, record) { 
 	
 	var voucherType = StatusEmun.CASHREFUND_VOID_EXTERNAL_DOCUMENT.VOUCHERTYPE;  //EGUI or ALLOWANCE 
 	var documentType = StatusEmun.CASHREFUND_VOID_EXTERNAL_DOCUMENT.DOCUMENTTYPE;
@@ -179,33 +181,17 @@ define(['./transactionDao/gw_cash_refund_dao',
 				//2.Get 開立狀態		
 	            var evidenceIssueStatusId = (evidenceStatusDao.getEvidenceStatusByEvidenceStatusValue(completedEvidenceStatusValue)).internalId;		
 		        log.debug({ title: '[summarize] evidenceIssueStatusId:', details: evidenceIssueStatusId }) ; 
-		            
-			    updateTransactionStatusAndLock(nsInternalId, evidenceIssueStatusId);
+		            			    
+			    transactionDao.updateTransactionStatusAndLock(record.Type.CASH_REFUND, nsInternalId, evidenceIssueStatusId);
+			    
+		        transactionDao.voidTransaction(nsInternalId, transaction.Type.CASH_REFUND);
 	           
 	            return true;
 	        });
 		}
         log.debug({ title: 'Summarize Task End', details: 'Success' });
     }
-     
-    //update status and lock
-    function updateTransactionStatusAndLock(internalId, evidenceIssueStatusId) {
-    	log.debug({ title: 'updateTransactionStatusAndLock internalId ', details: internalId });
-    	log.debug({ title: 'updateTransactionStatusAndLock evidenceIssueStatusId ', details: evidenceIssueStatusId });
-    	var values = {} 
-    	values['custbody_gw_evidence_issue_status'] = evidenceIssueStatusId;
-    	
-    	var _id = record.submitFields({
-            type: record.Type.CASH_REFUND,
-            id: internalId,
-            values: values,
-            options: {
-              enableSourcing: false,
-              ignoreMandatoryFields: true,
-            },
-        })  
-    }
- 
+  
     // Link each entry point to the appropriate function.
     return {
         getInputData: getInputData,
