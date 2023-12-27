@@ -18,20 +18,20 @@ define(['./moment-with-locales', 'N/runtime'], function (moment, runtime) {
       var startTime = new Date()
       var funcNameTitle = '[' + func.name + ']'
       var remainingUsageOnStart = runtime.getCurrentScript().getRemainingUsage()
-      log.audit({ title: funcNameTitle + ' start', details: arguments })
+      // log.audit({ title: funcNameTitle + ' start', details: arguments })
       var result = func.apply(this, arguments)
       var endTime = new Date()
       var timeDiff = endTime - startTime //in ms
       var remainingUsageOnEnd = runtime.getCurrentScript().getRemainingUsage()
-      log.audit({
-        title: funcNameTitle + ' total execution time (ms)',
-        details: timeDiff,
-      })
-      log.audit({
-        title: funcNameTitle + ' total usage',
-        details: remainingUsageOnStart - remainingUsageOnEnd,
-      })
-      log.audit({ title: funcNameTitle + ' end, result', details: result })
+      // log.audit({
+      //   title: funcNameTitle + ' total execution time (ms)',
+      //   details: timeDiff,
+      // })
+      // log.audit({
+      //   title: funcNameTitle + ' total usage',
+      //   details: remainingUsageOnStart - remainingUsageOnEnd,
+      // })
+      // log.audit({ title: funcNameTitle + ' end, result', details: result })
       return result
     }
   }

@@ -28,7 +28,7 @@ define([
    * @param {ServerResponse} context.response - The outgoing response object
    */
   function onRequest(context) {
-    log.audit({ title: `${context.request.method} request received` })
+    // log.audit({ title: `${context.request.method} request received` })
 
     const eventRouter = {
       [https.Method.GET]: onGet,
@@ -41,7 +41,7 @@ define([
       onError({ context: context, error: e })
     }
 
-    log.audit({ title: 'Request complete.' })
+    // log.audit({ title: 'Request complete.' })
   }
 
   /**
@@ -133,7 +133,7 @@ define([
    */
   function onError(params) {
     // TODO
-    log.debug({ title: 'Error Occurs', details: params.error })
+    // log.debug({ title: 'Error Occurs', details: params.error })
   }
 
   exports.onRequest = onRequest

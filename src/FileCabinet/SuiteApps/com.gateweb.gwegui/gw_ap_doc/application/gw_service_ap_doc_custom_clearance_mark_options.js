@@ -24,9 +24,9 @@ define(['N/record', './gw_lib_search', './gw_lib_wrapper'], function (
   function constructorWrapper(func) {
     return function () {
       if (allOptions.length === 0) {
-        log.debug({
-          title: 'custom clearance mark constructor wrapper get all options',
-        })
+        // log.debug({
+        //   title: 'custom clearance mark constructor wrapper get all options',
+        // })
         getAllOptions()
       }
       var result = func.apply(this, arguments)

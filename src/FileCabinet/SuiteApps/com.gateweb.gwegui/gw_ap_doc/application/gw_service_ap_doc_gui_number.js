@@ -88,7 +88,7 @@ define(['./gw_lib_search', './gw_service_ap_doc_type_options'], function (
     filters.push('AND')
     filters.push(['isinactive', 'is', false])
     var results = searchLib.search(apDocRecordTypeId, columns, filters)
-    log.debug({ title: 'results', details: results })
+    // log.debug({ title: 'results', details: results })
     return results
   }
 

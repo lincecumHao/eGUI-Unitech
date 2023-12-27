@@ -29,9 +29,9 @@ define([
   function constructorWrapper(func) {
     return function () {
       if (allOptions.length === 0) {
-        log.debug({
-          title: 'assign log track constructor wrapper get all options'
-        })
+        // log.debug({
+        //   title: 'assign log track constructor wrapper get all options'
+        // })
         getAllOptions()
       }
       var result = func.apply(this, arguments)
