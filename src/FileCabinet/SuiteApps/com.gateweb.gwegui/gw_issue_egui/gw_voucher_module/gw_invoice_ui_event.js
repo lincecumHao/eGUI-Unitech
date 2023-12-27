@@ -839,14 +839,6 @@ define([
     })
     console.log('deductionEGUINumber', deductionEGUINumber);
 
-    //檢查明細金額的一致性
-    var _diff_amount = stringutility.convertToFloat(_total_amount)-stringutility.convertToFloat(_sum_item_total_amount)
-    if (_tax_diff_balance < Math.abs(_diff_amount)){
-      _item_detail_summary_error=true
-      var _title = '憑證管理'
-      var _err_message='小計金額(含稅)['+_sum_item_total_amount+']與總金額(含稅)['+_total_amount+']不一致,請確認是否仍要開立發票'
-      gwmessage.showErrorMessage(_title, _err_message)
-    }
     if(deductionEGUINumber) {
       _current_record.setValue({
         fieldId: 'custpage_allowance_deduction_period',
