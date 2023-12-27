@@ -2369,7 +2369,7 @@ define([
         sublist.setSublistValue({
           id: 'custpage_item_remark',
           line: row,
-          value: _result.values.custcol_gw_item_memo
+          value: stringutility.trimOrAppendBlank(_result.values.custcol_gw_item_memo)
         })
 
         sublist.setSublistValue({

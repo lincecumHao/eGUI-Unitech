@@ -83,6 +83,11 @@ define([
           fieldId: 'custbody_iv_company_attributed'
         })
         */
+
+        var eguiNumber = _record.getValue({
+            fieldId: 'custbody_gw_gui_num_start'
+        });
+
         var _lock_transaction = _record.getValue({
                fieldId: 'custbody_gw_lock_transaction'
         })
@@ -95,7 +100,8 @@ define([
 	        var _params = {
 	          custpage_businessno: _selected_business_no,
 	          invoice_hiddent_listid: _invoice_hiddent_listid,
-	          creditmemo_hiddent_listid: _creditmemo_hiddent_listid
+	          creditmemo_hiddent_listid: _creditmemo_hiddent_listid,
+              eguiNumber: eguiNumber
 	        }
 	
 	        window.location = url.resolveScript({
