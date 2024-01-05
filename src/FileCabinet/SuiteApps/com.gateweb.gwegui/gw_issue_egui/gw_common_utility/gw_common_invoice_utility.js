@@ -1958,7 +1958,6 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
     getSellerInfoBySubsidiary: getSellerInfoBySubsidiary,
 	getRandomNumNew: getRandomNumNew,
 	checkInvoiceManualNumberExistRange: checkInvoiceManualNumberExistRange,
-    getAssignLogNumberAndCheckDuplicate: getAssignLogNumberAndCheckDuplicate,
     getManualOpenID: getManualOpenID,
     getPrintMark: getPrintMark,
 	getVoucherMigType: getVoucherMigType,
