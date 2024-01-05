@@ -1807,6 +1807,130 @@ define(['N/format', 'N/record', 'N/search'], function (format, record, search) {
   }
   /////////////////////////////////////////////////////////////////////////////////////////////
 
+  function checkInvoiceManualNumberExistRange(businessNo, year_month, track, invoiceNumber, format_code, invoice_type) {
+    var _isError = false
+
+    try {
+      var _mySearch = search.load({
+        id: _assignLogSearchId
+      })
+      var _filterArray = []
+      _filterArray.push([
+        'custrecord_gw_assignlog_businessno',
+        search.Operator.IS,
+        businessNo
+      ])
+
+      _filterArray.push('and')
+      _filterArray.push([
+        'custrecord_gw_egui_format_code',
+        search.Operator.IS,
+        format_code
+      ])
+
+      _filterArray.push('and')
+      _filterArray.push([
+        'custrecord_gw_assignlog_yearmonth',
+        search.Operator.IS,
+        year_month
+      ])
+
+      _filterArray.push('and')
+      _filterArray.push([
+        'custrecord_gw_assignlog_invoicetype',
+        search.Operator.IS,
+        invoice_type
+      ])
+
+      _filterArray.push('and')
+      _filterArray.push([
+        ['custrecord_gw_assignlog_status', search.Operator.ISNOT, '13'],
+        'and',
+        ['custrecord_gw_assignlog_status', search.Operator.ISNOT, '23'],
+        'and',
+        ['custrecord_gw_assignlog_status', search.Operator.ISNOT, '33']
+      ])
+
+      _filterArray.push('and')
+      _filterArray.push([
+        'custrecord_gw_assignlog_invoicetrack',
+        search.Operator.IS,
+        track
+      ])
+      _filterArray.push('and')
+      _filterArray.push([
+        [
+          'custrecord_gw_assignlog_startno',
+          search.Operator.LESSTHANOREQUALTO,
+          parseInt(invoiceNumber)
+        ],
+        'and',
+        [
+          'custrecord_gw_assignlog_endno',
+          search.Operator.GREATERTHANOREQUALTO,
+          parseInt(invoiceNumber)
+        ]
+      ])
+
+      _mySearch.filterExpression = _filterArray
+
+      var _index_invoice_number = 0
+      if(invoiceNumber.length==10){
+        _index_invoice_number = parseInt(invoiceNumber.substring(2,invoiceNumber.length))
+      }else{
+        _index_invoice_number = parseInt(invoiceNumber)
+      }
+
+      _mySearch.run().each(function (result) {
+        var _internalId = result.id
+
+        var _record = record.load({
+          type: 'customrecord_gw_assignlog',
+          id: _internalId,
+          isDynamic: true
+        })
+
+        var _gw_assignlog_status = _record.getValue({fieldId: 'custrecord_gw_assignlog_status'})
+        var _gw_assignlog_usedcount = _record.getValue({fieldId: 'custrecord_gw_assignlog_usedcount'})
+
+        var _assignlog_startno = _record.getValue({fieldId: 'custrecord_gw_assignlog_startno'})
+        var _assignlog_endno = _record.getValue({fieldId: 'custrecord_gw_assignlog_endno'})
+        var _last_invoice_number = _record.getValue({fieldId: 'custrecord_gw_assignlog_lastinvnumbe'})
+
+        var _check_invoice_number = 0
+        if (_last_invoice_number!=''){
+          _check_invoice_number = parseInt(_last_invoice_number)
+        }
+        if (_index_invoice_number >= _check_invoice_number){
+          _record.setValue({
+            fieldId: 'custrecord_gw_assignlog_lastinvnumbe',
+            value: _index_invoice_number
+          })
+        }
+        _record.setValue({
+          fieldId: 'custrecord_gw_assignlog_usedcount',
+          value: _index_invoice_number-_assignlog_startno+1
+        })
+        if (_gw_assignlog_status=='21' || _gw_assignlog_status=='31'){
+          _record.setValue({
+            fieldId: 'custrecord_gw_assignlog_status',
+            value: (parseInt(_gw_assignlog_status)+1).toString()
+          })
+        }
+
+
+        _record.save()
+        _isError = true
+        return true
+      })
+
+    } catch (e) {
+      console.log(e.name + ':' + e.message)
+    }
+
+    return _isError
+  }
+
   return {
     getBusinessEntitByUserId: getBusinessEntitByUserId,
     loadAllTaxInformation: loadAllTaxInformation,
