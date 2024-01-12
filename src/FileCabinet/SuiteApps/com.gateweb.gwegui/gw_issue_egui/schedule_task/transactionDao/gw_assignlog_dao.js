@@ -47,12 +47,14 @@ define(['N/search','N/record'], function (search, record) {
 	      filterArray.push(['custrecord_gw_assignlog_endno', search.Operator.GREATERTHANOREQUALTO, invoiceNumber]);
 	      filterArray.push('and');
 	      filterArray.push(
-	    		            ['custrecord_gw_assignlog_status', search.Operator.IS, '31'],
+	    		           [
+	    		             ['custrecord_gw_assignlog_status', search.Operator.IS, '31'],
 		                     'or',
-			                ['custrecord_gw_assignlog_status', search.Operator.IS, '32'],
+			                 ['custrecord_gw_assignlog_status', search.Operator.IS, '32'],
 			                 'or',
-			                ['custrecord_gw_assignlog_status', search.Operator.IS, '33']
-	    		           );
+			                 ['custrecord_gw_assignlog_status', search.Operator.IS, '33']
+	                       ]
+	    		          );
 	      
 	      mySearch.filterExpression = filterArray;
 
