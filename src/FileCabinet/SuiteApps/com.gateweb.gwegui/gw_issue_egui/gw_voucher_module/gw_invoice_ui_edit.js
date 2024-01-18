@@ -2147,6 +2147,8 @@ define([
         _accountText = _result.values.account[0].value //4000 Sales
       }
       var _amount = stringutility.convertToFloat(_result.values.amount) //31428.57(未稅)
+      _amount = (_amount > 0) ? -1 * _amount : _amount
+
       //20201105 walter modify
       //NS 的總稅額
       var _ns_total_tax_amount = stringutility.convertToFloat(
@@ -2161,9 +2163,7 @@ define([
         _result.values.taxamount
       ) //稅額總計 -5.00
       //NS 的Item金額小計
-      var _ns_item_total_amount = stringutility.convertToFloat(
-        _result.values.formulacurrency
-      ) //Item金額小計
+      var _ns_item_total_amount = _amount + stringutility.convertToFloat(_result.values.taxamount)  //Item金額小計(含稅)
 
       var _linesequencenumber = _result.values.linesequencenumber //1
       var _line = _result.values.line //1
