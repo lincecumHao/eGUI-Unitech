@@ -5466,34 +5466,24 @@ define([
           discount_count: stringutility.convertToFloat(_discount_count) + 1, //折讓次數累計
           deduction_amount: _balance_amount, //本次折讓金額
           deduction_field: checkField, //扣抵欄位
-          discount_sales_amount: 0, //扣抵應稅欄位
-          discount_zero_amount: 0, //扣抵零稅欄位
-          discount_free_amount: 0, //扣抵免稅欄位
-          discount_amount: 0 //折讓金額累計
+          discount_sales_amount: stringutility.convertToFloat(_discount_sales_amount), //扣抵應稅欄位
+          discount_zero_amount: stringutility.convertToFloat(_discount_zero_amount), //扣抵零稅欄位
+          discount_free_amount: stringutility.convertToFloat(_discount_free_amount), //扣抵免稅欄位
+          discount_amount: stringutility.convertToFloat(_discount_amount) //折讓金額累計
         }
 
         if (checkField == '1') {
           //應稅欄位
-          _obj.discount_sales_amount = stringutility.convertToFloat(
-            _sales_amount
-          )
+          _obj.discount_sales_amount = stringutility.convertToFloat(_sales_amount)
           _obj.discount_amount = stringutility.convertToFloat(_sales_amount)
         } else if (checkField == '2') {
           //零稅欄位
-          _obj.discount_zero_amount = stringutility.convertToFloat(
-            _zero_sales_amount
-          )
-          _obj.discount_amount = stringutility.convertToFloat(
-            _zero_sales_amount
-          )
+          _obj.discount_zero_amount = stringutility.convertToFloat(_zero_sales_amount)
+          _obj.discount_amount = stringutility.convertToFloat(_zero_sales_amount)
         } else if (checkField == '3') {
           //免稅欄位
-          _obj.discount_free_amount = stringutility.convertToFloat(
-            _free_sales_amount
-          )
-          _obj.discount_amount = stringutility.convertToFloat(
-            _free_sales_amount
-          )
+          _obj.discount_free_amount = stringutility.convertToFloat(_free_sales_amount)
+          _obj.discount_amount = stringutility.convertToFloat(_free_sales_amount)
         }
         //扣掉金額
         deductionTotalAmount -= _balance_amount
@@ -5514,10 +5504,10 @@ define([
           discount_count: _discount_count,
           deduction_amount: deductionTotalAmount,
           deduction_field: checkField, //扣抵欄位
-          discount_sales_amount: 0, //扣抵應稅欄位
-          discount_zero_amount: 0, //扣抵零稅欄位
-          discount_free_amount: 0, //扣抵免稅欄位
-          discount_amount: 0
+          discount_sales_amount: stringutility.convertToFloat(_discount_sales_amount), //扣抵應稅欄位
+          discount_zero_amount: stringutility.convertToFloat(_discount_zero_amount), //扣抵零稅欄位
+          discount_free_amount: stringutility.convertToFloat(_discount_free_amount), //扣抵免稅欄位 
+          discount_amount: stringutility.convertToFloat(_discount_amount)
         }
         
         if (checkField == '1') {
