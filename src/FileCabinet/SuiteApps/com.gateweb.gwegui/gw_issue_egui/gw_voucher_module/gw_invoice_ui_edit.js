@@ -44,6 +44,9 @@ define([
   //部門代碼
   var _default_department_id = ''
 
+  //統計Item金額
+  var _sum_item_total_amount = 0
+
   //商品名稱欄位
   var _ns_item_name_field = invoiceutility.getConfigureValue(
     'ITEM_GROUP',
@@ -578,6 +581,17 @@ define([
     })
     _total_amount.updateDisplayType({
       displayType: serverWidget.FieldDisplayType.DISABLED
+    })
+
+    //小計含稅總金額
+    var _sum_item_total_amount_field = form.addField({
+      id: 'custpage_sum_item_total_amount',
+      type: serverWidget.FieldType.TEXT,
+      label: '小計含稅總金額',
+      container: 'row01_fieldgroupid'
+    })
+    _sum_item_total_amount_field.updateDisplayType({
+      displayType: serverWidget.FieldDisplayType.HIDDEN
     })
 
     //憑證日期
@@ -1379,6 +1393,9 @@ define([
           value: stringutility.trimOrAppendBlank(_ns_item_total_amount)
         })
 
+        //NE241 含稅金額
+        _sum_item_total_amount += stringutility.convertToFloat(_ns_item_total_amount)
+
         sublist.setSublistValue({
           id: 'custpage_invoice_total_tax_amount',
           line: row,
@@ -1599,6 +1616,15 @@ define([
     _toatl_amount_field.defaultValue = _ns_SumTotalAmount.toFixed(
       _numericToFixed
     )
+
+    //NE-241 小計含稅總金額
+    var _sum_item_total_amount_field = form.getField({
+      id: 'custpage_sum_item_total_amount'
+    })
+    _sum_item_total_amount_field.defaultValue = _sum_item_total_amount.toFixed(
+        _numericToFixed
+    )
+
     //處理總計計部分-START
     /////////////////////////////////////////////////////////////////////////////////////////
     //載具類別
@@ -1801,6 +1827,10 @@ define([
             line: row,
             value: _deduction_amount + _deduction_tax_amount
           })
+
+          //NE241 含稅金額
+          _sum_item_total_amount += _deduction_amount + _deduction_tax_amount
+
           sublist.setSublistValue({
             id: 'custpage_invoice_total_tax_amount',
             line: row,
@@ -2370,6 +2400,9 @@ define([
           value: stringutility.trimOrAppendBlank(_ns_item_total_amount)
         })
 
+        //NE241 含稅金額
+        _sum_item_total_amount += stringutility.convertToFloat(_ns_item_total_amount)
+
         sublist.setSublistValue({
           id: 'custpage_creditmemo_total_tax_amount',
           line: row,
@@ -2531,6 +2564,14 @@ define([
     })
     _toatl_amount_field.defaultValue = _ns_SumTotalAmount.toFixed(
       _numericToFixed
+    )
+
+    //NE-241 小計含稅總金額
+    var _sum_item_total_amount_field = form.getField({
+      id: 'custpage_sum_item_total_amount'
+    })
+    _sum_item_total_amount_field.defaultValue = _sum_item_total_amount.toFixed(
+        _numericToFixed
     )
     /////////////////////////////////////////////////////////////////////////////////////////
   }
