@@ -110,12 +110,16 @@ define([
     var _is_printed_pdf = _voucher_record.getValue({
       fieldId: 'custrecord_gw_is_printed_pdf',
     })
+    var _is_gw_voucher_format_35_code = _voucher_record.getValue({
+      fieldId: 'custrecord_gw_voucher_format_code',
+    })
+
     if (
-      _is_printed_pdf == true ||
-      stringutility.trim(_gw_carrier_type) != '' ||
-      stringutility.trim(_npo_ban) != ''
-    ) {
-      var _print_pdf_button = form.getButton({
+        _is_printed_pdf == true ||
+        _is_gw_voucher_format_35_code != '35' ||
+        stringutility.trim(_gw_carrier_type) != '' ||
+        stringutility.trim(_npo_ban) != ''
+    ) {      var _print_pdf_button = form.getButton({
         id: 'custpage_print_pdf_button',
       })
       _print_pdf_button.isDisabled = true
