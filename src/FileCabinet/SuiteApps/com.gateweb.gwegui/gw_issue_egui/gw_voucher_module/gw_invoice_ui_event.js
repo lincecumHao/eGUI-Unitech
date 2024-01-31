@@ -122,32 +122,17 @@ define([
     } else if (_changeFieldId == 'custpage_mig_type') {
       changeMigType(_changeFieldId)
     } else if (_changeFieldId == 'custpage_allowance_deduction_period') {
+      var displayDeductionEGUINumberFlag = false
       var _allowance_deduction_period = _current_record.getValue({
         fieldId: _changeFieldId
       })
       var _deduction_egui_number = _current_record.getField({
         fieldId: 'custpage_deduction_egui_number'
       })
-      
-      var _gw_gui_num_start_field = _current_record.getField({
-        fieldId: 'custbody_gw_gui_num_start',
-      })
-         
       if (_allowance_deduction_period === 'user_selected') {
-        _deduction_egui_number.isDisplay = true //顯示 
-        _current_record.setValue({
-          fieldId: 'custpage_deduction_egui_number',
-          value: _current_record.getValue({fieldId: 'custbody_gw_gui_num_start'}),
-          ignoreFieldChange: true
-        })
-      } else {
-        _deduction_egui_number.isDisplay = false //不顯示
-        _current_record.setValue({
-          fieldId: 'custpage_deduction_egui_number',
-          value: '',
-          ignoreFieldChange: true
-        })
+        displayDeductionEGUINumberFlag = true
       }
+      _deduction_egui_number.isDisplay = displayDeductionEGUINumberFlag
     }
   }
 
@@ -840,11 +825,11 @@ define([
     var _npo_ban = _current_record.getField({ fieldId: 'custpage_npo_ban' })
     //if (_buyer_identifier!='0000000000') _npo_ban.isDisplay = false
 
-    var _deduction_egui_number = _current_record.getField({
+    var deductionEGUINumber = _current_record.getValue({
       fieldId: 'custpage_deduction_egui_number'
     })
-    _deduction_egui_number.isDisplay = false //預設不顯示
-    
+    console.log('deductionEGUINumber', deductionEGUINumber);
+
     //檢查明細金額的一致性 
     var _diff_amount = stringutility.convertToFloat(_total_amount)-stringutility.convertToFloat(_sum_item_total_amount)
     if (_tax_diff_balance < Math.abs(_diff_amount)){ 
@@ -852,8 +837,20 @@ define([
     	var _title = '憑證管理'
     	var _err_message='小計金額(含稅)['+_sum_item_total_amount+']與總金額(含稅)['+_total_amount+']不一致,請確認是否仍要開立發票'
     	gwmessage.showErrorMessage(_title, _err_message) 
-    } 
-    
+    }
+
+    if(deductionEGUINumber) {
+      _current_record.setValue({
+        fieldId: 'custpage_allowance_deduction_period',
+        value: 'user_selected',
+        ignoreFieldChange: true
+      });
+    } else {
+      var _deduction_egui_number = _current_record.getField({
+        fieldId: 'custpage_deduction_egui_number'
+      })
+      _deduction_egui_number.isDisplay = false //預設不顯示
+    }
   }
 
   function showCreditMemoForm(
