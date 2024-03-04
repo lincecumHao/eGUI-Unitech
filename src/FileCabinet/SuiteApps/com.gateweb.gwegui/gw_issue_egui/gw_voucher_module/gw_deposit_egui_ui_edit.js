@@ -753,6 +753,7 @@ define([
     var _account_name = '顧客押金' 
     //NE-450 赫斯特」客製化-顧客押金	
    	var _kp_gw_itemname = customer_deposit_record.getValue({fieldId: 'custbody_kp_gw_itemname'}) 
+   	log.debug('kp_gw_itemname', _kp_gw_itemname)
    	if (_kp_gw_itemname !=null && _kp_gw_itemname.length !=0)_account_name=_kp_gw_itemname
     	    
     var _tax_code = '1'
