@@ -824,8 +824,8 @@ define([
       line: 0,
       value: '筆',
     })
-
-    var _amount = _payment / (1 + parseInt(_tax_rate) / 100)
+    //NE-450 金額小計四捨五入取整數
+    var _amount = Math.round(_payment / (1 + parseInt(_tax_rate) / 100))
     var _tax_amount = _tax_amount = _payment - _amount
  
     sublist.setSublistValue({
@@ -924,7 +924,9 @@ define([
     var _sales_amount_field = form.getField({
       id: 'custpage_sales_amount',
     })
-    _sales_amount_field.defaultValue = _amount.toFixed(_numericToFixed)
+    //NE-450 金額小計四捨五入取整數
+    //_sales_amount_field.defaultValue = _amount.toFixed(_numericToFixed)
+    _sales_amount_field.defaultValue = _amount
 
     var _tax_amount_field = form.getField({
       id: 'custpage_tax_amount',
