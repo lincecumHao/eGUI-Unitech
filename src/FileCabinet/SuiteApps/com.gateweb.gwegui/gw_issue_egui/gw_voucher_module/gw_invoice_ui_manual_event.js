@@ -1284,7 +1284,7 @@ define([
     document.forms[0].submit()
   }
 
-  function forwardToManualEdit(scriptID, deployID) {
+  function forwardToManualEdit(scriptID, deployID, action) {
     try {
       //customscript_gw_assignlog_manualedit
       //customdeploy_gw_assignlog_ui_manualedit
@@ -1305,18 +1305,21 @@ define([
         }
          
         //alert('_params='+JSON.stringify(_params));
-        
-        if (_invoice_hiddent_listid == '' && _selected_businessno == '') {
-          window.location = url.resolveScript({
-            scriptId: scriptID,
-            deploymentId: deployID,
-            returnExternalUrl: false,
-          })
+        if(action === 'maintain') {
+          if(!_selected_businessno) {
+            alert('請選擇統編!')
+          } else if (_invoice_hiddent_listid !== '' && _selected_businessno !== ''){
+            window.location = url.resolveScript({
+              scriptId: scriptID,
+              deploymentId: deployID,
+              params: _params,
+              returnExternalUrl: false,
+            })
+          }
         } else {
           window.location = url.resolveScript({
             scriptId: scriptID,
             deploymentId: deployID,
-            params: _params,
             returnExternalUrl: false,
           })
         }

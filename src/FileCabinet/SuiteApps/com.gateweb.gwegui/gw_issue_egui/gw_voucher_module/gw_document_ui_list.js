@@ -1193,6 +1193,7 @@ define([
       })
       _creditMemoStatusField.defaultValue = _creditmemo_status  
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      if(!_select_business_parameters) return
       var _businessnoField = form.getField({
         id: 'custpage_businessno',
       })

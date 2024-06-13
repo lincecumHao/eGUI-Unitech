@@ -1076,6 +1076,7 @@ define([
       buttonHideAndShow(form, _select_voucher_upload_status)
       
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      if(!_select_businessno) return
       var _businessnoField = form.getField({
   	      id: 'custpage_businessno',
   	  })
