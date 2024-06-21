@@ -524,7 +524,7 @@
             <applyformatting>F</applyformatting>
             <checkspelling>F</checkspelling>
             <defaultchecked>F</defaultchecked>
-            <defaultselection></defaultselection>
+            <defaultselection>[scriptid=customrecord_gw_ap_doc_tax_type_option.val_6500_2130928_959]</defaultselection>
             <defaultvalue></defaultvalue>
             <description></description>
             <displayheight></displayheight>
@@ -758,7 +758,7 @@
             <applyformatting>F</applyformatting>
             <checkspelling>F</checkspelling>
             <defaultchecked>F</defaultchecked>
-            <defaultselection></defaultselection>
+            <defaultselection>[scriptid=customrecord_gw_ap_doc_deduct_option.val_6506_2130928_799]</defaultselection>
             <defaultvalue></defaultvalue>
             <description></description>
             <displayheight></displayheight>
