@@ -2089,16 +2089,19 @@ define([
 
     //var _nsSalesAccountValue = getNSInvoiceAccount('CREDITMEMO_ACCOUNT', 'CREDITMEMO_DETAIL_ACCOUNT');
 
+    var groupByGuiNum = []
+
     _mySearch.run().each(function (result) {
       var _result = JSON.parse(JSON.stringify(result))
-
       var _recordType = _result.recordType //creditmemo
       var _id = _result.id //948
       var _valueObj = _result.values //object
       var _mainline = _result.values.mainline
       log.debug('_mainline', '_mainline=' + _mainline)
       log.debug('credit memo result', JSON.stringify(result))
-
+      if(_mainline === '*' && groupByGuiNum.indexOf(_result.values['custbody_gw_gui_num_start']) < 0) {
+        groupByGuiNum.push(_result.values['custbody_gw_gui_num_start'])
+      }
       /////////////////////////////////////////////////////////////////////////////////////////////////
       //處理零稅率資訊
       if (_result.values.custbody_gw_customs_export_category.length != 0) {
@@ -2576,33 +2579,11 @@ define([
         _numericToFixed
     )
 
-    //扣抵發票號碼
-
-    var _custpage_allowance_deduction_period = form.getField({
-      id:'custpage_allowance_deduction_period'
-    })
-    var _custpage_deduction_egui_number = form.getField({
-      id:'custpage_deduction_egui_number'
-    })
-
+    //顯示扣抵發票號碼
     if (!(form.getSublist({id:'invoicesublistid'}))){
-      //if (form.getSublist({id:'invoicesublistid'}) !== null){
-      var groupBy = function(xs, key) {
-        return xs.reduce(function(rv, x) {
-          (rv[x[key]] = rv[x[key]] || []).push(x);
-          return rv;
-        }, {});
-      };
-      var groupByGuiNum = Object.keys(groupBy(creditMemoDetailsArrayObject, 'custbody_gw_gui_num_start'))
-
       if (groupByGuiNum.length === 1 && groupByGuiNum[0] !== '' ){
-        var _selectDeductionPeriod = form.getField({
-          id:'custpage_allowance_deduction_period'
-        })
-
-        _selectDeductionPeriod.defaultValue = 'user_selected'
-        _custpage_deduction_egui_number.defaultValue = groupByGuiNum[0]
-
+        form.getField({id:'custpage_allowance_deduction_period'}).defaultValue = 'user_selected'
+        form.getField({id:'custpage_deduction_egui_number'}).defaultValue = groupByGuiNum[0]
       }
     }
 
