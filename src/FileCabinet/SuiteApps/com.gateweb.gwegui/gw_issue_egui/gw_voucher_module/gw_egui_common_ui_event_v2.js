@@ -1680,34 +1680,99 @@ define([
           if (parseInt(_internalId) > 0) {
             //取得 sublist 的 entityid(客戶代碼)
             var _voucher_number = getSublistColumnValue(
-              'vouchersublistid',
-              'customer_search_voucher_id',
-              'customer_voucher_number',
-              _internalId
+                'vouchersublistid',
+                'customer_search_voucher_id',
+                'customer_voucher_number',
+                _internalId
             )
             var _voucher_date = getSublistColumnValue(
-              'vouchersublistid',
-              'customer_search_voucher_id',
-              'customer_voucher_reupload_date',
-              _internalId
+                'vouchersublistid',
+                'customer_search_voucher_id',
+                'customer_voucher_reupload_date',
+                _internalId
             )
+
+            _voucher_date = dateutility.getConvertVoucherDateByDate(_voucher_date)
+
             var _year_month = getSublistColumnValue(
-              'vouchersublistid',
-              'customer_search_voucher_id',
-              'customer_voucher_year_month',
-              _internalId
+                'vouchersublistid',
+                'customer_search_voucher_id',
+                'customer_voucher_year_month',
+                _internalId
             )
+
             if (need_check==true) {
-	            if (!validateTraditionYearMonth(_year_month)) {
-	              _checkFlag = false
-	              _error_message +=
-	                _voucher_number + '-申報年月格式錯誤[需為民國年雙月共5碼],'
-	            }
-	            if (_voucher_date.length == 0) {
-	              _checkFlag = false
-	              _error_message += _voucher_number + '-上傳日期不可空白,'
-	            }
+              if (!validateTraditionYearMonth(_year_month) ||
+                  (stringutility.convertToFloat(_year_month.substring(3,5)) >12 && stringutility.convertToFloat(_year_month.substring(3,5)) <=0) ||
+                  stringutility.convertToFloat(_year_month) % 2 !=0) {
+                _checkFlag = false
+                _error_message += _voucher_number + '-申報年月格式錯誤[需為民國年雙月共5碼],'
+              }
+              if (_voucher_date.length == 0) {
+                _checkFlag = false
+                _error_message += _voucher_number + '-上傳日期不可空白,'
+              }
+              //折讓單回收作業-檢查填入日期須大於等於原開立日期, 期數檢查=原期或次期.
+              var _original_voucher_date = getSublistColumnValue(
+                  'vouchersublistid',
+                  'customer_search_voucher_id',
+                  'customer_voucher_date',
+                  _internalId
+              )
+              //填入日期須大於等於原開立日期
+              /////////////////////////////////////////////////////////////////////////////////////////
+              //日期:區間檢查
+              //1.新上傳日期>=原憑證開立日期
+              if (_voucher_date.length !=0){
+                if (_checkFlag==true && stringutility.convertToFloat(_voucher_date) < stringutility.convertToFloat(_original_voucher_date)){
+                  _checkFlag = false
+                  _error_message += _voucher_number + '上傳日期('+_voucher_date+')不可小於原憑證開立日期('+_original_voucher_date+'),'
+                }
+                //2.新上傳日期<=今日
+                if (_checkFlag==true && stringutility.convertToFloat(_voucher_date) > stringutility.convertToFloat(dateutility.getConvertVoucherDateByDate(dateutility.getNetSuiteLocalDate()))){
+                  _checkFlag = false
+                  _error_message += _voucher_number + '上傳日期('+_voucher_date+')不可大於今天,'
+                }
+              }
+              /////////////////////////////////////////////////////////////////////////////////////////
+              /////////////////////////////////////////////////////////////////////////////////////////
+              //期別:區間檢查
+              var _original_voucher_yearmonth= dateutility.getTaxYearMonthByYYYYMMDD(_original_voucher_date)
+
+              //1.新申報期別>=原始憑證開立期別
+              if (_voucher_date.length !=0 && _year_month.length !=0){
+                var _apply_date_year_month=dateutility.getTaxYearMonthByYYYYMMDD(_voucher_date) //新申報日期期別
+
+                if (_checkFlag==true && stringutility.convertToFloat(_year_month)<stringutility.convertToFloat(_original_voucher_yearmonth) ){
+                  _checkFlag = false
+                  _error_message += _voucher_number + '上傳期別('+_year_month+')不可小於原憑證開立期別('+_original_voucher_yearmonth+'),'
+                }
+                //2.新申報日期所屬期別<=新申報期別
+                if (_checkFlag==true && stringutility.convertToFloat(_apply_date_year_month)>stringutility.convertToFloat(_year_month) ){
+                  _checkFlag = false
+                  _error_message += _voucher_number + '上傳期別('+_year_month+')不可小於申報日期所屬期別('+_apply_date_year_month+'),'
+                }
+                //3.新申報期別 =新申報日期所屬(期別或次期) period_month=2:1期 , period_month=4:2期...以此類推
+                var _period_month=1
+                var _year_month_date = (191100+parseInt(_year_month))+'01'
+
+                if (_checkFlag==true && dateutility.getMonthPeriodDiff(_voucher_date, _year_month_date, _period_month) != true){
+                  _checkFlag = false
+                  _error_message += _voucher_number + '上傳期別('+_year_month+')不可大於下下期,'
+                }
+                /**
+                 if (_checkFlag==true){
+                 if ( ( (stringutility.convertToFloat(_year_month)-stringutility.convertToFloat(_apply_date_year_month)) > _period_month && (stringutility.convertToFloat(_year_month)-stringutility.convertToFloat(_apply_date_year_month)) <= 10 ) ||
+                 (stringutility.convertToFloat(_year_month)-stringutility.convertToFloat(_apply_date_year_month)) > (90+_period_month) ){
+                 _checkFlag = false
+                 _error_message += _voucher_number + '上傳期別('+_year_month+')不可大於下期,'
+                 }
+                 }
+                 */
+              }
+              /////////////////////////////////////////////////////////////////////////////////////////
             }
+
           }
         }
       }
