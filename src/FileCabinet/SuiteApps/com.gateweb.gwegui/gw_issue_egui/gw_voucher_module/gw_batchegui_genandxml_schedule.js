@@ -1830,7 +1830,7 @@ define([
         //_documentNumber = invoiceutility.getAssignLogNumber(invoice_type, jsonObj.sellerIdentifier, stringutility.trim(jsonObj.department), stringutility.trim(jsonObj.classId), _year_month, need_upload_mig, _documentDate);
         var _assignlog_dept_code = (stringutility.trim(apply_dept_code) == 'USE_INVOICE' && eGUIConfig.isEGUIDepartment)
             ? stringutility.trim(jsonObj.department) : ''
-        var _assignlog_class_code = (stringutility.trim(apply_dept_code) == 'USE_INVOICE' && eGUIConfig.isEGUIDepartment)
+        var _assignlog_class_code = (stringutility.trim(apply_dept_code) == 'USE_INVOICE' && eGUIConfig.isEGUIClass)
             ? stringutility.trim(jsonObj.classId) : ''
         log.debug({
           title: '_assignlog_dept_code | _assignlog_class_code',
