@@ -7,11 +7,13 @@ define(['N/runtime','N/record','../gw_common_utility/gw_common_invoice_utility']
   var exports = {}
 
   function beforeLoad(context) {
+
+    if(context.type !== context.UserEventType.VIEW) return
+
     var frm = context.form
-    
-    //手開發票指定狀態
+
     var _manual_evidence_status_value = invoiceutility.getManualOpenID()    
-    var _gw_evidence_status_value = 'A'
+    var _gw_evidence_status_value = ''
 
     var _current_record = context.newRecord
     var _lock_transaction = _current_record.getValue({
@@ -32,18 +34,19 @@ define(['N/runtime','N/record','../gw_common_utility/gw_common_invoice_utility']
 	    })  
         _gw_evidence_status_value = _evidence_status_record.getValue({fieldId: 'custrecord_gw_evidence_status_value'})
 	}
-	 
-    
-    log.debug('lock_transaction', 'lock_transaction:' + _lock_transaction) 
-    log.debug('gw_is_issue_egui', 'gw_is_issue_egui:' + _gw_is_issue_egui) 
-    log.debug('gw_evidence_status_value', 'gw_evidence_status_value:' + _gw_evidence_status_value) 
-    
-    if (
-      context.type == context.UserEventType.VIEW &&	 
-	  _gw_is_issue_egui == true &&
-	  //_gw_evidence_status_value == _manual_evidence_status_value &&
-      _lock_transaction == false
-    ) {
+
+    log.debug({
+        title: 'beforeLoad - transaction info',
+        details: {
+            _manual_evidence_status_value: _manual_evidence_status_value,
+            _lock_transaction: _lock_transaction,
+            _gw_is_issue_egui: _gw_is_issue_egui,
+            _gw_evidence_issue_status_id: _gw_evidence_issue_status_id,
+            _gw_evidence_status_value: _gw_evidence_status_value
+        }
+    })
+
+    if (_gw_is_issue_egui && !_lock_transaction && _manual_evidence_status_value === _gw_evidence_status_value) {
       frm.addButton({
         id: 'custpage_cash_sale_egui_edit_btn',
         label: '開立發票',

@@ -1,5 +1,5 @@
 /**
- * @NApiVersion 2.0
+ * @NApiVersion 2.1
  * @NScriptType ClientScript
  * @NModuleScope Public
  */
@@ -38,7 +38,7 @@ define([
   var _invoce_control_field_id = gwconfigure.getInvoceControlFieldId()
   var _invoce_control_field_value = gwconfigure.unLockInvoceControlFieldId()
 
-  var _currentRecord = currentRecord.get()
+  var _currentRecord = null
   var _voucherIdArray = [-1]
 
   function fieldChanged(context) {
@@ -490,15 +490,75 @@ define([
         })
 
         unLockVoucher(voucher_list_id)
-
         document.forms[0].submit()
       } else {
         gwmessage.showErrorMessage(_title, _message)
-        return
+
       }
     } catch (e) {
       console.log(e.name + ':' + e.message)
     }
+  }
+
+  function getInitialIssueStatus() {
+    let issueStatusId = ''
+    const recordType = 'customrecord_gw_evidence_status'
+    let searchFilters = []
+    searchFilters.push(['custrecord_gw_evidence_status_value', 'is', 'MI'])
+    searchFilters.push('AND')
+    searchFilters.push(['name', 'is', '單張開立發票'])
+    let searchColumns = []
+    searchColumns.push('name')
+    searchColumns.push('custrecord_gw_evidence_status_value')
+    searchColumns.push('custrecord_gw_evidence_status_text')
+    let getInitialIssueStatusSearchObj = search.create({
+      type: recordType,
+      filters: searchFilters,
+      columns: searchColumns
+    })
+    getInitialIssueStatusSearchObj.run().each(function(result){
+      // .run().each has a limit of 4,000 results
+      issueStatusId = result.id
+      return true
+    })
+
+    return issueStatusId
+  }
+
+  function getResetFields(initialIssueStatus) {
+    return {
+      custbody_gw_gui_apply_period: '',
+      custbody_gw_gui_class: '',
+      custbody_gw_gui_date: '',
+      custbody_gw_gui_department: '',
+      custbody_gw_gui_format: '',
+      custbody_gw_gui_sales_amt: '',
+      custbody_gw_gui_sales_amt_tax_exempt: '',
+      custbody_gw_gui_sales_amt_tax_zero: '',
+      custbody_gw_gui_tax_amt: '',
+      custbody_gw_gui_tax_file_date: '',
+      custbody_gw_gui_tax_rate: '',
+      custbody_gw_gui_tax_type: '',
+      custbody_gw_gui_total_amt: '',
+      custbody_gw_lock_transaction: false,
+      custbody_gw_evidence_issue_status: initialIssueStatus
+    }
+  }
+
+  function updateCashSaleRecord(cashSalesArray) {
+    const initialIssueStatus = getInitialIssueStatus()
+    cashSalesArray.forEach(cashSaleId => {
+      let sumMitFieldsObject = getResetFields(initialIssueStatus)
+      record.submitFields({
+        type: record.Type.CASH_SALE,
+        id: cashSaleId,
+        values: sumMitFieldsObject,
+        options: {
+          enableSourcing: false,
+          ignoreMandatoryFields: true
+        }
+      })
+    })
   }
 
   function unLockVoucher(voucher_list_id) {
@@ -511,7 +571,7 @@ define([
       var _invoice_id_ary = []
       var _creditmemo_id_ary = []
       var _sales_order_id_ary = []
-
+      let cashSalesArray = []
       var _detailSearch = search.create({
         type: _voucher_details_record,
         columns: [
@@ -523,6 +583,7 @@ define([
           search.createColumn({ name: 'custrecord_gw_dtl_item_tax_code' }),
           search.createColumn({ name: 'custrecord_gw_item_amount' }),
           search.createColumn({ name: 'custrecord_gw_ns_document_apply_id' }), //846
+          search.createColumn({ name: 'type', join: 'CUSTRECORD_GW_NS_DOCUMENT_APPLY_ID' }),
         ],
       })
       var _filterArray = []
@@ -539,37 +600,35 @@ define([
       _detailSearch.filterExpression = _filterArray
 
       _detailSearch.run().each(function (result) {
-        var _internalid = result.getValue({
-          name: 'internalid',
-        })
+        console.log(JSON.stringify(result))
         var _ns_document_type = result.getValue({
           name: 'custrecord_gw_ns_document_type',
         })
         var _ns_document_apply_id = result.getValue({
           name: 'custrecord_gw_ns_document_apply_id',
         })
-        var _ns_item_tax_code = result.getValue({
-          name: 'custrecord_gw_dtl_item_tax_code',
-        })
-        var _item_amount = result.getValue({
-          name: 'custrecord_gw_item_amount',
+        const transactionType = result.getValue({
+          name: 'type',
+          join: 'CUSTRECORD_GW_NS_DOCUMENT_APPLY_ID'
         })
 
-        if (_ns_document_type == 'INVOICE') {
+        if (_ns_document_type === 'INVOICE' && transactionType.toUpperCase() === 'INVOICE') {
           var _aryString = _invoice_id_ary.toString()
-          if (_aryString.indexOf(_ns_document_apply_id) == -1) {
+          if (_aryString.indexOf(_ns_document_apply_id) === -1) {
             _invoice_id_ary.push(_ns_document_apply_id)
           }
-        } else if (_ns_document_type == 'CREDITMEMO') {
+        } else if (_ns_document_type === 'CREDITMEMO') {
           var _aryString = _creditmemo_id_ary.toString()
-          if (_aryString.indexOf(_ns_document_apply_id) == -1) {
+          if (_aryString.indexOf(_ns_document_apply_id) === -1) {
             _creditmemo_id_ary.push(_ns_document_apply_id)
           }
-        } else if (_ns_document_type == 'SALES_ORDER') {
+        } else if (_ns_document_type === 'SALES_ORDER') {
           var _aryString = _sales_order_id_ary.toString()
-          if (_aryString.indexOf(_ns_document_apply_id) == -1) {
+          if (_aryString.indexOf(_ns_document_apply_id) === -1) {
             _sales_order_id_ary.push(_ns_document_apply_id)
           }
+        } else if (transactionType.toUpperCase() === 'CASHSALE') {
+          if (cashSalesArray.indexOf(_ns_document_apply_id) === -1) cashSalesArray.push(_ns_document_apply_id)
         }
 
         return true
@@ -642,6 +701,10 @@ define([
         }
       }
 
+      if(cashSalesArray.length > 0) {
+        updateCashSaleRecord(cashSalesArray)
+      }
+
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     } catch (e) {
       console.log(e.name + ':' + e.message)
@@ -676,7 +739,7 @@ define([
         document.forms[0].submit()
       } else {
         gwmessage.showErrorMessage(_title, _message)
-        return
+
       }
     } catch (e) {
       console.log(e.name + ':' + e.message)
@@ -799,7 +862,7 @@ define([
         return true
       })
     } catch (e) {
-      log.debug(e.name, e.message)
+      console.log(e.name, e.message)
     }
   }
 
@@ -1104,7 +1167,7 @@ define([
   		} 
   		var _message = '請勿選取開立錯誤或非'+_text+'憑證下載!'									
   		gwmessage.showErrorMessage(_title, _message)
-  		return		
+  		return
       }
 
       
@@ -2067,13 +2130,9 @@ define([
   //重傳作業-END
   ////////////////////////////////////////////////////////////////////////////////////////////
   function pageInit() {
-    try {    	
-    	var _email_task_title   = _currentRecord.getValue({fieldId: 'hidden_email_task_title'})
-    	var _email_task_message = _currentRecord.getValue({fieldId: 'hidden_email_task_message'})
-    	
-    	if (_email_task_title.length !=0) {
-    		gwmessage.showInformationMessage(_email_task_title, _email_task_message)
-    	}     	
+    try {
+      console.log('gw_egui_common_ui_event_v2.js - pageInit start...')
+      _currentRecord = currentRecord.get()
     } catch (e) {
         console.log(e.name + ':' + e.message)
     }
@@ -2082,7 +2141,7 @@ define([
   return {
     pageInit: pageInit,
     mark: mark,
-    fieldChanged: fieldChanged,
+    // fieldChanged: fieldChanged,
     sublistChanged: sublistChanged,
     resetSelected: resetSelected,
     unLockSelected: unLockSelected,

@@ -226,7 +226,7 @@ define(['N/format', 'N/search'], function (format, search) {
   
   function getSelectedInvoiceObj(selected_invoice_Id) {  
 	  var invoiceSearchObj = search.create({
-	   type: "invoice", 
+	   type: "transaction",
 	   columns:
 	   [     
 		  "ordertype",
@@ -325,10 +325,10 @@ define(['N/format', 'N/search'], function (format, search) {
 	var _filterArray = []  
 	if (selected_invoice_Id != '') {
         var _internalIdAry = selected_invoice_Id.split(',')   
-        _filterArray.push(['internalid', 'anyof', _internalIdAry])         
+        _filterArray.push(['internalid', 'anyof', _internalIdAry])
     }
 	_filterArray.push('and')
-    _filterArray.push(['recordtype', 'is', 'invoice']) 
+    _filterArray.push([['recordtype', 'is', 'invoice'], 'OR', [['recordtype', 'is', 'cashsale']]])
     _filterArray.push('and')
     _filterArray.push(['taxline', 'is', false]) //擋稅別科目
     _filterArray.push('and')

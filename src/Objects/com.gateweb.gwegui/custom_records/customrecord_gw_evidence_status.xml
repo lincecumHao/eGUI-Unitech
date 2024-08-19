@@ -128,10 +128,10 @@
       <name>憑證未開立</name>
     </instance>
     <instance scriptid="val_gw_issue_status_pa">
-      <custrecord_gw_evidence_status_text>憑證已開立, 未進入關網系統</custrecord_gw_evidence_status_text>
+      <custrecord_gw_evidence_status_text>憑證開立失敗, 未進入關網系統</custrecord_gw_evidence_status_text>
       <custrecord_gw_evidence_status_value>PA</custrecord_gw_evidence_status_value>
       <isinactive>F</isinactive>
-      <name>憑證已開立, 未進入關網系統</name>
+      <name>憑證開立失敗, 未進入關網系統</name>
     </instance>
     <instance scriptid="val_gw_issue_status_a">
       <custrecord_gw_evidence_status_text>憑證已開立</custrecord_gw_evidence_status_text>
@@ -158,10 +158,10 @@
       <name>憑證開立上傳已失敗</name>
     </instance>
     <instance scriptid="val_gw_issue_status_pc">
-      <custrecord_gw_evidence_status_text>憑證已作廢, 未進入關網系統</custrecord_gw_evidence_status_text>
+      <custrecord_gw_evidence_status_text>憑證作廢失敗, 未進入關網系統</custrecord_gw_evidence_status_text>
       <custrecord_gw_evidence_status_value>PC</custrecord_gw_evidence_status_value>
       <isinactive>F</isinactive>
-      <name>憑證已作廢, 未進入關網系統</name>
+      <name>憑證作廢失敗, 未進入關網系統</name>
     </instance>
     <instance scriptid="val_gw_issue_status_ca">
       <custrecord_gw_evidence_status_text>憑證已作廢</custrecord_gw_evidence_status_text>
@@ -192,12 +192,6 @@
       <custrecord_gw_evidence_status_value>CI</custrecord_gw_evidence_status_value>
       <isinactive>F</isinactive>
       <name>憑證作廢待審核</name>
-    </instance>
-    <instance scriptid="val_256568_t2636252_401">
-      <custrecord_gw_evidence_status_text>手開憑證未開立</custrecord_gw_evidence_status_text>
-      <custrecord_gw_evidence_status_value>MI</custrecord_gw_evidence_status_value>
-      <isinactive>F</isinactive>
-      <name>手開憑證未開立</name>
     </instance>
     <instance scriptid="val_256569_t2636252_631">
       <custrecord_gw_evidence_status_text>人工開立發票</custrecord_gw_evidence_status_text>

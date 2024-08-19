@@ -264,11 +264,21 @@ define([
       }
     }
     ///////////////////////////////////////////////////////////////////////////
+    log.debug({
+      title: 'searchVoucherList - voucher_upload_status',
+      details: voucher_upload_status
+    })
     if (voucher_upload_status != '') {
       _filterArray.push('and')
       if (voucher_upload_status == 'NONE') {
         _filterArray.push([
           'custrecord_gw_need_upload_egui_mig',
+          search.Operator.IS,
+          voucher_upload_status,
+        ])
+      } else if (voucher_upload_status === 'E') {
+        _filterArray.push([
+          'custrecord_gw_voucher_upload_status',
           search.Operator.IS,
           voucher_upload_status,
         ])
@@ -335,6 +345,9 @@ define([
       'isnot',
       'VOUCHER_UNLOCKED',
     ])
+    _filterArray.push('AND')
+    _filterArray.push(['custrecord_gw_lock_transaction', 'is', 'T'])
+
     _mySearch.filterExpression = _filterArray
     log.debug('UI List filterArray', JSON.stringify(_filterArray))
     ///////////////////////////////////////////////////////////////////////////////////
@@ -471,7 +484,7 @@ define([
             _voucher_number +
             '</a>'
             
-          if (_voucher_number.trim().length==0) _url_value=' '
+          if (_voucher_number.trim().length === 0) _url_value = ' '
           ///////////////////////////////////////////////////////////////////////
           subListObj.setSublistValue({
             id: 'customer_voucher_number',
@@ -530,29 +543,24 @@ define([
 		  })
 
           var _voucher_manual_egui = ' '
-          if (
-            stringutility.trim(_need_upload_egui_mig) == 'N' ||
-            stringutility.trim(_need_upload_egui_mig) == 'NONE'
-          ) {
-             _voucher_manual_egui = '是'
-             //_voucher_upload_status = 'M'
-           	 //NE-338
-           	 if (_voucher_format_code!='35')_voucher_upload_status = 'M'
-             else _voucher_upload_status = 'EU'  	
+          if (stringutility.trim(_need_upload_egui_mig) === 'N' || stringutility.trim(_need_upload_egui_mig) === 'NONE') {
+            _voucher_manual_egui = '是'
+            _voucher_upload_status = _voucher_format_code !== '35' ? 'M' : 'EU'
           }
 
           var _voucher_upload_status_desc = invoiceutility.getUploadStatusDesc(
             _voucher_upload_status
           )
 
-          if (stringutility.trim(_uploadstatus_messag) != '') {
-            _voucher_upload_status_desc =
-              _voucher_upload_status_desc +
-              ':' +
-              stringutility.trim(_uploadstatus_messag)
+          if(_voucher_number === '') {
+            _voucher_upload_status_desc = _uploadstatus_messag
+            _voucher_manual_egui = ' '
           } else {
-            _voucher_upload_status_desc =
-              _voucher_status_desc + ':' + _voucher_upload_status_desc
+            if (stringutility.trim(_uploadstatus_messag) !== '') {
+              _voucher_upload_status_desc = _voucher_upload_status_desc + ':' + stringutility.trim(_uploadstatus_messag)
+            } else {
+              _voucher_upload_status_desc = _voucher_status_desc + ':' + _voucher_upload_status_desc
+            }
           }
 
           _voucher_upload_status_desc = _voucher_upload_status_desc.substring(
@@ -1065,7 +1073,7 @@ define([
     _sublist.addField({
       id: 'customer_voucher_relate_number',
       type: serverWidget.FieldType.TEXT,
-      label: 'NS Inv/CM #',
+      label: 'NS Inv/CS #',
     })
     _sublist.addField({
       id: 'customer_voucher_year_month',
@@ -1155,6 +1163,7 @@ define([
     var form = serverWidget.createForm({
       title: '電子發票管理作業',
     })
+    form.clientScriptModulePath = './gw_egui_common_ui_event_v2.js'
     //Hiddent Element
     var _hidden_button_field = form.addField({
       id: 'custpage_hiddent_buttontype',
@@ -1199,9 +1208,6 @@ define([
       functionName: 'searchResults()',
     })
 
-    //form.clientScriptModulePath = './gw_egui_common_ui_event.js'
-    form.clientScriptModulePath = './gw_egui_common_ui_event_v2.js'
-    	
     var _email_task_title = context.request.parameters.email_task_title
     var _email_task_message = context.request.parameters.email_task_message    
     var _hidden_email_task_title = form.addField({

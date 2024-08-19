@@ -487,6 +487,9 @@ define([
         var _line_index = 1
 
         var _existFlag = false
+
+        var _department_value = ''
+        var _class_value = ''
         _mySearch.run().each(function (result) {
           var _result = JSON.parse(JSON.stringify(result))
           log.debug('Invoice Detail Search Result', JSON.stringify(result))
@@ -501,7 +504,6 @@ define([
             _account_value = _result.values.account[0].value //54
             _account_text = _result.values.account[0].text //4000 Sales
           }
-
           /////////////////////////////////////////////////////////////////////////////////////
           if (_mainline != '*' && stringutility.trim(_itemtype) != '') {
             _existFlag = true
@@ -576,20 +578,6 @@ define([
             }
 
             var _rate = _result.values.rate //3047.61904762
-            var _department_value = ''
-            var _department_text = ''
-            if (_result.values.department.length != 0) {
-              _department_value = _result.values['department'][0].value //1
-              _department_text = _result.values['department'][0].text //業務1部
-            }
-
-            var _class_value = ''
-            var _class_text = ''
-            if (_result.values['class'].length != 0) {
-              _class_value = _result.values['class'][0].value //1
-              _class_text = _result.values['class'][0].text //業務1部
-            }
-
             var _quantity = _result.values.quantity
             //20210909 walter 預設值設為1
             if (_quantity.trim().length==0 || _quantity=='0')_quantity='1'
@@ -938,8 +926,10 @@ define([
             )
           } //End IF InvtPart or Discount
 
-          if (_mainline == '*' && _result.values.createdfrom.length != 0) {
-            _sales_order_id = _result.values.createdfrom[0].value //633
+          if(_mainline === '*') {
+            _mainJsonObj.department = _result.values.department.length !== 0 ? _result.values.department[0].value : ''
+            _mainJsonObj.classId = _result.values.class.length !== 0 ? _result.values.class[0].value : ''
+            _sales_order_id = _result.values.createdfrom.length !== 0 ? _result.values.createdfrom[0].value : -1
           }
 
           return true
@@ -2425,7 +2415,7 @@ define([
             var values = {}
             values['custrecord_gw_is_completed_detail'] = true
             values['custrecord_gw_ns_transaction'] = _gw_ns_document_apply_id_ary
-            var _id = record.submitFields({
+            var voucherMainRecordId = record.submitFields({
               type: _voucher_main_record,
               id: _mainRecordId,
               values: values,
@@ -2463,7 +2453,8 @@ define([
         voucher_type,
         jsonObj.applyId,
         _documentNumber,
-        historyInvoiceObj
+        historyInvoiceObj,
+        voucherMainRecordId
       )
       log.debug('END LOCK')
       /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2708,19 +2699,30 @@ define([
     }
   }
 
+  function getTransactionType(voucherMainRecordId) {
+    var lookupResultObject = search.lookupFields({
+      type: 'customrecord_gw_voucher_main',
+      id: voucherMainRecordId,
+      columns: ['custrecord_gw_ns_transaction.type']
+    })
+
+    return lookupResultObject['custrecord_gw_ns_transaction.type'][0].value
+  }
+
   //20: for transaction records
   function lockNSInvoiceRecord(
 	voucher_main_record,
     voucher_type,
     internalId,
     documentNumber,
-    historyInvoiceObj
+    historyInvoiceObj,
+    voucherMainRecordId
   ) {
     try {
       var values = {}
       //values[_invoce_control_field_id] = _invoce_control_field_value;
 
-      var _recordTypeID = record.Type.INVOICE
+      var _recordTypeID = getTransactionType(voucherMainRecordId)
 
       if (voucher_type === 'ALLOWANCE') {
         _recordTypeID = record.Type.CREDIT_MEMO
