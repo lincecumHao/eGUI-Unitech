@@ -205,5 +205,11 @@
       <isinactive>F</isinactive>
       <name>外部憑證已開立</name>
     </instance>
+    <instance scriptid="val_gw_issue_status_bc">
+      <custrecord_gw_evidence_status_text>批次開立發票</custrecord_gw_evidence_status_text>
+      <custrecord_gw_evidence_status_value>BC</custrecord_gw_evidence_status_value>
+      <isinactive>F</isinactive>
+      <name>批次開立發票</name>
+    </instance>
   </instances>
 </customrecordtype>
