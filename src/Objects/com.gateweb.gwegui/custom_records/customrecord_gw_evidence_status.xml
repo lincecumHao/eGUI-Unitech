@@ -211,5 +211,35 @@
       <isinactive>F</isinactive>
       <name>批次開立發票</name>
     </instance>
+    <instance scriptid="val_gw_issue_status_eus">
+      <custrecord_gw_evidence_status_text>外部憑證已開立, 已進入關網系統</custrecord_gw_evidence_status_text>
+      <custrecord_gw_evidence_status_value>EUS</custrecord_gw_evidence_status_value>
+      <isinactive>F</isinactive>
+      <name>外部憑證已開立, 已進入關網系統</name>
+    </instance>
+    <instance scriptid="val_gw_issue_status_euf">
+      <custrecord_gw_evidence_status_text>外部憑證開立失敗</custrecord_gw_evidence_status_text>
+      <custrecord_gw_evidence_status_value>EUF</custrecord_gw_evidence_status_value>
+      <isinactive>F</isinactive>
+      <name>外部憑證開立失敗</name>
+    </instance>
+    <instance scriptid="val_gw_issue_status_ev">
+      <custrecord_gw_evidence_status_text>外部憑證已作廢</custrecord_gw_evidence_status_text>
+      <custrecord_gw_evidence_status_value>EV</custrecord_gw_evidence_status_value>
+      <isinactive>F</isinactive>
+      <name>外部憑證已作廢</name>
+    </instance>
+    <instance scriptid="val_gw_issue_status_evs">
+      <custrecord_gw_evidence_status_text>外部憑證已作廢, 已進入關網系統</custrecord_gw_evidence_status_text>
+      <custrecord_gw_evidence_status_value>EVS</custrecord_gw_evidence_status_value>
+      <isinactive>F</isinactive>
+      <name>外部憑證已作廢, 已進入關網系統</name>
+    </instance>
+    <instance scriptid="val_gw_issue_status_evf">
+      <custrecord_gw_evidence_status_text>外部憑證作廢失敗</custrecord_gw_evidence_status_text>
+      <custrecord_gw_evidence_status_value>EVF</custrecord_gw_evidence_status_value>
+      <isinactive>F</isinactive>
+      <name>外部憑證作廢失敗</name>
+    </instance>
   </instances>
 </customrecordtype>
