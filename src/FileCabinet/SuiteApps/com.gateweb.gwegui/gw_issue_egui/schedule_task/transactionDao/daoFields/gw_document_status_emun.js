@@ -35,16 +35,16 @@ define([], function () {
   const CASHSALES_OPEN_EXTERNAL_DOCUMENT = {
 		  VOUCHERTYPE: 'EGUI',    
 		  DOCUMENTTYPE: 'CASH_SALE',
-		  OPEN: 'EU',   //憑證已開立, 外部代上傳
-		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
-		  ERROR: 'IE'   //憑證開立上傳已失敗
+		  OPEN: 'EU',   //外部憑證已開立
+		  SUCCESS: 'EUS',//外部憑證已開立, 已進入關網系統
+		  ERROR: 'EUF'   //外部憑證開立失敗
   };
   const CASHSALES_VOID_EXTERNAL_DOCUMENT = {
 		  VOUCHERTYPE: 'EGUI',    
 		  DOCUMENTTYPE: 'CASH_SALE',
-		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
-		  SUCCESS: 'CA',//憑證已作廢
-		  ERROR: 'CE'   //憑證作廢上傳已失敗
+		  OPEN: 'EV',   //外部憑證已作廢
+		  SUCCESS: 'EVS',//外部憑證已作廢, 已進入關網系統
+		  ERROR: 'EVF'   //外部憑證作廢失敗
   };
   const CASHREFUND_OPEN_EXTERNAL_DOCUMENT = {
 		  VOUCHERTYPE: 'ALLOWANCE',    
