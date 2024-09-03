@@ -50,15 +50,15 @@ define([], function () {
 		  VOUCHERTYPE: 'ALLOWANCE',    
 		  DOCUMENTTYPE: 'CASH_REFUND',
 		  OPEN: 'EU',   //憑證已開立, 外部代上傳
-		  SUCCESS: 'PA',//憑證已開立, 未進入關網系統
-		  ERROR: 'IE'   //憑證開立上傳已失敗
+		  SUCCESS: 'EUS',//外部憑證已開立, 已進入關網系統
+		  ERROR: 'EUF'   //外部憑證開立失敗
   };
   const CASHREFUND_VOID_EXTERNAL_DOCUMENT = {
 		  VOUCHERTYPE: 'ALLOWANCE',    
 		  DOCUMENTTYPE: 'CASH_REFUND',
 		  OPEN: 'PC',   //憑證已作廢, 未進入關網系統
-		  SUCCESS: 'CA',//憑證已作廢
-		  ERROR: 'CE'   //憑證作廢上傳已失敗
+		  SUCCESS: 'EVS',//外部憑證已作廢, 已進入關網系統
+		  ERROR: 'EVF'   //外部憑證作廢失敗
   };
   
   return {
