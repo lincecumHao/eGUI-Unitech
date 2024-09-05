@@ -19,6 +19,10 @@
             <feature required="false">EXPREPORTS</feature>
             <feature required="false">PAYABLES</feature>
             <feature required="false">MULTILOCINVT</feature>
+            <feature required="false">ADVRECEIVING</feature>
+            <feature required="true">WORKFLOW</feature>
+            <feature required="false">INVENTORY</feature>
+            <feature required="false">OPPORTUNITIES</feature>
         </features>
     </dependencies>
 </manifest>
