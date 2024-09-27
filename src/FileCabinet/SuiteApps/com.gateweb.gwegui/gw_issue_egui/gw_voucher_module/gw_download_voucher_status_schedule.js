@@ -682,7 +682,8 @@ define([
 		      log.debug('documentID', '_documentID=' + _documentID)
 		      var values = {}
 		      if (_ns_document_type == 'INVOICE') {
-		          _recordTypeID = record.Type.INVOICE		        
+                  _recordTypeID = synceguidocument.getRealTransactionTypeById(_internalid)
+		          // _recordTypeID = record.Type.INVOICE
 		      } else if (_ns_document_type == 'CREDITMEMO') {
 		          _recordTypeID = record.Type.CREDIT_MEMO		        
 		      } else if (_ns_document_type == 'CUSTOMER_DEPOSIT') {

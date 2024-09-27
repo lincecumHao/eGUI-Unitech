@@ -12,6 +12,7 @@ define([
   'N/url',
   '../gw_common_utility/gw_common_configure',
   '../gw_common_utility/gw_common_gwmessage_utility',
+  '../Library/gw_lib_ui_event'
 ], function (
   transaction,
   dialog,
@@ -20,7 +21,8 @@ define([
   currentRecord,
   url,
   gwconfigure,
-  gwmessage
+  gwmessage,
+  gwLibEvent
 ) {
   var _currentRecord = currentRecord.get()
   var invoiceIdArray = [-1]
@@ -600,14 +602,14 @@ define([
         //3.直接作廢 Transaction-Voided 單據
         var _unLockRecordTypeID = record.Type.INVOICE
         if (_ns_document_type == 'INVOICE') {
-          _unLockRecordTypeID = record.Type.INVOICE
+          _unLockRecordTypeID = gwLibEvent.getRealTransactionTypeById(_ns_document_apply_id)
         } else if (_ns_document_type == 'CREDITMEMO') {
           _unLockRecordTypeID = record.Type.CREDIT_MEMO
         } else if (_ns_document_type == 'CUSTOMER_DEPOSIT') {
           _unLockRecordTypeID = record.Type.CUSTOMER_DEPOSIT
         }
 
-        var voidSalesOrderId = transaction.void({
+        transaction.void({
           type: _unLockRecordTypeID,
           id: parseInt(_ns_document_apply_id),
         })

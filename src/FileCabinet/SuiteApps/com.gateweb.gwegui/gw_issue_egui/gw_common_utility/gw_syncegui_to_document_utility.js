@@ -7,7 +7,7 @@ define(['N/record',
 	    'N/format', 
 	    'N/search', 
 	    '../../gw_dao/docFormat/gw_dao_doc_format_21', 	    
-	    '../../gw_dao/evidenceIssueStatus/gw_dao_evidence_issue_status_21'], 
+	    '../../gw_dao/evidenceIssueStatus/gw_dao_evidence_issue_status_21'],
 	    function (record, format, search, doc_format_21, issue_status_21) {  
   /////////////////////////////////////////////////////////////////////////////////////////////
   function syncEguiInfoToNetsuiteDoc(voucher_main_record, document_ary) {
@@ -267,8 +267,28 @@ define(['N/record',
     
     return _gw_evidence_status_id
   }
-  
-  //voucher_status = [VOUCHER_SUCCESS, CANCELL_APPROVE]
+
+  function getRealTransactionTypeById(recordId) {
+	log.audit({
+		title: 'getRealTransactionTypeById - recordId',
+		details: recordId
+	})
+
+	let transactionType = record.Type.INVOICE
+	  try {
+		record.load({
+		  type: record.Type.INVOICE,
+		  id: recordId
+		})
+	  } catch (e) {
+		  log.error({title: 'getRealTransactionTypeById - e', details: e})
+		  transactionType = record.Type.CASH_SALE
+	  }
+
+	  log.audit({title: 'getRealTransactionTypeById - transactionType', details: transactionType})
+	  return transactionType
+  }
+			//voucher_status = [VOUCHER_SUCCESS, CANCELL_APPROVE]
   function syncEguiUploadStatusToNSEvidenceStatus(voucher_status, voucher_upload_status, need_upload_egui_mig, voucher_main_internalid_ary) {  	
 	  log.debug('syncEguiUploadStatusToNSEvidenceStatus', 'voucher_status='+voucher_status+',voucher_upload_status='+voucher_upload_status)
 	  try { 
@@ -296,7 +316,7 @@ define(['N/record',
   			  
   		    	 var _record_type_id = ''
 		    	 if (_ns_document_type == 'INVOICE') {
-		    		 _record_type_id = record.Type.INVOICE		              
+					 _record_type_id = getRealTransactionTypeById(_ns_document_apply_id)
 		         } else if (_ns_document_type == 'CREDITMEMO') {
 		        	 _record_type_id = record.Type.CREDIT_MEMO	
 		         } else if (_ns_document_type == 'CASH_SALE' || _ns_document_type == 'cashsale') {
@@ -402,6 +422,7 @@ define(['N/record',
   return {
 	  syncEguiInfoToNetsuiteDoc: syncEguiInfoToNetsuiteDoc, 
 	  syncEguiUploadStatusToNSEvidenceStatus: syncEguiUploadStatusToNSEvidenceStatus,
-	  getGwEvidenceStatus: getGwEvidenceStatus
+	  getGwEvidenceStatus: getGwEvidenceStatus,
+	  getRealTransactionTypeById: getRealTransactionTypeById
   }
 })

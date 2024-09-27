@@ -15,7 +15,8 @@ define([
   '../gw_common_utility/gw_common_migxml_utility',
   '../gw_common_utility/gw_common_invoice_utility',
   '../gw_common_utility/gw_common_gwmessage_utility',
-  '../../library/gw_date_util'
+  '../../library/gw_date_util',
+  '../Library/gw_lib_ui_event'
 ], function (
   search,
   currentRecord,
@@ -28,7 +29,8 @@ define([
   migxmlutility,
   invoiceutility,
   gwmessage,
-  gwDateUtil
+  gwDateUtil,
+  gwLibEvent
 ) {
   var _voucher_apply_list_record = gwconfigure.getGwVoucherApplyListRecord()
   var _voucher_main_record = gwconfigure.getGwVoucherMainRecord()
@@ -1463,7 +1465,7 @@ define([
   			
   		    	 var _record_type_id = '' 
   		    	 if (_ns_document_type == 'INVOICE') {
-		    		 _record_type_id = record.Type.INVOICE		              
+                     _record_type_id = gwLibEvent.getRealTransactionTypeById(_ns_document_apply_id)
 		         } else if (_ns_document_type == 'CREDITMEMO') {
 		        	 _record_type_id = record.Type.CREDIT_MEMO	
 		         } else if (_ns_document_type == 'CASH_SALE' || _ns_document_type == 'cashsale') {
