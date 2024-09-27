@@ -2319,10 +2319,6 @@ define([
             fieldId: 'custrecord_gw_total_amount',
             value: _main.total_amount,
           })
-          _voucherMainRecord.setValue({
-            fieldId: 'custrecord_gw_voucher_extra_memo',
-            value: _main.extraMemo,
-          })
 
           _voucherMainRecord.setValue({
             fieldId: 'custrecord_gw_need_upload_egui_mig',
