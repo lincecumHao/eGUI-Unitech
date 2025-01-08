@@ -1034,6 +1034,8 @@ define([
     var _gw_gui_carrier_id_2 = ''
     //捐贈代碼
     var _gw_gui_donation_code = ''
+    //記錄非Discount的資料，用於補回折扣
+    let notDiscountRowObj = { row: 0, amount: 0 }
     ////////////////////////////////////////////////////////////
 
     _mySearch.run().each(function (result) {
@@ -1166,6 +1168,22 @@ define([
       ) //Item金額小計
       if (stringutility.convertToFloat(_result.values.quantity) < 0)
         _ns_item_total_amount = -1 * _ns_item_total_amount
+
+      //Discount假如沒有account會與前一筆資料使用相同account並扣除，會導致畫面顯示資料被多扣此處把他加回來
+      if (result.itemtype === 'Discount' && result.account.length === 0) {
+        notDiscountRowObj.amount -= _amount
+        _sumSalesAmount -= _amount
+        _ns_item_total_amount -= _amount
+
+        sublist.setSublistValue({
+          id: 'custpage_item_amount',
+          line: notDiscountRowObj.row,
+          value: stringutility.trimOrAppendBlank(notDiscountRowObj.amount)
+        })
+      } else {
+        notDiscountRowObj.row = row
+        notDiscountRowObj.amount = _amount
+      }
 
       var _linesequencenumber = _result.values.linesequencenumber //1
       var _line = _result.values.line //1
