@@ -467,7 +467,7 @@ define([
         var _tax2_item_ary = []
         var _tax3_item_ary = []
         var _tax9_item_ary = []
-
+        let taxArrays = { '1': _tax1_item_ary, '2': _tax2_item_ary, '3': _tax3_item_ary }
         //////////////////////////////////////////
         //應稅項目
         var _tax1_item_amount = 0
@@ -485,6 +485,7 @@ define([
         var _sales_order_number = ''
 
         var _line_index = 1
+        let notDiscountLineIndex  = 0
 
         var _existFlag = false
 
@@ -703,6 +704,14 @@ define([
 			var _gw_gui_carrier_id_2 = _result.values.custbody_gw_gui_carrier_id_2
 			//捐贈代碼
 			var _gw_gui_donation_code = _result.values.custbody_gw_gui_donation_code
+
+            //Discount假如沒有account會與前一筆資料使用相同account並扣除，會導致資料被多扣此處把他加回來
+            if (_result.values.itemtype === 'Discount' && _result.values.account.length === 0) {
+              taxArrays[_tax_type].filter(function(item) { return item.sequenceNumber === notDiscountLineIndex })[0].amount -= _amount
+              taxArrays[_tax_type].filter(function(item) { return item.sequenceNumber === notDiscountLineIndex })[0].itemTotalAmount -= _amount
+            } else {
+              notDiscountLineIndex = _line_index
+            }
 
             //取得資料-END
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////
