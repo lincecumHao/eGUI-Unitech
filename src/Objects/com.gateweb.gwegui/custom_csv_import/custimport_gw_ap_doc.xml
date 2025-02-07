@@ -47,14 +47,14 @@
             <type>NAME</type>
           </columnreference>
         </fieldmapping>
-        <fieldmapping>
-          <field>[appid=com.gateweb.gwegui, scriptid=customrecord_gw_ap_doc.custrecord_gw_ap_doc_apply_month]</field>
-          <columnreference>
-            <column>申報月</column>
-            <file>CUSTOMRECORD</file>
-            <type>NAME</type>
-          </columnreference>
-        </fieldmapping>
+<!--        <fieldmapping>-->
+<!--          <field>[appid=com.gateweb.gwegui, scriptid=customrecord_gw_ap_doc.custrecord_gw_ap_doc_apply_month]</field>-->
+<!--          <columnreference>-->
+<!--            <column>申報月</column>-->
+<!--            <file>CUSTOMRECORD</file>-->
+<!--            <type>NAME</type>-->
+<!--          </columnreference>-->
+<!--        </fieldmapping>-->
         <fieldmapping>
           <field>[appid=com.gateweb.gwegui, scriptid=customrecord_gw_ap_doc.custrecord_gw_ap_doc_apply_period]</field>
           <columnreference>
