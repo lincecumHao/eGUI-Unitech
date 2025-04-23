@@ -1170,7 +1170,7 @@ define([
         _ns_item_total_amount = -1 * _ns_item_total_amount
 
       //Discount假如沒有account會與前一筆資料使用相同account並扣除，會導致畫面顯示資料被多扣此處把他加回來
-      if (result.itemtype === 'Discount' && result.account.length === 0) {
+      if (_result.values.itemtype === 'Discount' && _result.values.account.length === 0) {
         notDiscountRowObj.amount -= _amount
         _sumSalesAmount -= _amount
         _ns_item_total_amount -= _amount
