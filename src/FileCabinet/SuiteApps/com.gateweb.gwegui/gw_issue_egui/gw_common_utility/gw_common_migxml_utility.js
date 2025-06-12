@@ -67,6 +67,9 @@ define([
         xpath: 'Invoice',
       })
 
+      if(description.length === 0) description = ' '
+      if(itemremark.length === 0) itemremark = ' '
+
       for (var i = 0; i < _migInvoiceNode.length; i++) {
         var _childNodes = _migInvoiceNode[i].childNodes
 
@@ -1203,6 +1206,11 @@ define([
       ])
 
       _mySearch.filterExpression = _filterArray
+      _mySearch.columns.push(search.createColumn({
+        name: 'custrecord_gw_item_seq',
+        join: 'custrecord_gw_voucher_main_internal_id',
+        sort: search.Sort.ASC
+      }))
 
       var _indexId = ''
       var _isFirst = true
