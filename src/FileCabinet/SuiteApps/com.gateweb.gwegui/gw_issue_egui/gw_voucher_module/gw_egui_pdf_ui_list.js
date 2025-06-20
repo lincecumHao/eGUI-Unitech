@@ -377,6 +377,14 @@ define([
       'isnot',
       'VOUCHER_UNLOCKED',
     ])
+    _filterArray.push('and')
+    _filterArray.push([
+      'name',
+      'doesnotstartwith',
+      'GWESINV',
+    ])
+    _filterArray.push('and')
+    _filterArray.push(['custrecord_gw_carrier_type', 'isempty', ''])
     _mySearch.filterExpression = _filterArray
     log.debug('UI List filterArray', JSON.stringify(_filterArray))
     ///////////////////////////////////////////////////////////////////////////////////
