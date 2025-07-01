@@ -804,6 +804,18 @@ define([
     return _tax_amount.toFixed(_numericToFixed)
   }
 
+  function getIsDiscountItemInTrx(_mySearch) {
+    let defaultInTrx = false
+    _mySearch.run().each(function (r) {
+      if (defaultInTrx) {
+        return false
+      }
+      defaultInTrx = r.getValue({ name: 'itemtype' }) === 'Discount';
+      return true;
+    });
+    return defaultInTrx
+  }
+
   function createInvoiceDetails(form, _selected_invoice_Id) {
     //處理Detail
     var sublist = form.addSublist({
@@ -1038,6 +1050,9 @@ define([
     let notDiscountRowObj = { row: 0, amount: 0 }
     ////////////////////////////////////////////////////////////
 
+    const itemsPending = {};
+    let isDiscountItemInside = getIsDiscountItemInTrx(_mySearch);
+    log.debug({ title: 'isDiscountItemInside', details: isDiscountItemInside })
     _mySearch.run().each(function (result) {
       var _result = JSON.parse(JSON.stringify(result))
 
@@ -1050,6 +1065,11 @@ define([
       _last_id = _id
 
       log.debug('result', JSON.stringify(result))
+
+      const isCombineItemChecked = result.getValue({
+        name: 'custbody_gw_not_combine_item'
+      });
+      log.debug({ title: 'isCombineItemChecked', details: isCombineItemChecked })
 
       /////////////////////////////////////////////////////////////////////////////////////////////////
       //處理零稅率資訊
@@ -1311,121 +1331,157 @@ define([
         }
         _customer_id = _entityValue
 
-        sublist.setSublistValue({
-          id: 'customer_search_invoice_id',
-          line: row,
-          value: _id
-        })
-        sublist.setSublistValue({
-          id: 'customer_search_invoice_number',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_tranid)
-        })
-        sublist.setSublistValue({
-          id: 'customer_search_invoice_seq',
-          line: row,
-          value: _linesequencenumber
-        })
-        sublist.setSublistValue({
-          id: 'customer_search_invoice_deptcode',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_department)
-        })
-        sublist.setSublistValue({
-          id: 'customer_search_invoice_class',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_class)
-        })
-
-        sublist.setSublistValue({
-          id: 'custpage_invoice_item_unit',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_unitabbreviation)
-        })
-
-        sublist.setSublistValue({
-          id: 'customer_search_invoice_discount',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_itemtype)
-        })
-
-        sublist.setSublistValue({
-          id: 'customer_search_invoice_tax_code',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_item_salestaxcodeValue)
-        })
-
+        var _tax_rate_note = null;
         if (typeof _taxObj !== 'undefined') {
-          var _tax_rate_note =
+          _tax_rate_note =
             _taxObj.voucher_property_note +
             ' - ' +
             Math.round(_item_taxItem_rate)
-          sublist.setSublistValue({
-            id: 'customer_search_invoice_tax_rate_note',
-            line: row,
-            value: stringutility.trimOrAppendBlank(_tax_rate_note)
-          })
         }
 
-        sublist.setSublistValue({
-          id: 'customer_search_invoice_tax_rate',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_item_taxItem_rate)
-        })
+        if (!isCombineItemChecked && !isDiscountItemInside) {
+          var trxId = result.getValue({ name: 'internalid' })
+          if (!itemsPending.hasOwnProperty(trxId)) {
+            itemsPending[trxId] = [];
+          }
+          itemsPending[trxId].push({
+            customer_search_invoice_id: _id,
+            customer_search_invoice_number:stringutility.trimOrAppendBlank(_tranid),
+            customer_search_invoice_seq: _linesequencenumber,
+            customer_search_invoice_deptcode:stringutility.trimOrAppendBlank(_department),
+            customer_search_invoice_class: stringutility.trimOrAppendBlank(_class),
+            custpage_invoice_item_unit: stringutility.trimOrAppendBlank(_unitabbreviation),
+            customer_search_invoice_discount: stringutility.trimOrAppendBlank(_itemtype),
+            customer_search_invoice_tax_code: stringutility.trimOrAppendBlank(_item_salestaxcodeValue),
+            customer_search_invoice_tax_rate_note: stringutility.trimOrAppendBlank(_tax_rate_note),
+            customer_search_invoice_tax_rate: stringutility.trimOrAppendBlank(_item_taxItem_rate),
+            custpage_item_name: stringutility.trimOrAppendBlank(_item_displayname),
+            custpage_unit_price: stringutility.trimOrAppendBlank(_rate),
+            custpage_item_quantity: _quantity,
+            custpage_item_amount: _amount,
+            custpage_item_remark: stringutility.trimOrAppendBlank(_item_memo),
+            custpage_invoice_item_tax_amount: _ns_item_tax_amount,
+            custpage_invoice_item_total_amount: _ns_item_total_amount,
+            custpage_invoice_total_tax_amount: _ns_total_tax_amount,
+            custpage_invoice_total_sum_amount:_ns_total_sum_amount,
+            nativeResult: result,
+            processedResult: _result
+          });
+        } else {
 
-        sublist.setSublistValue({
-          id: 'custpage_item_name',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_item_displayname)
-        })
+          sublist.setSublistValue({
+            id: 'customer_search_invoice_id',
+            line: row,
+            value: _id
+          })
+          sublist.setSublistValue({
+            id: 'customer_search_invoice_number',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_tranid)
+          })
+          sublist.setSublistValue({
+            id: 'customer_search_invoice_seq',
+            line: row,
+            value: _linesequencenumber
+          })
+          sublist.setSublistValue({
+            id: 'customer_search_invoice_deptcode',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_department)
+          })
+          sublist.setSublistValue({
+            id: 'customer_search_invoice_class',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_class)
+          })
 
-        sublist.setSublistValue({
-          id: 'custpage_unit_price',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_rate)
-        })
-        sublist.setSublistValue({
-          id: 'custpage_item_quantity',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_quantity)
-        })
-        sublist.setSublistValue({
-          id: 'custpage_item_amount',
-          line: row,
-          value: stringutility.eToNumber(_amount)
-        })
-        sublist.setSublistValue({
-          id: 'custpage_item_remark',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_item_memo)
-        })
+          sublist.setSublistValue({
+            id: 'custpage_invoice_item_unit',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_unitabbreviation)
+          })
 
-        sublist.setSublistValue({
-          id: 'custpage_invoice_item_tax_amount',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_ns_item_tax_amount)
-        })
-        sublist.setSublistValue({
-          id: 'custpage_invoice_item_total_amount',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_ns_item_total_amount)
-        })
+          sublist.setSublistValue({
+            id: 'customer_search_invoice_discount',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_itemtype)
+          })
+
+          sublist.setSublistValue({
+            id: 'customer_search_invoice_tax_code',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_item_salestaxcodeValue)
+          })
+
+          if (_item_taxItem_rate) {
+            sublist.setSublistValue({
+              id: 'customer_search_invoice_tax_rate_note',
+              line: row,
+              value: stringutility.trimOrAppendBlank(_tax_rate_note)
+            })
+          }
+
+          sublist.setSublistValue({
+            id: 'customer_search_invoice_tax_rate',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_item_taxItem_rate)
+          })
+
+          sublist.setSublistValue({
+            id: 'custpage_item_name',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_item_displayname)
+          })
+
+          sublist.setSublistValue({
+            id: 'custpage_unit_price',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_rate)
+          })
+          sublist.setSublistValue({
+            id: 'custpage_item_quantity',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_quantity)
+          })
+          sublist.setSublistValue({
+            id: 'custpage_item_amount',
+            line: row,
+            value: stringutility.eToNumber(_amount)
+          })
+          sublist.setSublistValue({
+            id: 'custpage_item_remark',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_item_memo)
+          })
+
+          sublist.setSublistValue({
+            id: 'custpage_invoice_item_tax_amount',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_ns_item_tax_amount)
+          })
+          sublist.setSublistValue({
+            id: 'custpage_invoice_item_total_amount',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_ns_item_total_amount)
+          })
+
+          sublist.setSublistValue({
+            id: 'custpage_invoice_total_tax_amount',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_ns_total_tax_amount)
+          })
+          sublist.setSublistValue({
+            id: 'custpage_invoice_total_sum_amount',
+            line: row,
+            value: stringutility.trimOrAppendBlank(_ns_total_sum_amount)
+          })
+
+          row++
+        }
 
         //NE241 含稅金額
         _sum_item_total_amount += stringutility.convertToFloat(_ns_item_total_amount)
 
-        sublist.setSublistValue({
-          id: 'custpage_invoice_total_tax_amount',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_ns_total_tax_amount)
-        })
-        sublist.setSublistValue({
-          id: 'custpage_invoice_total_sum_amount',
-          line: row,
-          value: stringutility.trimOrAppendBlank(_ns_total_sum_amount)
-        })
-
-        row++
         /////////////////////////////////////////////////////////////////////////////////////////
         //處理總計
         _sumSalesAmount += stringutility.convertToFloat(_amount)
@@ -1436,6 +1492,84 @@ define([
 
       return true
     })
+
+    // combine items
+    Object.keys(itemsPending).forEach(function (trxId, index) {
+      var items = itemsPending[trxId];
+      // loop items
+      while(items.length > 0) {
+        var item = items[0];
+        var currentItemId = item.nativeResult.getValue({name: "itemid", join: "item"});
+        log.debug({ title: 'currentItemId', details: currentItemId });
+
+        // 尋找相同 itemId 的項目
+        var matchingItems = items.filter(function(matchItem) {
+          return matchItem.nativeResult.getValue({name: "itemid", join: "item"}) === currentItemId &&
+            matchItem.custpage_unit_price === item.custpage_unit_price;
+        });
+        log.debug({ title: 'match item length', details: matchingItems.length });
+
+        var sumNumbers = {
+          custpage_item_quantity: 0,
+          custpage_item_amount: 0,
+          custpage_invoice_item_tax_amount: 0,
+          custpage_invoice_item_total_amount: 0,
+          custpage_invoice_total_tax_amount: 0,
+          custpage_invoice_total_sum_amount: 0
+        };
+        matchingItems.forEach(function(matchItem) {
+          Object.keys(matchItem).forEach(function(key) {
+            switch (key) {
+              case 'nativeResult':
+              case 'processedResult':
+                return
+              case 'custpage_item_amount':
+              case 'custpage_item_quantity':
+              case 'custpage_invoice_item_tax_amount':
+              case 'custpage_invoice_item_total_amount':
+              case 'custpage_invoice_total_tax_amount':
+              case 'custpage_invoice_total_sum_amount':
+                sumNumbers[key] += Number(matchItem[key]);
+                return;
+              default:
+                sublist.setSublistValue({
+                  id: key,
+                  line: row,
+                  value: matchItem[key]
+                });
+                return;
+            }
+          });
+          log.debug({ title: 'sumNumbers', details: sumNumbers })
+
+        });
+
+        Object.keys(sumNumbers).forEach(function(key) {
+          var value;
+          if (key === 'custpage_item_amount') {
+            value = stringutility.eToNumber(sumNumbers[key])
+          } else {
+            value = stringutility.trimOrAppendBlank(sumNumbers[key]);
+          }
+          sublist.setSublistValue({
+            id: key,
+            line: row,
+            value: value
+          });
+        });
+
+        row++;
+
+        // 從 items 陣列中移除已處理的項目
+        items = items.filter(function(remainingItem) {
+          var remainingItemId = remainingItem.nativeResult.getValue({name: "itemid", join: "item"});
+          var remainingUnitPrice = remainingItem.custpage_unit_price;
+
+          return !(remainingItemId === currentItemId && remainingUnitPrice === item.custpage_unit_price);
+        });
+      }
+    });
+
     /////////////////////////////////////////////////////////////////////////////////////////
     //紀錄客戶押金-START
     log.debug('_sales_order_id_ary', JSON.stringify(_sales_order_id_ary))

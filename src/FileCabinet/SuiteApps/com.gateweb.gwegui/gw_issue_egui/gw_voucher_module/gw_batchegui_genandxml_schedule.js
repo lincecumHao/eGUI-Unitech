@@ -424,6 +424,20 @@ define([
     return _incoiceIdjAry
   }
 
+  function getIsDiscountItemInTrx(_mySearch) {
+    let defaultInTrx = {}
+    _mySearch.run().each(function (r) {
+      var id = r.getValue({name: 'internalid'})
+      if (!defaultInTrx.hasOwnProperty(id)) {
+        defaultInTrx[id] = false;
+      }
+      if (defaultInTrx[id]) return true
+      defaultInTrx[id] = r.getValue({ name: 'itemtype' }) === 'Discount';
+      return true;
+    });
+    return defaultInTrx
+  }
+
   function getVoucherInvoiceMainAndDetails(
     mig_type,
     companyInfo,
@@ -466,6 +480,9 @@ define([
         var _tax1_item_ary = []
         var _tax2_item_ary = []
         var _tax3_item_ary = []
+        var combine_tax1_item_ary = []
+        var combine_tax2_item_ary = []
+        var combine_tax3_item_ary = []
         var _tax9_item_ary = []
         let taxArrays = { '1': _tax1_item_ary, '2': _tax2_item_ary, '3': _tax3_item_ary }
         //////////////////////////////////////////
@@ -491,8 +508,16 @@ define([
 
         var _department_value = ''
         var _class_value = ''
+
+        var isDiscountItemInTrx = getIsDiscountItemInTrx(_mySearch)
+        log.debug({ title: 'isDiscountItemInTrx', details: isDiscountItemInTrx })
+        var itemPending = [];
         _mySearch.run().each(function (result) {
           var _result = JSON.parse(JSON.stringify(result))
+          const isNotCombineItemChecked = result.getValue({
+            name: 'custbody_gw_not_combine_item'
+          });
+          log.debug({ title: 'isNotCombineItemChecked', details: isNotCombineItemChecked })
           log.debug('Invoice Detail Search Result', JSON.stringify(result))
           //1.Main Information
           var _id = _result.id //840
@@ -506,6 +531,12 @@ define([
             _account_text = _result.values.account[0].text //4000 Sales
           }
           /////////////////////////////////////////////////////////////////////////////////////
+          log.debug('Debug before condition check', {
+            mainline: _mainline,
+            itemtype: _itemtype,
+            trimmedItemtype: stringutility.trim(_itemtype)
+          });
+
           if (_mainline != '*' && stringutility.trim(_itemtype) != '') {
             _existFlag = true
             ///////////////////////////////////////////////////////////////////////////////////////////
@@ -758,6 +789,9 @@ define([
               _tax2_item_ary = []
               _tax3_item_ary = []
               _tax9_item_ary = []
+              combine_tax1_item_ary = []
+              combine_tax2_item_ary = []
+              combine_tax3_item_ary = []
               //clear amount
               _amountJsonObj = {
                 salesAmount: 0,
@@ -789,40 +823,63 @@ define([
               amount: _amount,
               itemTaxAmount: _ns_item_tax_amount,
               itemTotalAmount: _ns_item_total_amount,
-              sequenceNumber: _line_index,
+              // sequenceNumber: _line_index,
               itemRemark: _gw_item_memo,
               nsDocumentType: _ns_document_type,
               nsDocumentApplyId: _id, //reference
               nsDocumentNumber: _tranid,
               nsDocumentItemId: _item_internalid_value,
               nsDocumentItemSeq: _linesequencenumber,
+              nativeResult: result
             }
-            _line_index++
+            log.debug({title: 'isDiscountItemInTrx in id', details: {
+              id: result.getValue({name: 'internalid'}),
+              value: isDiscountItemInTrx[result.getValue({name: 'internalid'})]
+              }});
+            if(isNotCombineItemChecked || isDiscountItemInTrx[result.getValue({name: 'internalid'})]) {
+              _itemJsonObj.sequenceNumber = _line_index;
+              _line_index++
 
-            //discount 不放進來
-            if (
-               stringutility.trim(_itemtype) != '' 
-               //20210908 walter modify => 折扣項目作進Item, 不另外處理
-               //&&  stringutility.trim(_itemtype) != 'Discount'
-            ) {
-              if (_tax_type == '1') {
-                _tax1_item_ary.push(_itemJsonObj)
-              }
+              //discount 不放進來
+              if (
+                stringutility.trim(_itemtype) != ''
+                //20210908 walter modify => 折扣項目作進Item, 不另外處理
+                //&&  stringutility.trim(_itemtype) != 'Discount'
+              ) {
+                if (_tax_type == '1') {
+                  _tax1_item_ary.push(_itemJsonObj)
+                }
 
-              if (_tax_type == '2') {
-                _tax2_item_ary.push(_itemJsonObj)
-              }
+                if (_tax_type == '2') {
+                  _tax2_item_ary.push(_itemJsonObj)
+                }
 
-              if (_tax_type == '3') {
-                _tax3_item_ary.push(_itemJsonObj)
+                if (_tax_type == '3') {
+                  _tax3_item_ary.push(_itemJsonObj)
+                }
+              } else if (_itemtype == 'Discount') {
+                //20210908 walter modify => 折扣項目作進Item, 不另外處理
+                //紀錄折扣項目
+                //_discountItemJsonObj = JSON.parse(JSON.stringify(_itemJsonObj))
+                //_discountItemJsonObj.quantity = '1'
+                //_discountItemJsonObj.itemUnit = '筆'
               }
-            } else if (_itemtype == 'Discount') {
-            	//20210908 walter modify => 折扣項目作進Item, 不另外處理
-              //紀錄折扣項目
-              //_discountItemJsonObj = JSON.parse(JSON.stringify(_itemJsonObj))
-              //_discountItemJsonObj.quantity = '1'
-              //_discountItemJsonObj.itemUnit = '筆'
+            } else {
+              if (stringutility.trim(_itemtype) != '') {
+                if (_tax_type == '1') {
+                  combine_tax1_item_ary.push(_itemJsonObj)
+                }
+
+                if (_tax_type == '2') {
+                  combine_tax2_item_ary.push(_itemJsonObj)
+                }
+
+                if (_tax_type == '3') {
+                  combine_tax3_item_ary.push(_itemJsonObj)
+                }
+              }
             }
+            
 
             //MAIN Section
             _mainJsonObj = {
@@ -942,7 +999,62 @@ define([
           }
 
           return true
+        });
+
+        // Handle same sku item combine.
+        // 合併相同 itemid 的項目
+        function combineSameItems(itemArray) {
+          var itemMap = {};
+
+          for (var i = 0; i < itemArray.length; i++) {
+            var item = itemArray[i];
+            var itemKey = item.nativeResult.getValue({
+              name: 'itemid',
+              join: 'item'
+            }) + '-' + item.unitPrice;
+
+            if(!itemMap.hasOwnProperty(itemKey)) {
+              itemMap[itemKey] = item;
+            } else {
+              var existingItem = itemMap[itemKey];
+              existingItem.quantity = Number(existingItem.quantity) + Number(item.quantity);
+              existingItem.itemTaxAmount = Number(existingItem.itemTaxAmount) + Number(item.itemTaxAmount);
+              existingItem.amount = Number(existingItem.amount) + Number(item.amount);
+            }
+          }
+
+          var combinedItems = [];
+          Object.keys(itemMap).forEach(function(key) {
+            combinedItems.push(itemMap[key]);
+          })
+
+          return combinedItems;
+        }
+        
+        // 合併各稅別陣列中的相同 itemid
+        log.debug({
+          title: 'combineSameItems',
+          data: {
+            combine_tax1_item_ary: combine_tax1_item_ary,
+            combine_tax2_item_ary: combine_tax2_item_ary,
+            combine_tax3_item_ary: combine_tax3_item_ary
+          }
         })
+        if (combine_tax1_item_ary.length > 0) {
+          _mainJsonObj.tax1ItemAry.concat(
+            combineSameItems(combine_tax1_item_ary)
+          )
+        }
+        if (combine_tax2_item_ary.length > 0) {
+          _mainJsonObj.tax2ItemAry.concat(
+            combineSameItems(combine_tax2_item_ary)
+          )
+        }
+        if (combine_tax3_item_ary.length > 0) {
+          _mainJsonObj.tax3ItemAry.concat(
+            combineSameItems(combine_tax3_item_ary)
+          )
+        }
 
         if (_existFlag === true) {
           //有資料就處理
@@ -3487,116 +3599,119 @@ define([
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function executeScript(context) {
-    //removeRecord();return;
-    _allowance_pre_code = invoiceutility.getConfigureValue('ALLOWANCE_GROUP', 'ALLOWANCE_PRE_CODE')
-    _ns_item_name_field = invoiceutility.getConfigureValue('ITEM_GROUP', 'ITEM_NAME_FIELD')
-    //稅差
-    var _tax_diff_balance = stringutility.convertToFloat(
-      invoiceutility.getConfigureValue('TAX_GROUP', 'TAX_DIFF_BALANCE')
-    )
-    //20230324 預先處理
-    _egui_gw_dm_mig_type = invoiceutility.getVoucherMigType('EGUI')
-    _allowance_gw_dm_mig_type = invoiceutility.getVoucherMigType('ALLOWANCE')
+    try { //removeRecord();return;
+      _allowance_pre_code = invoiceutility.getConfigureValue('ALLOWANCE_GROUP', 'ALLOWANCE_PRE_CODE')
+      _ns_item_name_field = invoiceutility.getConfigureValue('ITEM_GROUP', 'ITEM_NAME_FIELD')
+      //稅差
+      var _tax_diff_balance = stringutility.convertToFloat(
+        invoiceutility.getConfigureValue('TAX_GROUP', 'TAX_DIFF_BALANCE')
+      )
+      //20230324 預先處理
+      _egui_gw_dm_mig_type = invoiceutility.getVoucherMigType('EGUI')
+      _allowance_gw_dm_mig_type = invoiceutility.getVoucherMigType('ALLOWANCE')
 
-    //1.載入公司資料
-    loadAllCustomerRecord()
-    //2.載入稅別資料
-    loadAllTaxInformation()
-    //2.2.載入營業人資料
-    loadAllSellerInfo()
-    //3.取得待辦項目清單
-    var _incoiceIdjAry = getVoucherSingleScheduleToDoList()
-    log.debug('get IncoiceIdjAry', JSON.stringify(_incoiceIdjAry))
-    //4.處理
-    if (_incoiceIdjAry.length != 0) {
-      //Load company information
-      /**
-      var _companyInfo = config.load({
-        type: config.Type.COMPANY_INFORMATION,
-      })
-      */
-      //2. 逐筆[批]進行
-      var _voucher_type = 'EGUI'
-      var _invoice_completed_ids_ary = []
-      for (var i = 0; i < _incoiceIdjAry.length; i++) {
-        var _obj = _incoiceIdjAry[i]
+      //1.載入公司資料
+      loadAllCustomerRecord()
+      //2.載入稅別資料
+      loadAllTaxInformation()
+      //2.2.載入營業人資料
+      loadAllSellerInfo()
+      //3.取得待辦項目清單
+      var _incoiceIdjAry = getVoucherSingleScheduleToDoList()
+      log.debug('get IncoiceIdjAry', JSON.stringify(_incoiceIdjAry))
+      //4.處理
+      if (_incoiceIdjAry.length != 0) {
+        //Load company information
+        /**
+         var _companyInfo = config.load({
+         type: config.Type.COMPANY_INFORMATION,
+         })
+         */
+          //2. 逐筆[批]進行
+        var _voucher_type = 'EGUI'
+        var _invoice_completed_ids_ary = []
+        for (var i = 0; i < _incoiceIdjAry.length; i++) {
+          var _obj = _incoiceIdjAry[i]
 
-        //賣方統編
-        var _seller = _obj.seller
-        var _internalid = _obj.internalid
-        var _invoice_type = _obj.invoiceType
-        var _mig_type = _obj.migType
-        var _open_type = _obj.openType
-        var _apply_dept_code = _obj.applyDeptCode
-        var _apply_class = _obj.applyClass
-        var _invoice_apply_ids = _obj.applyId //放ToDo IDs List
-        var _invoice_apply_ary = _invoice_apply_ids.split(',')
-        var _need_upload_mig = _obj.needUploadMig //ALL, EGUI, ALLOWANCE, NONE
-        var _apply_user_id = _obj.applyUserId
+          //賣方統編
+          var _seller = _obj.seller
+          var _internalid = _obj.internalid
+          var _invoice_type = _obj.invoiceType
+          var _mig_type = _obj.migType
+          var _open_type = _obj.openType
+          var _apply_dept_code = _obj.applyDeptCode
+          var _apply_class = _obj.applyClass
+          var _invoice_apply_ids = _obj.applyId //放ToDo IDs List
+          var _invoice_apply_ary = _invoice_apply_ids.split(',')
+          var _need_upload_mig = _obj.needUploadMig //ALL, EGUI, ALLOWANCE, NONE
+          var _apply_user_id = _obj.applyUserId
 
-        //2.1. 處理發票
-        //取得公司資料
-        var _companyInfo = getSellerInfoByBusinessNo(_seller)
-        
-        //2.1.1. 整理發票資料
-        var _invoiceObjAry = getVoucherInvoiceMainAndDetails(
-          _mig_type,
-          _companyInfo,
-          _invoice_apply_ary
-        )
-        //2.1.2. 存檔=>Main+Details
-        var _historyInvoiceObjAry = []
-        _voucher_type = 'EGUI'
-        _invoice_completed_ids_ary = saveBatchVouchers(
-          _open_type,
-          _voucher_type,
-          _invoice_type,
-          _mig_type,
-          _apply_dept_code,
-          _apply_class,
-          _internalid,
-          _invoiceObjAry,
-          _historyInvoiceObjAry,
-          _need_upload_mig,
-          _tax_diff_balance,
-          _apply_user_id
-        )
-        log.debug('historyInvoiceObjAry', JSON.stringify(_historyInvoiceObjAry))
+          //2.1. 處理發票
+          //取得公司資料
+          var _companyInfo = getSellerInfoByBusinessNo(_seller)
 
-        log.debug('open_type', _open_type)
-        if (
-          _open_type == 'SINGLE-EGUIANDALLOWANCE-SCHEDULE' &&
-          _historyInvoiceObjAry.length != 0
-        ) {
-          //2.2. 處理折讓單
-          //2.1.1. 整理折讓單資料
-          var _creditMemoObjAry = getVoucherCreditMemoMainAndDetails(
+          //2.1.1. 整理發票資料
+          var _invoiceObjAry = getVoucherInvoiceMainAndDetails(
             _mig_type,
             _companyInfo,
             _invoice_apply_ary
           )
+          //2.1.2. 存檔=>Main+Details
+          var _historyInvoiceObjAry = []
+          _voucher_type = 'EGUI'
+          _invoice_completed_ids_ary = saveBatchVouchers(
+            _open_type,
+            _voucher_type,
+            _invoice_type,
+            _mig_type,
+            _apply_dept_code,
+            _apply_class,
+            _internalid,
+            _invoiceObjAry,
+            _historyInvoiceObjAry,
+            _need_upload_mig,
+            _tax_diff_balance,
+            _apply_user_id
+          )
+          log.debug('historyInvoiceObjAry', JSON.stringify(_historyInvoiceObjAry))
 
-          if (_creditMemoObjAry.length != 0) {
-            _voucher_type = 'ALLOWANCE'
-            saveBatchVouchers(
-              _open_type,
-              _voucher_type,
-              _invoice_type,
+          log.debug('open_type', _open_type)
+          if (
+            _open_type == 'SINGLE-EGUIANDALLOWANCE-SCHEDULE' &&
+            _historyInvoiceObjAry.length != 0
+          ) {
+            //2.2. 處理折讓單
+            //2.1.1. 整理折讓單資料
+            var _creditMemoObjAry = getVoucherCreditMemoMainAndDetails(
               _mig_type,
-              _apply_dept_code,
-              _apply_class,
-              _internalid,
-              _creditMemoObjAry,
-              _historyInvoiceObjAry,
-              _need_upload_mig,
-              _tax_diff_balance,
-              _apply_user_id
+              _companyInfo,
+              _invoice_apply_ary
             )
+
+            if (_creditMemoObjAry.length != 0) {
+              _voucher_type = 'ALLOWANCE'
+              saveBatchVouchers(
+                _open_type,
+                _voucher_type,
+                _invoice_type,
+                _mig_type,
+                _apply_dept_code,
+                _apply_class,
+                _internalid,
+                _creditMemoObjAry,
+                _historyInvoiceObjAry,
+                _need_upload_mig,
+                _tax_diff_balance,
+                _apply_user_id
+              )
+            }
           }
+          //3. close task 6點
+          closeNSScheduleTask(_internalid, _invoice_completed_ids_ary)
         }
-        //3. close task 6點
-        closeNSScheduleTask(_internalid, _invoice_completed_ids_ary)
       }
+    } catch (e) {
+      log.error({title: 'e', details: e});
     }
   }
 

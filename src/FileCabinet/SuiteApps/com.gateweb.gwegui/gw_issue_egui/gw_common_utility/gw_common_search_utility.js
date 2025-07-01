@@ -228,7 +228,8 @@ define(['N/format', 'N/search'], function (format, search) {
 	  var invoiceSearchObj = search.create({
 	   type: "transaction",
 	   columns:
-	   [     
+	   [
+			 "internalid",
 		  "ordertype",
 		  "mainline",
 		  "trandate",
@@ -274,6 +275,10 @@ define(['N/format', 'N/search'], function (format, search) {
 		  }), 
 		  search.createColumn({
 			 name: "itemid",
+			 join: "item"
+		  }),
+		  search.createColumn({
+			 name: "itemid",
 			 join: "taxItem"
 		  }), 
 		  search.createColumn({
@@ -312,6 +317,7 @@ define(['N/format', 'N/search'], function (format, search) {
 		  "custbody_gw_customs_export_date",
 		  "custbody_gw_egui_clearance_mark",
 		  "custbody_gw_applicable_zero_tax",
+		  "custbody_gw_not_combine_item",
 		  "item",
 		  "custbody_gw_gui_carrier_type",
 		  "custbody_gw_gui_carrier_id_1",
