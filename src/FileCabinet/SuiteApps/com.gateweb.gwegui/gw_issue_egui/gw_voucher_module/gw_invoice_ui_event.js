@@ -1766,7 +1766,8 @@ define([
           //forward to egui View
           var _params = {
             voucher_type: 'EGUI',
-            voucher_internal_id: _forward_voucher_main_id
+            voucher_internal_id: _forward_voucher_main_id,
+            voucherApplyId: _applyId
           }
 
           window.location = url.resolveScript({
@@ -5702,50 +5703,88 @@ define([
     })
 
     var _invoce_control_field_value = gwconfigure.lockInvoceControlFieldId()
-    if (typeof _invoice_hiddent_listid !== 'undefined') {
-      var _idAry = _invoice_hiddent_listid.split(',')
-      for (var i = 0; i < _idAry.length; i++) {
-        var _internalId = _idAry[i]
-        if (parseInt(_internalId) > 0) {
-          try {
-            var values = {}
-            values[_invoce_control_field_id] = _invoce_control_field_value
+    _invoice_hiddent_listid?.split(',').forEach(function (id) {
+      if (id <= 0) return
+      try {
+        var values = {}
+        values[_invoce_control_field_id] = _invoce_control_field_value
 
-            if (
-              typeof guiNumberAry !== 'undefined' &&
-              guiNumberAry.length != 0
-            ) {
-              var _egui_start_no = guiNumberAry[0]
-              var _egui_end_no = guiNumberAry[guiNumberAry.length - 1]
-              values[_gw_gui_num_start_field] = _egui_start_no
-              values[_gw_gui_num_end_field] = _egui_end_no
-            }
-            if (
-              typeof allowanceNumberAry !== 'undefined' &&
-              allowanceNumberAry.length != 0
-            ) {
-              var _allowance_start_no = allowanceNumberAry[0]
-              var _allowance_end_no =
-                allowanceNumberAry[allowanceNumberAry.length - 1]
-              values[_gw_allowance_num_start_field] = _allowance_start_no
-              values[_gw_allowance_num_end_field] = _allowance_end_no
-            }
-
-            var _id = record.submitFields({
-              type: record.Type.INVOICE,
-              id: parseInt(_internalId),
-              values: values,
-              options: {
-                enableSourcing: false,
-                ignoreMandatoryFields: true
-              }
-            })
-          } catch (e) {
-            console.log(e.name + ':' + e.message)
-          }
+        if (typeof guiNumberAry !== 'undefined' && guiNumberAry.length != 0) {
+          var _egui_start_no = guiNumberAry[0]
+          var _egui_end_no = guiNumberAry[guiNumberAry.length - 1]
+          values[_gw_gui_num_start_field] = _egui_start_no
+          values[_gw_gui_num_end_field] = _egui_end_no
         }
+        if (
+          typeof allowanceNumberAry !== 'undefined' &&
+          allowanceNumberAry.length != 0
+        ) {
+          var _allowance_start_no = allowanceNumberAry[0]
+          var _allowance_end_no =
+            allowanceNumberAry[allowanceNumberAry.length - 1]
+          values[_gw_allowance_num_start_field] = _allowance_start_no
+          values[_gw_allowance_num_end_field] = _allowance_end_no
+        }
+
+        record.submitFields({
+          type: record.Type.INVOICE,
+          id: id,
+          values: values,
+          options: {
+            enableSourcing: false,
+            ignoreMandatoryFields: true
+          }
+        })
+      } catch (e) {
+        console.error(e);
+        log.error({title: 'updateInvoiceAndCreditMemoFlowStatus', details: e})
+        debugger;
       }
-    }
+    })
+    // if (typeof _invoice_hiddent_listid !== 'undefined') {
+    //   var _idAry = _invoice_hiddent_listid.split(',')
+    //   for (var i = 0; i < _idAry.length; i++) {
+    //     var _internalId = _idAry[i]
+    //     if (parseInt(_internalId) > 0) {
+    //       try {
+    //         var values = {}
+    //         values[_invoce_control_field_id] = _invoce_control_field_value
+    //
+    //         if (
+    //           typeof guiNumberAry !== 'undefined' &&
+    //           guiNumberAry.length != 0
+    //         ) {
+    //           var _egui_start_no = guiNumberAry[0]
+    //           var _egui_end_no = guiNumberAry[guiNumberAry.length - 1]
+    //           values[_gw_gui_num_start_field] = _egui_start_no
+    //           values[_gw_gui_num_end_field] = _egui_end_no
+    //         }
+    //         if (
+    //           typeof allowanceNumberAry !== 'undefined' &&
+    //           allowanceNumberAry.length != 0
+    //         ) {
+    //           var _allowance_start_no = allowanceNumberAry[0]
+    //           var _allowance_end_no =
+    //             allowanceNumberAry[allowanceNumberAry.length - 1]
+    //           values[_gw_allowance_num_start_field] = _allowance_start_no
+    //           values[_gw_allowance_num_end_field] = _allowance_end_no
+    //         }
+    //
+    //         var _id = record.submitFields({
+    //           type: record.Type.INVOICE,
+    //           id: parseInt(_internalId),
+    //           values: values,
+    //           options: {
+    //             enableSourcing: false,
+    //             ignoreMandatoryFields: true
+    //           }
+    //         })
+    //       } catch (e) {
+    //         console.log(e.name + ':' + e.message)
+    //       }
+    //     }
+    //   }
+    // }
     //////////////////////////////////////////////////////////////////////////////////////////////
     //處理折讓單
     var _creditmemo_hiddent_listid = _current_record.getValue({
