@@ -203,7 +203,7 @@ define([
     var _gw_need_upload_egui_mig = _voucher_record.getValue({
       fieldId: 'custrecord_gw_need_upload_egui_mig',
     })
-    
+
     if (_voucher_upload_status=='C' && _gw_need_upload_egui_mig=='NONE' && _is_gw_voucher_format_35_code =='35'){
     	_voucher_upload_status_desc = invoiceutility.getUploadStatusDesc('EU')
     }else if (_is_gw_voucher_format_35_code !='35'){
@@ -275,8 +275,8 @@ define([
       label: '客戶代碼',
       source: 'CUSTOMER',
       container: 'row01_fieldgroupid',
-    }) 
- 
+    })
+
     _customer_id.updateBreakType({
       breakType: serverWidget.FieldBreakType.STARTCOL,
     })
@@ -362,13 +362,13 @@ define([
 		 var _carry_json_obj = _all_carry_types[i]
 		 var _carry_text = _carry_json_obj.text
 		 var _carry_value = _carry_json_obj.value
-		 
+
 		 _carrier_type.addSelectOption({
 		      value: _carry_value,
 		      text: _carry_text,
-	     }) 
-	} 
-    ///////////////////////////////////////////////////////////////////////////////////////// 
+	     })
+	}
+    /////////////////////////////////////////////////////////////////////////////////////////
     _carrier_type.updateBreakType({
       breakType: serverWidget.FieldBreakType.STARTCOL,
     })
@@ -394,7 +394,7 @@ define([
     })
     _carrier_id_2.defaultValue = _voucher_record.getValue({
       fieldId: 'custrecord_gw_carrierid2',
-    }) 
+    })
     //捐贈碼
     var _npo_ban_field = form.addField({
       id: 'custpage_npo_ban',
@@ -613,11 +613,15 @@ define([
     })
     _total_balance_tax_amount.defaultValue = _balance_tax_amount
     ///////////////////////////////////////////////////////////////////////////////////
-    
+
     return _voucher_record
   } //End Function
 
-  //發票明細
+  function getDocumentTypeListKey(type, id) {
+    return type + '_' + id;
+  }
+
+//發票明細
   function searchEGUIDetails(form, _selected_voucher_internal_id) {
 	var _document_list_ary = []
     //處理Detail
@@ -728,22 +732,22 @@ define([
       var _item_amount = _result.values.custrecord_gw_item_amount
       var _item_remark = _result.values.custrecord_gw_item_remark
       var _item_tax_rate = _result.values.custrecord_gw_dtl_item_tax_rate
-      
+
       //////////////////////////////////////////////////////////////////////////////////////////
-      var _ns_document_type = _result.values.custrecord_gw_ns_document_type       
+      var _ns_document_type = _result.values.custrecord_gw_ns_document_type
       var _ns_document_apply_id = -1
       if (_result.values.custrecord_gw_ns_document_apply_id.length != 0) {
-    	  _ns_document_apply_id = _result.values.custrecord_gw_ns_document_apply_id[0].value 
+    	  _ns_document_apply_id = _result.values.custrecord_gw_ns_document_apply_id[0].value
       }
-      
-      var _ns_document_type_id = _ns_document_type+'_'+_ns_document_apply_id
+
+      var _ns_document_type_id = getDocumentTypeListKey(_ns_document_type, _ns_document_apply_id)
       if (_document_list_ary.toString().indexOf(_ns_document_type_id) ==-1) {
-          _document_list_ary.push(_ns_document_type_id) 
+          _document_list_ary.push(_ns_document_type_id)
       }
       //////////////////////////////////////////////////////////////////////////////////////////
       //NE-355
       if (_item_amount<0)_unit_price=-1*_unit_price
-      
+
       sublist.setSublistValue({
         id: 'customer_search_internal_id',
         line: row,
@@ -795,7 +799,9 @@ define([
 
       return true
     })
-    ///////////////////////////////////////////////////////////////////////////////////////// 
+    /////////////////////////////////////////////////////////////////////////////////////////
+
+    // override document list array
     return _document_list_ary
   }
 
@@ -992,7 +998,7 @@ define([
     _mySearch.run().each(function (result) {
       var _result = JSON.parse(JSON.stringify(result))
       log.debug('searchUploadLogDetails result', JSON.stringify(result))
-   
+
       var _upload_voucher_date =
         _result.values.custrecord_gw_upload_voucher_date
       var _upload_voucher_time =
@@ -1072,7 +1078,7 @@ define([
   }
 
   //NS-Document明細
-  function searchNetsuiteDocumentList(form, _selected_voucher_internal_id) {
+  function searchNetsuiteDocumentList(form, _selected_voucher_internal_id, voucherApplyId) {
     //處理Detail
     var sublist = form.addSublist({
       id: 'nsdocumentsublistid',
@@ -1095,6 +1101,35 @@ define([
       label: '文件編號',
       type: serverWidget.FieldType.TEXT,
     })
+
+    if (voucherApplyId) {
+      getDocumentListArray(voucherApplyId, true)
+        .forEach((key, line) => {
+          log.debug({title: 'line key', details: key});
+          const [type, id, docNumber] = key.split('_')
+          sublist.setSublistValue({
+            id: 'custpage_document_view',
+            line,
+            value: url.resolveRecord({
+              recordType: type,
+              recordId: id,
+              isEditMode: false
+            })
+          })
+          ///////////////////////////////////////////////////////////////////
+          sublist.setSublistValue({
+            id: 'custpage_document_type',
+            line,
+            value: stringutility.trimOrAppendBlank(type)
+          })
+          sublist.setSublistValue({
+            id: 'custpage_document_number',
+            line,
+            value: stringutility.trimOrAppendBlank(docNumber)
+          })
+        });
+      return;
+    }
 
     //1.處理 Voucher Detail Items
     var _mySearch = search.create({
@@ -1126,12 +1161,12 @@ define([
       log.debug('searchNetsuiteDocumentList result', JSON.stringify(result))
 
       var _ns_document_type = _result.values.custrecord_gw_ns_document_type
-      //20210514 walter modify _ns_document_apply_id 
+      //20210514 walter modify _ns_document_apply_id
       var _ns_document_apply_id = -1;
       if (_result.values.custrecord_gw_ns_document_apply_id.length != 0) {
-    	  _ns_document_apply_id = _result.values.custrecord_gw_ns_document_apply_id[0].value //529           
+    	  _ns_document_apply_id = _result.values.custrecord_gw_ns_document_apply_id[0].value //529
       }
-      
+
       var _ns_document_number = _result.values.custrecord_gw_ns_document_number
       ///////////////////////////////////////////////////////////////////
       if (_index_ns_document_number.indexOf(_ns_document_number) == -1) {
@@ -1195,7 +1230,7 @@ define([
     //NE-338
     if(_need_upload_egui_mig=='RETRIEVE'){
        _voucher_upload_status_desc = invoiceutility.getUploadStatusDesc('RT')
-    } 
+    }
 
     return _voucher_status_desc + ':' + _voucher_upload_status_desc
   }
@@ -1229,6 +1264,42 @@ define([
       log.debug(e.name, e.message)
     }
     return _xmlString
+  }
+
+  function getDocumentListArray(voucherApplyId, shouldContainDocNumber) {
+    var applyList = search.lookupFields({
+      type: "customrecord_gw_voucher_apply_list",
+      id: voucherApplyId,
+      columns: ["custrecord_gw_invoice_apply_list"]
+    })?.['custrecord_gw_invoice_apply_list'];
+
+    var trxIds = applyList?.split(',').filter(function(id) {
+      return id > 0
+    });
+
+    var transactionSearchObj = search.create({
+      type: "transaction",
+      filters: [
+          ["internalid","anyof"].concat(trxIds),
+          "AND",
+          ["mainline","is","T"]
+        ],
+      columns: ["internalid", "recordtype", 'tranid']
+    });
+
+    var documentList = [];
+    transactionSearchObj.run().each(function(result){
+      var id = result.getValue({ name: "internalid" });
+      var type = result.getValue({ name: "recordtype" });
+      var key = getDocumentTypeListKey(type, id)
+      if(shouldContainDocNumber) {
+        key += '_' + result.getValue({ name: "tranid" });
+      }
+      documentList.push(key);
+      return true;
+    });
+
+    return documentList;
   }
 
   function onRequest(context) {
@@ -1291,13 +1362,17 @@ define([
     //發票明細
     var _document_list_ary = searchEGUIDetails(form, _selected_voucher_internal_id)
     //同步資料
+    if(context.request.parameters.voucherApplyId) {
+      _document_list_ary = getDocumentListArray(context.request.parameters.voucherApplyId)
+      log.debug({ title: '_document_list_ary', details: _document_list_ary })
+    }
     synceguidocument.syncEguiInfoToNetsuiteDoc(_voucher_main_record, _document_list_ary)
     //上傳紀錄
     searchUploadLogDetails(form, _selected_voucher_internal_id)
     //折讓單明細
     searchAllowanceDetails(form, _selected_voucher_internal_id)
     //NS-文件清單
-    searchNetsuiteDocumentList(form, _selected_voucher_internal_id)
+    searchNetsuiteDocumentList(form, _selected_voucher_internal_id, context.request.parameters.voucherApplyId)
     ////////////////////////////////////////////////////////////////////////////////////////////
     //做畫面-END
     ///////////////////////////////////////////////////////////////////////////////////////////
