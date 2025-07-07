@@ -37,7 +37,7 @@ define([
   var _numericToFixed = gwconfigure.getGwNumericToFixed() //小數點位數
   var _invoiceActionScriptId = gwconfigure.getGwInvoiceActionScriptId()
   var _invoiceActionDeploymentId = gwconfigure.getGwInvoiceActionDeploymentId()
- 
+
   var _gw_voucher_properties = gwconfigure.getGwVoucherProperties() //設定檔
 
   var _customer_deposit_text = '顧客押金'
@@ -126,7 +126,7 @@ define([
   //取得稅別資料
   function getTaxInformation(netsuiteId) {
     return _taxObjAry.filter(function (_obj) {
-		var _tax_code_value=_obj.netsuite_id_value  
+		var _tax_code_value=_obj.netsuite_id_value
       return _tax_code_value.indexOf(netsuiteId) != -1
     })[0]
     // var _taxObj
@@ -980,10 +980,10 @@ define([
     //1.處理 Invoice Detail Items
     var _selectDepartment = ''
     var _selectClassification = ''
-    
+
    	var _searObj = {}
-   	var _mySearch = searchUtility.getSelectedInvoiceObj(_selected_invoice_Id) 
-  
+   	var _mySearch = searchUtility.getSelectedInvoiceObj(_selected_invoice_Id)
+
     ////////////////////////////////////////////////////////////////////////////////////////
     var row = 0
     //客戶代碼
@@ -1050,7 +1050,7 @@ define([
     let notDiscountRowObj = { row: 0, amount: 0 }
     ////////////////////////////////////////////////////////////
 
-    const itemsPending = {};
+    const itemsPendingCombine= [];
     let isDiscountItemInside = getIsDiscountItemInTrx(_mySearch);
     log.debug({ title: 'isDiscountItemInside', details: isDiscountItemInside })
     _mySearch.run().each(function (result) {
@@ -1066,10 +1066,10 @@ define([
 
       log.debug('result', JSON.stringify(result))
 
-      const isCombineItemChecked = result.getValue({
+      const isNotCombineChecked = result.getValue({
         name: 'custbody_gw_not_combine_item'
       });
-      log.debug({ title: 'isCombineItemChecked', details: isCombineItemChecked })
+      log.debug({ title: 'isCombineItemChecked', details: isNotCombineChecked })
 
       /////////////////////////////////////////////////////////////////////////////////////////////////
       //處理零稅率資訊
@@ -1222,7 +1222,7 @@ define([
       /**
       if (_ns_item_name_field == 'item.displayname') {
     	  //公司項目編號不能顯示在電子發票
-          _item_displayname = _prodcut_text + _item_displayname           
+          _item_displayname = _prodcut_text + _item_displayname
       }
       */
       //if (stringutility.trim(_memo) != '') _item_displayname = _memo
@@ -1245,7 +1245,7 @@ define([
 
         //抓稅別資料
         _taxObj = getTaxInformation(_item_salestaxcodeValue)
-    
+
         if (typeof _taxObj !== 'undefined') {
           if (_taxObj.voucher_property_value == '2') _hasZeroTax = true //零稅率
 
@@ -1339,12 +1339,9 @@ define([
             Math.round(_item_taxItem_rate)
         }
 
-        if (!isCombineItemChecked && !isDiscountItemInside) {
-          var trxId = result.getValue({ name: 'internalid' })
-          if (!itemsPending.hasOwnProperty(trxId)) {
-            itemsPending[trxId] = [];
-          }
-          itemsPending[trxId].push({
+        if (!isNotCombineChecked && !isDiscountItemInside) {
+          log.debug({title: '_quantity in push array', details: _quantity});
+          itemsPendingCombine.push({
             customer_search_invoice_id: _id,
             customer_search_invoice_number:stringutility.trimOrAppendBlank(_tranid),
             customer_search_invoice_seq: _linesequencenumber,
@@ -1494,81 +1491,73 @@ define([
     })
 
     // combine items
-    Object.keys(itemsPending).forEach(function (trxId, index) {
-      var items = itemsPending[trxId];
-      // loop items
-      while(items.length > 0) {
-        var item = items[0];
-        var currentItemId = item.nativeResult.getValue({name: "itemid", join: "item"});
-        log.debug({ title: 'currentItemId', details: currentItemId });
-
-        // 尋找相同 itemId 的項目
-        var matchingItems = items.filter(function(matchItem) {
-          return matchItem.nativeResult.getValue({name: "itemid", join: "item"}) === currentItemId &&
-            matchItem.custpage_unit_price === item.custpage_unit_price;
-        });
-        log.debug({ title: 'match item length', details: matchingItems.length });
-
-        var sumNumbers = {
-          custpage_item_quantity: 0,
-          custpage_item_amount: 0,
-          custpage_invoice_item_tax_amount: 0,
-          custpage_invoice_item_total_amount: 0,
-          custpage_invoice_total_tax_amount: 0,
-          custpage_invoice_total_sum_amount: 0
-        };
-        matchingItems.forEach(function(matchItem) {
-          Object.keys(matchItem).forEach(function(key) {
-            switch (key) {
-              case 'nativeResult':
-              case 'processedResult':
-                return
-              case 'custpage_item_amount':
-              case 'custpage_item_quantity':
-              case 'custpage_invoice_item_tax_amount':
-              case 'custpage_invoice_item_total_amount':
-              case 'custpage_invoice_total_tax_amount':
-              case 'custpage_invoice_total_sum_amount':
-                sumNumbers[key] += Number(matchItem[key]);
-                return;
-              default:
-                sublist.setSublistValue({
-                  id: key,
-                  line: row,
-                  value: matchItem[key]
-                });
-                return;
-            }
-          });
-          log.debug({ title: 'sumNumbers', details: sumNumbers })
-
-        });
-
-        Object.keys(sumNumbers).forEach(function(key) {
-          var value;
-          if (key === 'custpage_item_amount') {
-            value = stringutility.eToNumber(sumNumbers[key])
-          } else {
-            value = stringutility.trimOrAppendBlank(sumNumbers[key]);
-          }
-          sublist.setSublistValue({
-            id: key,
-            line: row,
-            value: value
-          });
-        });
-
-        row++;
-
-        // 從 items 陣列中移除已處理的項目
-        items = items.filter(function(remainingItem) {
-          var remainingItemId = remainingItem.nativeResult.getValue({name: "itemid", join: "item"});
-          var remainingUnitPrice = remainingItem.custpage_unit_price;
-
-          return !(remainingItemId === currentItemId && remainingUnitPrice === item.custpage_unit_price);
-        });
+    var combineItems = {};
+    log.debug({title: 'itemsPendingCombine length', details: itemsPendingCombine.length});
+    itemsPendingCombine.forEach(function (item) {
+      var key = item.nativeResult.getValue({name: "itemid", join: "item"}) + '-' + item.custpage_unit_price;
+      if (!combineItems.hasOwnProperty(key)) {
+        combineItems[key] = item;
+        return;
       }
+      Object.keys(item).forEach(function (itemKey) {
+        switch (itemKey) {
+          case 'custpage_item_amount':
+          case 'custpage_item_quantity':
+          case 'custpage_invoice_item_tax_amount':
+          case 'custpage_invoice_item_total_amount':
+          case 'custpage_invoice_total_tax_amount':
+          case 'custpage_invoice_total_sum_amount':
+            combineItems[key][itemKey] = Number(combineItems[key][itemKey]) + Number(item[itemKey]);
+            return;
+          default:
+            return;
+        }
+      })
     });
+
+    Object.keys(combineItems).forEach(function (key) {
+      var item = combineItems[key];
+      Object.keys(item).forEach(function(itemKey) {
+        switch (itemKey) {
+          case 'nativeResult':
+          case 'processedResult':
+            return;
+          case 'customer_search_invoice_seq':
+            sublist.setSublistValue({
+              id: itemKey,
+              line: row,
+              value: row + 1
+            });
+            return;
+          case 'custpage_item_amount':
+            sublist.setSublistValue({
+              id: itemKey,
+              line: row,
+              value: stringutility.eToNumber(item[itemKey])
+            });
+            return;
+          case 'custpage_item_quantity':
+          case 'custpage_invoice_item_tax_amount':
+          case 'custpage_invoice_item_total_amount':
+          case 'custpage_invoice_total_tax_amount':
+          case 'custpage_invoice_total_sum_amount':
+            sublist.setSublistValue({
+              id: itemKey,
+              line: row,
+              value: stringutility.trimOrAppendBlank(item[itemKey])
+            });
+            return;
+          default:
+            sublist.setSublistValue({
+              id: itemKey,
+              line: row,
+              value: item[itemKey]
+            });
+            return;
+        }
+      });
+      row++;
+    })
 
     /////////////////////////////////////////////////////////////////////////////////////////
     //紀錄客戶押金-START
@@ -1732,7 +1721,7 @@ define([
     })
     _custpage_tax_type.defaultValue = _ns_tax_type_code
     log.debug('ns_tax_type_code', _ns_tax_type_code)
-    
+
     var _custpage_tax_rate = form.getField({
       id: 'custpage_tax_rate'
     })
@@ -1740,8 +1729,8 @@ define([
     	_custpage_tax_rate.defaultValue = '5'
     } else {
     	_custpage_tax_rate.defaultValue = '0'
-    } 
-    
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////////////////
     //處理總計計部分-START
     var _sales_amount_field = form.getField({
@@ -2193,9 +2182,9 @@ define([
     var _selectDepartment = ''
     var _selectClassification = ''
 
-    var _searObj ={}	
-   	var _mySearch = searchUtility.getSelectedCreditMemoObj(_selected_creditmemo_Id) 
-    	 
+    var _searObj ={}
+   	var _mySearch = searchUtility.getSelectedCreditMemoObj(_selected_creditmemo_Id)
+
     var row = 0
     //客戶代碼
     var _customer_id = 0
@@ -2688,15 +2677,15 @@ define([
       id: 'custpage_tax_type'
     })
     _custpage_tax_type.defaultValue = _ns_tax_type_code
-    
+
     var _custpage_tax_rate = form.getField({
         id: 'custpage_tax_rate'
-    })      
+    })
     if (_ns_tax_type_code=='1' || _ns_tax_type_code=='9'){
     	_custpage_tax_rate.defaultValue = '5'
     } else {
     	_custpage_tax_rate.defaultValue = '0'
-    } 
+    }
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     var _sales_amount_field = form.getField({
       id: 'custpage_sales_amount'
