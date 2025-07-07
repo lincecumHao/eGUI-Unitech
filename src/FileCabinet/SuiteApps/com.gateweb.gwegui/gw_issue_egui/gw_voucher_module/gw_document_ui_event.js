@@ -181,6 +181,22 @@ define([
     return _entityId
   }
 
+  function isInvoicesContainDiscountItem(_invoiceIdAry) {
+    if(!_invoiceIdAry || _invoiceIdAry.length === 0) {return false;}
+    const transactionSearchObj = search.create({
+      type: "transaction",
+      filters: [
+          ["internalid","anyof"].concat(_invoiceIdAry),
+          "AND",
+          ["mainline","is","F"],
+          "AND",
+          ["item.type","anyof","Discount"]
+        ],
+      columns: ["item", 'internalid']
+    });
+    return transactionSearchObj.runPaged().count > 0;
+  }
+
   //檢查客戶代碼不可重複 MANUAL_TASK or BATCH_TASK
   function validate(task) {
     var _jsonResult
@@ -391,6 +407,12 @@ define([
             _checkFlag = false
             _error_message = '金額為0不需開立!'
           }
+        }
+        
+        // Check if selected Invoice contain discount.
+        if(_checkFlag && task === 'MANUAL_TASK' && isInvoicesContainDiscountItem(_invoiceIdAry)) {
+          _checkFlag = false;
+          _error_message = '所選的Invoice包含Discount Item'
         }
       }
       console.log(
