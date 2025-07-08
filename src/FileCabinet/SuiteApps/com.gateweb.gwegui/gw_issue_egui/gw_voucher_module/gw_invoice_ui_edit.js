@@ -816,7 +816,17 @@ define([
     return defaultInTrx
   }
 
-  function createInvoiceDetails(form, _selected_invoice_Id) {
+  function getIsCreditMemoSelected(selectedCreditMemoIds) {
+    if (selectedCreditMemoIds != null) {
+      var _idAry = selectedCreditMemoIds.split(',')
+      if (_idAry.length > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function createInvoiceDetails(form, _selected_invoice_Id, _selected_creditmemo_Id) {
     //處理Detail
     var sublist = form.addSublist({
       id: 'invoicesublistid',
@@ -1052,6 +1062,7 @@ define([
 
     const itemsPendingCombine= [];
     let isDiscountItemInside = getIsDiscountItemInTrx(_mySearch);
+    let isCreditMemoSelected = getIsCreditMemoSelected(_selected_creditmemo_Id);
     log.debug({ title: 'isDiscountItemInside', details: isDiscountItemInside })
     _mySearch.run().each(function (result) {
       var _result = JSON.parse(JSON.stringify(result))
@@ -1339,7 +1350,7 @@ define([
             Math.round(_item_taxItem_rate)
         }
 
-        if (!isNotCombineChecked && !isDiscountItemInside) {
+        if (!isNotCombineChecked && !isDiscountItemInside && !isCreditMemoSelected) {
           log.debug({title: '_quantity in push array', details: _quantity});
           itemsPendingCombine.push({
             customer_search_invoice_id: _id,
@@ -2821,7 +2832,7 @@ define([
     if (_selected_invoice_Id != null) {
       var _idAry = _selected_invoice_Id.split(',')
       if (_idAry.length > 1) {
-        createInvoiceDetails(form, _selected_invoice_Id)
+        createInvoiceDetails(form, _selected_invoice_Id, _selected_creditmemo_Id)
       }
     }
     if (_selected_creditmemo_Id != null) {
