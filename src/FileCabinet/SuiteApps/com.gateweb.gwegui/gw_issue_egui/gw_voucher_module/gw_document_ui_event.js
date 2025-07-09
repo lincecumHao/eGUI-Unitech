@@ -410,7 +410,7 @@ define([
         }
         
         // Check if selected Invoice contain discount.
-        if(_checkFlag && task === 'MANUAL_TASK' && isInvoicesContainDiscountItem(_invoiceIdAry)) {
+        if(_checkFlag && task === 'MANUAL_TASK' && isInvoicesContainDiscountItem(_invoiceIdAry) && _creditMemoAry.length === 1) {
           _checkFlag = false;
           _error_message = '所選的Invoice包含Discount Item'
         }
