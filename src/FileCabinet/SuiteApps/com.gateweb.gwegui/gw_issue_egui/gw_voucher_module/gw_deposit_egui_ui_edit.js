@@ -62,8 +62,14 @@ define([
   ///////////////////////////////////////////////////////////////////////////////////////////
   //取得客戶資料
   function getCustomerInformation(customer_id) {
+    var customerType = search.lookupFields({ type: search.Type.CUSTOMER, id: customer_id, columns: 'recordtype' })?.recordtype;
+    log.debug({ title: 'customerType', details: { customerType: customerType , id: customer_id} });
+    if(!customerType) {
+      throw `No Customer type found for ${customer_id}, Please contact Inzaghi Admin.`;
+    }
+
     var _customerRecord = record.load({
-      type: record.Type.CUSTOMER,
+      type: customerType,
       id: customer_id,
       isDynamic: true,
     })
