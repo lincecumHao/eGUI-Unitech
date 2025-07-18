@@ -10,6 +10,7 @@ define([
   'N/search',
   'N/url',
   'N/file',
+  'N/runtime',
   '../gw_common_utility/gw_common_invoice_utility',
   '../gw_common_utility/gw_common_date_utility',
   '../gw_common_utility/gw_common_string_utility',
@@ -24,6 +25,7 @@ define([
   search,
   url,
   file,
+  runtime,
   invoiceutility,
   dateutility,
   stringutility,
@@ -1321,6 +1323,9 @@ define([
       displayType: serverWidget.FieldDisplayType.HIDDEN,
     })
     _hidden_voucher_internal_id.defaultValue = _selected_voucher_internal_id
+
+    var scriptObj = runtime.getCurrentScript();
+    log.audit('Remaining governance units: ' + scriptObj.getRemainingUsage());
 
     form.clientScriptModulePath = './gw_voucherview_ui_event.js'
     context.response.writePage(form)

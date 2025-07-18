@@ -42,7 +42,7 @@ define(['N/record',
     } 
   }
   
-  function syncToNetsuiteDocument(voucher_main_record, document_type, document_internal_id) { 
+  function syncToNetsuiteDocument(voucher_main_record, document_type, document_internal_id) {
 	log.audit({
 		title: 'syncToNetsuiteDocument - params',
 		details: {
@@ -66,15 +66,15 @@ define(['N/record',
         }
         //NE_404
     	if (_record_type_id != '') {
-	    	var _document_record = record.load({
-	    	      type: _record_type_id,
-	    	      id: document_internal_id,
-	    	      isDynamic: true,
-	    	})
-	    	
-	    	var _gw_gui_format   = _document_record.getValue({fieldId: 'custbody_gw_gui_format'}) 
-	    	var _gw_gui_tax_type = _document_record.getValue({fieldId: 'custbody_gw_gui_tax_type'}) 
-	    	log.debug('syncToNetsuiteDocument format', 'record_type_id='+_record_type_id+',gw_gui_format='+_gw_gui_format+',gw_gui_tax_type='+_gw_gui_tax_type)
+	    	// var _document_record = record.load({
+	    	//       type: _record_type_id,
+	    	//       id: document_internal_id,
+	    	//       isDynamic: true,
+	    	// })
+	    	//
+	    	// var _gw_gui_format   = _document_record.getValue({fieldId: 'custbody_gw_gui_format'})
+	    	// var _gw_gui_tax_type = _document_record.getValue({fieldId: 'custbody_gw_gui_tax_type'})
+	    	// log.debug('syncToNetsuiteDocument format', 'record_type_id='+_record_type_id+',gw_gui_format='+_gw_gui_format+',gw_gui_tax_type='+_gw_gui_tax_type)
 	    	
 	    	//有資料就不再更新
 	        //if (_gw_gui_format.trim().length==0 && _gw_gui_tax_type.trim().length==0 && _record_type_id.length !=0) {
@@ -103,7 +103,7 @@ define(['N/record',
 			    //稅率  
 			    values['custbody_gw_gui_tax_rate'] = voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_rate'})	
 			    //課稅別  
-			    values['custbody_gw_gui_tax_type'] = getTaxTypeIdByValue(voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_type'}))	
+			    values['custbody_gw_gui_tax_type'] = getTaxTypeIdByValue(voucher_main_record.getValue({fieldId: 'custrecord_gw_tax_type'}))
 		 
 			    //總計
 			    values['custbody_gw_gui_total_amt'] = _gui_total_amt
@@ -181,7 +181,7 @@ define(['N/record',
 	 return new Date(_year,_month,_day) 
   }	
   
-  function getGwEvidenceStatus(gw_voucher_status, voucher_upload_status, need_upload_egui_mig) {   	
+  function getGwEvidenceStatus(gw_voucher_status, voucher_upload_status, need_upload_egui_mig) {
 	var _gw_evidence_status_id = -1
 	
 	  log.debug('getGwEvidenceStatus', 'gw_voucher_status='+gw_voucher_status+',voucher_upload_status='+voucher_upload_status+',need_upload_egui_mig='+need_upload_egui_mig)
@@ -352,36 +352,46 @@ define(['N/record',
     } 
   }
   
-  
-  function getCustomClearanceMarkByValue(clearance_mark) {  	
+  var CUSTOM_CLEARANCE_MARK = {};
+  function getCustomClearanceMarkByValue(clearance_mark) {
 	  log.debug('getCustomClearanceMarkByValue', 'clearance_mark='+clearance_mark)
 	  var _internal_id=-1
-	  try { 
+	  try {
+			if (CUSTOM_CLEARANCE_MARK[clearance_mark]) {
+				return CUSTOM_CLEARANCE_MARK[clearance_mark]
+			}
 		  var _search = search.create({
 		      type: 'customrecord_gw_ap_doc_custom_option',
 		      columns: [
+		        search.createColumn({ name: 'id' }),
 		        search.createColumn({ name: 'custrecord_gw_ap_doc_custom_value' }),
-		        search.createColumn({ name: 'custrecord_gw_ap_doc_custom_text' }) 
+		        search.createColumn({ name: 'custrecord_gw_ap_doc_custom_text' })
 		      ]
 		  })
-		  
-		  var _filter_array = [] 
-    	  _filter_array.push(['custrecord_gw_ap_doc_custom_value', search.Operator.EQUALTO, parseInt(clearance_mark)]) 
-  		  _search.filterExpression = _filter_array
-  		  log.debug('CustomClearanceMarkByValue', '_filter_array='+JSON.stringify(_filter_array))
-  		  _search.run().each(function(result) {	
-  			  _internal_id=result.id
-  			  var _gw_ap_doc_custom_value = result.getValue({
-  		          name: 'custrecord_gw_ap_doc_custom_value'
-  		      })
-  		      var _ap_doc_custom_text = result.getValue({
-  		          name: 'custrecord_gw_ap_doc_custom_text'
-  		      })
-  		        
-  			  log.debug('CustomClearanceMarkByValue _internal_id', '_internal_id='+_internal_id)
-  			
-  			  return true
-		  })	   
+
+			_search.run().each(function(result) {
+				var key = result.getValue({ name: 'custrecord_gw_ap_doc_custom_value' })
+				CUSTOM_CLEARANCE_MARK[key] = result.getValue({ name: 'id' })
+			})
+			_internal_id = CUSTOM_CLEARANCE_MARK[clearance_mark];
+
+		  // var _filter_array = []
+    	//   _filter_array.push(['custrecord_gw_ap_doc_custom_value', search.Operator.EQUALTO, parseInt(clearance_mark)])
+  		//   _search.filterExpression = _filter_array
+  		//   log.debug('CustomClearanceMarkByValue', '_filter_array='+JSON.stringify(_filter_array))
+  		//   _search.run().each(function(result) {
+  		// 	  _internal_id=result.id
+  		// 	  var _gw_ap_doc_custom_value = result.getValue({
+  		//           name: 'custrecord_gw_ap_doc_custom_value'
+  		//       })
+  		//       var _ap_doc_custom_text = result.getValue({
+  		//           name: 'custrecord_gw_ap_doc_custom_text'
+  		//       })
+  		//
+  		// 	  log.debug('CustomClearanceMarkByValue _internal_id', '_internal_id='+_internal_id)
+  		//
+  		// 	  return true
+		  // })
  
     } catch (e) {
         log.error(e.name, e.message)
@@ -389,27 +399,39 @@ define(['N/record',
     log.debug('getCustomClearanceMarkByValue', '_internal_id='+_internal_id)
     return _internal_id
   }
-  
+
+	var TAX_TYPE_MAP = {};
   function getTaxTypeIdByValue(value) {  	
 	  log.debug('getTaxTypeIdByValue', 'value='+value)
 	  var _internal_id=-1
-	  try { 
+	  try {
+			if (TAX_TYPE_MAP[value]) {
+				return TAX_TYPE_MAP[value]
+			}
 		  var _search = search.create({
 		      type: 'customrecord_gw_ap_doc_tax_type_option',
+				filters: [["isinactive","is","F"]],
 		      columns: [
+						search.createColumn({name: "id", label: "ID"}),
 		        search.createColumn({ name: 'custrecord_gw_ap_doc_tax_type_value' }),
 		        search.createColumn({ name: 'custrecord_gw_ap_doc_tax_type_text' }) 
 		      ]
-		  })
-		  
-		  var _filter_array = [] 
-    	  _filter_array.push(['custrecord_gw_ap_doc_tax_type_value', search.Operator.EQUALTO, parseInt(value)]) 
-  		  _search.filterExpression = _filter_array
-  		  log.debug('getTaxTypeIdByValue', '_filter_array='+JSON.stringify(_filter_array))
-  		  _search.run().each(function(result) {	
-  			  _internal_id=result.id 
-  			  return true
-		  })	   
+		  });
+
+			_search.run().each(function(result) {
+				var key = result.getValue({ name: 'custrecord_gw_ap_doc_tax_type_value' })
+				TAX_TYPE_MAP[key] = result.getValue({ name: 'id' })
+			})
+			_internal_id = TAX_TYPE_MAP[value];
+
+		  // var _filter_array = []
+    	//   _filter_array.push(['custrecord_gw_ap_doc_tax_type_value', search.Operator.EQUALTO, parseInt(value)])
+  		//   _search.filterExpression = _filter_array
+  		//   log.debug('getTaxTypeIdByValue', '_filter_array='+JSON.stringify(_filter_array))
+  		//   _search.run().each(function(result) {
+  		// 	  _internal_id=result.id
+  		// 	  return true
+		  // })
  
     } catch (e) {
         log.error(e.name, e.message)
